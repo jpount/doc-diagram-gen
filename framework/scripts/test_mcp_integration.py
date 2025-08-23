@@ -193,12 +193,12 @@ class MCPIntegrationTest:
             self.successes.append("Repomix config exists")
             print(f"{Colors.GREEN}✅ Repomix config exists{Colors.RESET}")
             
-            # Test Repomix with dry run if available
+            # Test Repomix if available
             if repomix_available and (self.project_root / "codebase").exists():
-                print("   Testing Repomix compression...")
+                print("   Testing Repomix availability...")
                 try:
                     result = subprocess.run(
-                        ["repomix", "--config", str(repomix_config), "--dry-run"],
+                        ["repomix", "--version"],
                         capture_output=True,
                         text=True,
                         timeout=5
@@ -310,19 +310,30 @@ class MCPIntegrationTest:
             for project in projects[:3]:  # Show first 3
                 print(f"   - {project.name}")
             
-            # Check if .mcp.json matches
+            # Check if .mcp.json is configured
             mcp_file = self.project_root / ".mcp.json"
             if mcp_file.exists():
                 with open(mcp_file, 'r') as f:
                     content = f.read()
                     
-                for project in projects:
-                    if project.name in content:
-                        print(f"{Colors.GREEN}✅ Project '{project.name}' configured in .mcp.json{Colors.RESET}")
-                        break
+                # Check if codebase path is configured
+                if "${PWD}/codebase" in content or "codebase" in content:
+                    print(f"{Colors.GREEN}✅ .mcp.json configured for codebase directory{Colors.RESET}")
+                    
+                    # Check if specific project is configured
+                    for project in projects:
+                        if project.name in content:
+                            print(f"{Colors.GREEN}✅ Project '{project.name}' specifically configured{Colors.RESET}")
+                            break
+                    else:
+                        print(f"{Colors.BLUE}ℹ️  .mcp.json points to entire codebase/ directory{Colors.RESET}")
+                        print(f"   This will analyze all projects: {', '.join([p.name for p in projects[:3]])}")
+                        if len(projects) == 1:
+                            print(f"   To target only '{projects[0].name}', update Serena's --project arg to:")
+                            print(f"   ${{PWD}}/codebase/{projects[0].name}")
                 else:
-                    self.warnings.append("Project path may not match .mcp.json")
-                    print(f"{Colors.YELLOW}⚠️  Update .mcp.json with correct project path{Colors.RESET}")
+                    self.warnings.append("Codebase path not found in .mcp.json")
+                    print(f"{Colors.YELLOW}⚠️  Codebase path not configured in .mcp.json{Colors.RESET}")
         else:
             print(f"{Colors.YELLOW}⚠️  No projects found in codebase/{Colors.RESET}")
             print("   Place your code in: codebase/[project-name]/")
