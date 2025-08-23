@@ -1,0 +1,223 @@
+# MCP Orchestration Configuration
+# Defines which MCPs to use and their optimal usage patterns
+
+# MCP Priority and Usage Configuration
+mcps:
+  repomix:
+    enabled: true
+    priority: 1
+    description: "AI-optimized codebase packaging and compression"
+    installation: |
+      npm install -g repomix
+      # Or use Docker: docker run -v $(pwd):/app repomix/repomix
+    use_for:
+      - initial_packaging
+      - token_optimization
+      - security_prescan
+      - file_metrics
+    configuration:
+      config_file: ".repomix.config.json"
+      output_format: "markdown"
+      compression: true
+      token_limit: 100000
+    token_savings: "80%"
+    
+  serena:
+    enabled: true
+    priority: 2
+    description: "Semantic code search and symbol analysis"
+    installation: |
+      # Configure in Claude Code MCP settings
+      # Add serena to enabledMcpjsonServers
+    use_for:
+      - semantic_search
+      - symbol_analysis
+      - memory_management
+      - cross_agent_sharing
+    configuration:
+      auto_activate: true
+      onboarding: true
+      memory_enabled: true
+    token_savings: "60%"
+    
+  sourcegraph:
+    enabled: false  # Optional - requires setup
+    priority: 3
+    description: "Advanced code search and intelligence"
+    installation: |
+      # Install Sourcegraph CLI
+      brew install sourcegraph/src/src-cli
+      # Or download from: https://github.com/sourcegraph/src-cli
+      # Configure endpoint: src config set endpoint https://sourcegraph.com
+    use_for:
+      - cross_repo_search
+      - dependency_analysis
+      - code_intelligence
+      - pattern_matching
+    configuration:
+      endpoint: "https://sourcegraph.com"
+      auth_required: true
+      index_local: true
+    token_savings: "40%"
+    
+  ast_explorer:
+    enabled: false  # Optional - if available
+    priority: 4
+    description: "Abstract Syntax Tree analysis"
+    installation: |
+      # AST Explorer MCP if available
+      # Or use online: https://astexplorer.net/
+    use_for:
+      - pattern_detection
+      - refactoring_analysis
+      - complexity_metrics
+      - code_transformation
+    configuration:
+      languages:
+        - javascript
+        - typescript
+        - java
+        - python
+        - csharp
+    token_savings: "30%"
+
+# Optimization Strategies by Project Size
+optimization_strategies:
+  small:
+    description: "< 10,000 lines of code"
+    recommended_mcps:
+      - serena
+    optional_mcps:
+      - repomix
+    strategy: |
+      - Use Serena for all searches
+      - Native tools for simple patterns
+      - Skip compression for small codebases
+      
+  medium:
+    description: "10,000 - 100,000 lines of code"
+    recommended_mcps:
+      - repomix
+      - serena
+    optional_mcps:
+      - sourcegraph
+    strategy: |
+      - Start with Repomix compression
+      - Use Serena for targeted analysis
+      - Sourcegraph for complex patterns
+      
+  large:
+    description: "100,000 - 1,000,000 lines of code"
+    recommended_mcps:
+      - repomix
+      - serena
+      - sourcegraph
+    optional_mcps:
+      - ast_explorer
+    strategy: |
+      - Mandatory Repomix compression
+      - Serena for all symbol searches
+      - Sourcegraph for cross-file analysis
+      - AST Explorer for refactoring
+      
+  enterprise:
+    description: "> 1,000,000 lines of code"
+    recommended_mcps:
+      - repomix
+      - serena
+      - sourcegraph
+      - ast_explorer
+    strategy: |
+      - All MCPs required
+      - Batch processing mandatory
+      - Incremental analysis approach
+      - Cache all MCP results
+
+# Workflow Integration
+workflow_phases:
+  phase_0_5:
+    name: "MCP Pre-Analysis"
+    mcps_used:
+      - repomix
+      - serena
+    outputs:
+      - compressed_summary
+      - security_prescan
+      - token_metrics
+      
+  phase_1:
+    name: "Archaeological Analysis"
+    mcps_used:
+      - serena
+      - sourcegraph
+    approach: "Use cached Repomix summary"
+    
+  phase_2:
+    name: "Business Logic Analysis"
+    mcps_used:
+      - serena
+      - ast_explorer
+    approach: "Semantic search for business patterns"
+    
+  phase_3:
+    name: "Performance Analysis"
+    mcps_used:
+      - serena
+      - sourcegraph
+    approach: "Pattern matching for bottlenecks"
+    
+  phase_4:
+    name: "Security Analysis"
+    mcps_used:
+      - repomix  # Secretlint integration
+      - sourcegraph
+    approach: "Vulnerability pattern detection"
+
+# Fallback Strategies
+fallback:
+  if_repomix_unavailable:
+    - "Use native file reading with batching"
+    - "Implement manual compression"
+    - "Increase focus on critical paths only"
+    
+  if_serena_unavailable:
+    - "Use Grep for pattern matching"
+    - "Use Glob for file discovery"
+    - "Implement manual caching"
+    
+  if_sourcegraph_unavailable:
+    - "Use Grep with complex regex"
+    - "Implement custom cross-file search"
+    - "Manual dependency tracking"
+    
+  if_ast_unavailable:
+    - "Use regex for pattern detection"
+    - "Manual complexity calculation"
+    - "Skip advanced refactoring analysis"
+
+# Performance Metrics
+expected_improvements:
+  token_usage:
+    without_mcps: "500,000 tokens"
+    with_serena: "200,000 tokens (60% reduction)"
+    with_repomix_serena: "50,000 tokens (90% reduction)"
+    with_all_mcps: "30,000 tokens (94% reduction)"
+    
+  analysis_time:
+    without_mcps: "2-3 hours"
+    with_mcps: "30-45 minutes"
+    
+  accuracy:
+    without_mcps: "70-80%"
+    with_mcps: "95-99%"
+
+# Cache Configuration
+caching:
+  enabled: true
+  cache_directory: ".mcp-cache"
+  ttl_hours: 24
+  cache_items:
+    - repomix_summaries
+    - serena_symbols
+    - sourcegraph_results
+    - ast_trees

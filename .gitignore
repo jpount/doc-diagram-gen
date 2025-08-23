@@ -1,0 +1,54 @@
+# Generated files and outputs
+output/
+TARGET_TECH_STACK.md
+
+# Cache directories
+.mcp-cache/
+*.cache
+.cache/
+
+# User codebases (sensitive/proprietary)
+codebase/*
+!codebase/.gitkeep
+
+# Logs
+logs/
+*.log
+
+# Environment and local configs
+.env
+.env.local
+*.local
+
+# Node modules (if using npm tools)
+node_modules/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.mcp-test/
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Keep framework structure
+!framework/
+!.claude/

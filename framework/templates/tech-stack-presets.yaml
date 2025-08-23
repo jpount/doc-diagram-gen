@@ -1,0 +1,165 @@
+# Technology Stack Presets
+# Quick configurations for common modernization scenarios
+
+presets:
+  cloud-native-java:
+    name: "Cloud Native Java/Spring Boot"
+    description: "Modern microservices with Spring Boot and Angular"
+    architecture: "Microservices"
+    frontend:
+      framework: "Angular 17+"
+      state: "NgRx"
+      ui: "Angular Material"
+    backend:
+      language: "Java 17+"
+      framework: "Spring Boot 3.x"
+      api: "REST"
+    data:
+      primary: "PostgreSQL 15+"
+      cache: "Redis"
+      search: "Elasticsearch"
+    messaging:
+      broker: "Apache Kafka"
+      pattern: "Event Streaming"
+    cloud:
+      provider: "AWS"
+      container: "Kubernetes (EKS)"
+    
+  microsoft-enterprise:
+    name: "Microsoft Enterprise Stack"
+    description: "Full Microsoft stack with Azure"
+    architecture: "Modular Monolith"
+    frontend:
+      framework: "Blazor"
+      state: "Built-in"
+      ui: "MudBlazor"
+    backend:
+      language: "C# (.NET 8)"
+      framework: "ASP.NET Core"
+      api: "REST with OData"
+    data:
+      primary: "SQL Server 2022"
+      cache: "Redis"
+      nosql: "Cosmos DB"
+    messaging:
+      broker: "Azure Service Bus"
+      pattern: "Queue"
+    cloud:
+      provider: "Azure"
+      container: "Kubernetes (AKS)"
+    
+  modern-nodejs:
+    name: "Modern Node.js Microservices"
+    description: "Lightweight microservices with Node.js"
+    architecture: "Microservices"
+    frontend:
+      framework: "React 18+"
+      state: "Zustand"
+      ui: "Tailwind UI"
+    backend:
+      language: "Node.js"
+      framework: "Express/Fastify"
+      api: "GraphQL"
+    data:
+      primary: "PostgreSQL 15+"
+      cache: "Redis"
+      nosql: "MongoDB"
+    messaging:
+      broker: "RabbitMQ"
+      pattern: "Pub/Sub"
+    cloud:
+      provider: "AWS"
+      container: "ECS/Fargate"
+    
+  serverless-aws:
+    name: "AWS Serverless"
+    description: "Serverless architecture on AWS"
+    architecture: "Serverless"
+    frontend:
+      framework: "Next.js"
+      state: "React Context"
+      ui: "Tailwind CSS"
+    backend:
+      language: "Node.js/Python"
+      framework: "AWS Lambda"
+      api: "API Gateway + GraphQL"
+    data:
+      primary: "Aurora Serverless"
+      cache: "ElastiCache"
+      nosql: "DynamoDB"
+    messaging:
+      broker: "AWS EventBridge"
+      pattern: "Event-Driven"
+    cloud:
+      provider: "AWS"
+      container: "Lambda + Fargate"
+    
+  kubernetes-native:
+    name: "Kubernetes Native"
+    description: "Cloud-agnostic Kubernetes deployment"
+    architecture: "Microservices"
+    frontend:
+      framework: "Vue 3+"
+      state: "Pinia"
+      ui: "Vuetify"
+    backend:
+      language: "Go"
+      framework: "Gin"
+      api: "gRPC + REST"
+    data:
+      primary: "PostgreSQL"
+      cache: "Redis"
+      search: "OpenSearch"
+    messaging:
+      broker: "NATS"
+      pattern: "Event Streaming"
+    cloud:
+      provider: "Multi-cloud"
+      container: "Kubernetes"
+    
+  legacy-modernization:
+    name: "Legacy Modernization"
+    description: "Gradual migration from monolith"
+    architecture: "Strangler Fig Pattern"
+    frontend:
+      framework: "Angular (gradual from JSF/JSP)"
+      state: "NgRx"
+      ui: "PrimeNG"
+    backend:
+      language: "Java 17+"
+      framework: "Spring Boot (from EJB)"
+      api: "REST (from SOAP)"
+    data:
+      primary: "PostgreSQL (from Oracle)"
+      cache: "Redis"
+      search: "Elasticsearch"
+    messaging:
+      broker: "Kafka (from JMS)"
+      pattern: "Mixed"
+    cloud:
+      provider: "Hybrid (On-prem to Cloud)"
+      container: "Kubernetes"
+
+# Quick selection guide
+selection_guide:
+  by_team_size:
+    small: ["modern-nodejs", "serverless-aws"]
+    medium: ["cloud-native-java", "kubernetes-native"]
+    large: ["microsoft-enterprise", "legacy-modernization"]
+  
+  by_complexity:
+    simple: ["serverless-aws", "modern-nodejs"]
+    moderate: ["cloud-native-java", "microsoft-enterprise"]
+    complex: ["kubernetes-native", "legacy-modernization"]
+  
+  by_cloud_preference:
+    aws: ["cloud-native-java", "serverless-aws", "modern-nodejs"]
+    azure: ["microsoft-enterprise"]
+    multi_cloud: ["kubernetes-native"]
+    hybrid: ["legacy-modernization"]
+  
+  by_existing_skills:
+    java: ["cloud-native-java", "legacy-modernization"]
+    dotnet: ["microsoft-enterprise"]
+    javascript: ["modern-nodejs", "serverless-aws"]
+    mixed: ["kubernetes-native"]
