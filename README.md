@@ -321,8 +321,11 @@ python framework/scripts/test_mcp_integration.py
 # Install if missing
 npm install -g repomix
 
-# Generate repomix summary (when ready)
-repomix --config .repomix.config.json
+# Generate repomix summary for your codebase only
+repomix --config .repomix.config.json codebase/
+
+# Or for a specific project
+repomix --config .repomix.config.json codebase/daytrader/
 ```
 
 ### Path Issues

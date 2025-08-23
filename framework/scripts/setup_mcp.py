@@ -384,7 +384,7 @@ class MCPSetup:
         print(f"\n{Colors.GREEN}Setup complete!{Colors.RESET}")
         print(f"\nNext steps:")
         print(f"1. Place your code in: codebase/[project-name]/")
-        print(f"2. Run: {Colors.BLUE}repomix --config .repomix.config.json{Colors.RESET}")
+        print(f"2. Run: {Colors.BLUE}repomix --config .repomix.config.json codebase/{Colors.RESET}")
         print(f"3. Start analysis in Claude Code with @mcp-orchestrator")
     
     def run(self):

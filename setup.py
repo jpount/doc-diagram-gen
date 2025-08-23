@@ -451,7 +451,10 @@ class FrameworkSetup:
             print("   python3 framework/scripts/test_mcp_integration.py")
         
         print("3. Generate Repomix summary (optional but recommended):")
-        print("   repomix --config .repomix.config.json")
+        if self.project_name:
+            print(f"   repomix --config .repomix.config.json codebase/{self.project_name}/")
+        else:
+            print("   repomix --config .repomix.config.json codebase/")
         
         print("4. Start analysis in Claude Code:")
         print("   - Use @serena to activate the project")

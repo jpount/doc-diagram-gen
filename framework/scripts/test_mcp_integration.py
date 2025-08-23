@@ -395,7 +395,7 @@ class MCPIntegrationTest:
         else:
             print(f"\n{Colors.GREEN}✅ MCP integration properly configured!{Colors.RESET}")
             print("\nYou can now:")
-            print("1. Run: repomix --config .repomix.config.json")
+            print("1. Run: repomix --config .repomix.config.json codebase/")
             print("2. Use @mcp-orchestrator in Claude Code")
             print("3. Access Serena with @serena commands")
         

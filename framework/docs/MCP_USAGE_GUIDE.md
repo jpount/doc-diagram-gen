@@ -187,8 +187,8 @@ graph TD
 
 #### 1. Always Start with Repomix
 ```bash
-# Generate compressed summary first
-repomix --config .repomix.config.json
+# Generate compressed summary first (only analyze codebase)
+repomix --config .repomix.config.json codebase/
 
 # This reduces initial load by 80%
 ```
@@ -339,14 +339,14 @@ Solutions:
 ```bash
 # Pre-generate all caches before analysis
 ./setup-mcp.sh
-repomix --config .repomix.config.json
+repomix --config .repomix.config.json codebase/
 @serena onboarding
 ```
 
 #### Parallel MCP Execution
 ```bash
 # Run MCPs in parallel where possible
-repomix --config .repomix.config.json &
+repomix --config .repomix.config.json codebase/ &
 src index . &
 wait
 ```
