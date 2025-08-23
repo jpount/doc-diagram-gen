@@ -262,3 +262,108 @@ Before completing analysis:
 - Risk assessment data
 
 Always prioritize discovering the complete technology landscape and hidden dependencies that could impact modernization efforts. Your analysis forms the foundation for all subsequent analysis phases.
+
+## Dual Output Strategy (Context Summary + Full Analysis)
+
+### Write Context Summary for Efficient Agent Communication
+```python
+import json
+from datetime import datetime
+
+# Prepare lightweight context summary for next agents
+context_summary = {
+    "agent": "legacy-code-detective",
+    "timestamp": datetime.now().isoformat(),
+    "token_usage": {
+        "input": 28500,  # Track actual usage
+        "output": 8200,
+        "total": 36700
+    },
+    "summary": {
+        "key_findings": [
+            "Java 1.7 with Spring 3.2 - significant technical debt",
+            "55 security vulnerabilities identified",
+            "Complex JNDI/reflection usage creating hidden dependencies"
+        ],
+        "priority_items": [
+            "Critical: Hardcoded passwords in ConnectionManager.java",
+            "High: SQL injection vulnerabilities in 3 modules",
+            "High: Outdated Log4j version with known CVEs"
+        ],
+        "warnings": [
+            "Configuration-driven behavior may have undocumented dependencies",
+            "23 deprecated APIs still in use"
+        ],
+        "recommendations_for_next": {
+            "business-logic-analyst": [
+                "Focus on OrderService.java - core business logic",
+                "Check ValidationUtils for business rules",
+                "Review workflow packages for process logic"
+            ],
+            "security-analyst": [
+                "Prioritize authentication/authorization modules",
+                "Review all cryptography implementations",
+                "Check for PII exposure in logs"
+            ],
+            "performance-analyst": [
+                "Investigate DatabaseConnectionPool sizing",
+                "Check for synchronous blocking in REST APIs",
+                "Review batch job performance"
+            ]
+        }
+    },
+    "data": {
+        "technology_stack": {
+            "primary_language": "Java 1.7",
+            "frameworks": ["Spring 3.2", "Hibernate 4.2", "JSF 2.1"],
+            "build_system": "Maven 3.0",
+            "app_server": "WebSphere 8.5"
+        },
+        "critical_files": [
+            {"path": "src/main/java/com/app/OrderService.java", "reason": "Core business logic"},
+            {"path": "src/main/resources/application.properties", "reason": "Configuration"},
+            {"path": "pom.xml", "reason": "Dependencies and vulnerabilities"}
+        ],
+        "metrics": {
+            "total_files": 456,
+            "total_lines": 125000,
+            "test_coverage": "23%",
+            "cyclomatic_complexity_avg": 12.5,
+            "technical_debt_score": 7.5
+        }
+    }
+}
+
+# Write to file for resilience (survives MCP failures)
+Write("output/context/legacy-code-detective-summary.json", json.dumps(context_summary, indent=2))
+
+# Also write to Serena memory for fast access
+try:
+    mcp__serena__write_memory("legacy_detective_context", context_summary)
+    # Keep existing memory writes for backward compatibility
+    mcp__serena__write_memory("technology_stack", context_summary["data"]["technology_stack"])
+    mcp__serena__write_memory("critical_issues", {
+        "security_vulnerabilities": 55,
+        "performance_bottlenecks": 12,
+        "technical_debt_score": 7.5
+    })
+except:
+    print("Note: Serena MCP unavailable, using file-based context only")
+```
+
+### Token Budget Management
+Monitor and stay within allocated token budget:
+```python
+# Check project size and get token budget
+project_size = "medium"  # Determined from initial analysis
+token_budgets = {
+    "small": 30000,
+    "medium": 50000,
+    "large": 75000
+}
+my_budget = token_budgets.get(project_size, 50000)
+
+# Track usage throughout analysis
+if context_summary["token_usage"]["total"] > my_budget:
+    print(f"WARNING: Exceeded token budget by {context_summary['token_usage']['total'] - my_budget} tokens")
+```

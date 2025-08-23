@@ -82,13 +82,26 @@ class AgentOrchestrator:
         self.framework_dir = self.script_dir.parent
         self.project_root = self.framework_dir.parent
         self.agents_dir = self.project_root / ".claude" / "agents"
+        self.context_dir = self.project_root / "output" / "context"
         
         # Enable colors
         Colors.enable_windows()
         
+        # Check analysis mode
+        self.analysis_mode = self.get_analysis_mode()
+        
+        # Check documentation mode
+        self.documentation_mode = self.get_documentation_mode()
+        
         # Define agent workflow
         self.agents = self.initialize_agents()
         self.workflow_phases = list(AnalysisPhase)
+        
+        # Filter agents based on analysis mode
+        self.filter_agents_by_mode()
+        
+        # Initialize context management
+        self.context_summaries = {}
         
     def initialize_agents(self) -> Dict[str, Agent]:
         """Initialize all available agents with their metadata"""
@@ -195,11 +208,129 @@ class AgentOrchestrator:
         
         return agents
     
+    def get_analysis_mode(self) -> str:
+        """Get the configured analysis mode"""
+        analysis_mode_file = self.project_root / "ANALYSIS_MODE.md"
+        
+        # Default to documentation only
+        mode = "DOCUMENTATION_ONLY"
+        
+        if analysis_mode_file.exists():
+            try:
+                with open(analysis_mode_file, 'r') as f:
+                    content = f.read()
+                    if "DOCUMENTATION_WITH_MODERNIZATION" in content:
+                        mode = "DOCUMENTATION_WITH_MODERNIZATION"
+                    elif "FULL_MODERNIZATION_ASSISTED" in content:
+                        mode = "FULL_MODERNIZATION_ASSISTED"
+                    elif "DOCUMENTATION_ONLY" in content:
+                        mode = "DOCUMENTATION_ONLY"
+            except Exception as e:
+                print(f"{Colors.YELLOW}Warning: Could not read ANALYSIS_MODE.md: {e}{Colors.RESET}")
+        
+        return mode
+    
+    def filter_agents_by_mode(self):
+        """Filter available agents based on analysis mode"""
+        if self.analysis_mode == "DOCUMENTATION_ONLY":
+            # Remove modernization-related agents
+            modernization_agents = [
+                "modernization-architect",
+                "angular-architect"
+            ]
+            
+            for agent_name in modernization_agents:
+                if agent_name in self.agents:
+                    del self.agents[agent_name]
+            
+            # Update documentation specialist dependencies
+            if "documentation-specialist" in self.agents:
+                # Remove modernization-architect from dependencies
+                doc_agent = self.agents["documentation-specialist"]
+                doc_agent.dependencies = [
+                    dep for dep in doc_agent.dependencies 
+                    if dep != "modernization-architect"
+                ]
+                # Add other analysis agents as dependencies
+                if "security-analyst" not in doc_agent.dependencies:
+                    doc_agent.dependencies.append("security-analyst")
+                if "performance-analyst" not in doc_agent.dependencies:
+                    doc_agent.dependencies.append("performance-analyst")
+            
+            # Remove setup's TARGET_TECH_STACK.md output
+            if "setup" in self.agents:
+                setup_agent = self.agents["setup"]
+                setup_agent.outputs = [
+                    output for output in setup_agent.outputs 
+                    if "TARGET_TECH_STACK" not in output
+                ]
+        
+        elif self.analysis_mode in ["DOCUMENTATION_WITH_MODERNIZATION", "FULL_MODERNIZATION_ASSISTED"]:
+            # All agents are available, no filtering needed
+            pass
+    
+    def get_documentation_mode(self) -> str:
+        """Get the configured documentation mode"""
+        doc_mode_file = self.project_root / "DOCUMENTATION_MODE.md"
+        
+        # Default to guided mode (best balance)
+        mode = "GUIDED"
+        
+        if doc_mode_file.exists():
+            try:
+                with open(doc_mode_file, 'r') as f:
+                    content = f.read()
+                    if "QUICK" in content:
+                        mode = "QUICK"
+                    elif "TEMPLATE" in content:
+                        mode = "TEMPLATE"
+                    elif "GUIDED" in content:
+                        mode = "GUIDED"
+            except Exception as e:
+                print(f"{Colors.YELLOW}Warning: Could not read DOCUMENTATION_MODE.md: {e}{Colors.RESET}")
+        
+        return mode
+    
+    def load_context_summary(self, agent_name: str) -> Optional[Dict]:
+        """Load context summary from a previous agent"""
+        context_file = self.context_dir / f"{agent_name}-summary.json"
+        
+        if context_file.exists():
+            try:
+                with open(context_file, 'r') as f:
+                    return json.load(f)
+            except Exception as e:
+                print(f"{Colors.YELLOW}Warning: Could not load context from {agent_name}: {e}{Colors.RESET}")
+        
+        return None
+    
+    def get_context_recommendations(self, for_agent: str) -> List[str]:
+        """Get recommendations for a specific agent from all previous agents"""
+        recommendations = []
+        
+        for agent_name, summary in self.context_summaries.items():
+            if "summary" in summary and "recommendations_for_next" in summary["summary"]:
+                agent_recs = summary["summary"]["recommendations_for_next"].get(for_agent, [])
+                recommendations.extend(agent_recs)
+        
+        return recommendations
+    
     def show_workflow(self):
         """Display the complete workflow"""
         print(f"\n{Colors.CYAN}{Colors.BOLD}{'=' * 70}{Colors.RESET}")
         print(f"{Colors.CYAN}{Colors.BOLD}AGENT ORCHESTRATION WORKFLOW{Colors.RESET}")
-        print(f"{Colors.CYAN}{'=' * 70}{Colors.RESET}\n")
+        print(f"{Colors.CYAN}{'=' * 70}{Colors.RESET}")
+        print(f"{Colors.MAGENTA}Analysis Mode: {self.analysis_mode}{Colors.RESET}")
+        print(f"{Colors.MAGENTA}Documentation Mode: {self.documentation_mode}{Colors.RESET}")
+        
+        if self.documentation_mode == "QUICK":
+            print(f"{Colors.YELLOW}Note: Running in QUICK mode - fully automated, no user interaction{Colors.RESET}")
+        elif self.documentation_mode == "GUIDED":
+            print(f"{Colors.GREEN}Note: Running in GUIDED mode - will prompt for input at key points{Colors.RESET}")
+        elif self.documentation_mode == "TEMPLATE":
+            print(f"{Colors.BLUE}Note: Running in TEMPLATE mode - will generate templates for completion{Colors.RESET}")
+        
+        print()
         
         for phase in self.workflow_phases:
             phase_agents = [a for a in self.agents.values() if a.phase == phase]

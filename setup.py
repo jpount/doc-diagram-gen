@@ -138,6 +138,7 @@ class FrameworkSetup:
             self.output_dir / "docs",
             self.output_dir / "diagrams",
             self.output_dir / "reports",
+            self.output_dir / "context",  # For agent context summaries
             self.cache_dir,
             self.cache_dir / "repomix",
             self.cache_dir / "serena",
@@ -223,10 +224,79 @@ class FrameworkSetup:
         
         print()
     
-    def run_tech_stack_setup(self):
-        """Run technology stack configuration"""
-        print(f"{Colors.MAGENTA}Step 1: Configure Target Technology Stack{Colors.RESET}")
+    def configure_analysis_mode(self):
+        """Configure analysis mode (documentation-only vs modernization)"""
+        print(f"{Colors.MAGENTA}Step 1: Configure Analysis Mode{Colors.RESET}")
         print("-" * 40)
+        
+        print(f"{Colors.CYAN}What is your primary goal for this analysis?{Colors.RESET}")
+        print()
+        print(f"{Colors.GREEN}1. Documentation & Analysis Only (Default){Colors.RESET}")
+        print("   - Generate comprehensive documentation for existing codebase")
+        print("   - Create architecture diagrams and visualizations")
+        print("   - Analyze technical debt, performance, and security")
+        print("   - Provide improvement recommendations for current stack")
+        print()
+        print(f"{Colors.BLUE}2. Documentation + Modernization Planning{Colors.RESET}")
+        print("   - Everything from option 1, plus:")
+        print("   - Create modernization strategy and roadmap")
+        print("   - Design target architecture")
+        print("   - Plan migration phases")
+        print("   - Requires target technology stack configuration")
+        print()
+        print(f"{Colors.YELLOW}3. Full Modernization with AI Assistance{Colors.RESET}")
+        print("   - Everything from option 2, plus:")
+        print("   - Claude Code suggests technology choices")
+        print("   - Interactive modernization planning")
+        print("   - Automated gap analysis")
+        print()
+        
+        while True:
+            choice = input(f"Select mode (1-3) [{Colors.GREEN}1{Colors.RESET}]: ").strip() or "1"
+            if choice in ["1", "2", "3"]:
+                break
+            print(f"{Colors.RED}Invalid choice. Please enter 1, 2, or 3.{Colors.RESET}")
+        
+        modes = {
+            "1": "DOCUMENTATION_ONLY",
+            "2": "DOCUMENTATION_WITH_MODERNIZATION",
+            "3": "FULL_MODERNIZATION_ASSISTED"
+        }
+        
+        selected_mode = modes[choice]
+        
+        # Create ANALYSIS_MODE.md from template
+        template_file = self.framework_dir / "templates" / "ANALYSIS_MODE.template.md"
+        output_file = self.script_dir / "ANALYSIS_MODE.md"
+        
+        if template_file.exists():
+            with open(template_file, 'r') as f:
+                content = f.read()
+            
+            # Replace placeholder with selected mode
+            content = content.replace("{{ANALYSIS_MODE}}", selected_mode)
+            
+            with open(output_file, 'w') as f:
+                f.write(content)
+            
+            print(f"{Colors.GREEN}✓ Analysis mode set to: {selected_mode}{Colors.RESET}")
+            
+            # Only run tech stack setup if modernization mode is selected
+            if choice in ["2", "3"]:
+                print()
+                self.run_tech_stack_setup(ai_assisted=(choice == "3"))
+        else:
+            print(f"{Colors.YELLOW}⚠ Analysis mode template not found, using default mode{Colors.RESET}")
+        
+        print()
+    
+    def run_tech_stack_setup(self, ai_assisted=False):
+        """Run technology stack configuration"""
+        print(f"{Colors.MAGENTA}Step 1b: Configure Target Technology Stack{Colors.RESET}")
+        print("-" * 40)
+        
+        if ai_assisted:
+            print(f"{Colors.CYAN}AI-assisted mode: Claude Code will help suggest technology choices{Colors.RESET}")
         
         # Check for Python script first
         tech_script_py = self.framework_dir / "scripts" / "setup_tech_stack.py"
@@ -289,6 +359,20 @@ class FrameworkSetup:
         print()
         print(f"{Colors.GREEN}✓ Framework is ready for use!{Colors.RESET}")
         print()
+        
+        # Check analysis mode
+        analysis_mode_file = self.script_dir / "ANALYSIS_MODE.md"
+        analysis_mode = "DOCUMENTATION_ONLY"  # default
+        if analysis_mode_file.exists():
+            with open(analysis_mode_file, 'r') as f:
+                content = f.read()
+                if "DOCUMENTATION_WITH_MODERNIZATION" in content:
+                    analysis_mode = "DOCUMENTATION_WITH_MODERNIZATION"
+                elif "FULL_MODERNIZATION_ASSISTED" in content:
+                    analysis_mode = "FULL_MODERNIZATION_ASSISTED"
+        
+        print(f"{Colors.MAGENTA}Analysis Mode: {analysis_mode}{Colors.RESET}")
+        print()
         print(f"{Colors.BLUE}Next Steps:{Colors.RESET}")
         
         if self.project_name:
@@ -308,7 +392,14 @@ class FrameworkSetup:
         print("4. Start analysis in Claude Code:")
         print("   - Use @serena to activate the project")
         print("   - Use @mcp-orchestrator to begin analysis")
-        print("   - Run agents: @legacy-code-detective, @business-logic-analyst, etc.")
+        
+        if analysis_mode == "DOCUMENTATION_ONLY":
+            print("   - Focus agents: @legacy-code-detective, @business-logic-analyst")
+            print("   - Documentation: @documentation-specialist, @diagram-architect")
+        elif "MODERNIZATION" in analysis_mode:
+            print("   - All agents including: @modernization-architect")
+            print("   - TARGET_TECH_STACK.md will guide modernization planning")
+        
         print()
         
         print(f"{Colors.YELLOW}Output will be generated in:{Colors.RESET}")
@@ -333,7 +424,7 @@ class FrameworkSetup:
             self.setup_project_structure()
             self.copy_mcp_templates()
             self.configure_codebase_path()
-            self.run_tech_stack_setup()
+            self.configure_analysis_mode()  # This replaces run_tech_stack_setup
             self.run_mcp_setup()
             self.show_next_steps()
             

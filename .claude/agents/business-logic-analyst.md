@@ -32,18 +32,47 @@ You are a Senior Business Logic Analyst specializing in extracting, documenting,
 
 ## Token Optimization Strategy
 
-### Phase 1: Load Context from Previous Agent
+### Phase 1: Load Context from Previous Agent (Dual Source)
 ```python
-# Read technology stack from legacy detective
-tech_stack = mcp__serena__read_memory("technology_stack")
-critical_issues = mcp__serena__read_memory("critical_issues")
+import json
+from pathlib import Path
 
-# Focus on service/business layers
-service_patterns = {
-    "Java": ["*Service.java", "*Manager.java", "*Controller.java"],
-    ".NET": ["*Service.cs", "*Manager.cs", "*Controller.cs"],
-    "Python": ["*service.py", "*manager.py", "*controller.py"]
-}
+# Try to read context summary first (more efficient)
+def load_previous_context():
+    """Load context from previous agent with fallback"""
+    context_file = Path("output/context/legacy-code-detective-summary.json")
+    
+    if context_file.exists():
+        with open(context_file) as f:
+            context = json.load(f)
+            tech_stack = context["data"]["technology_stack"]
+            critical_files = context["data"]["critical_files"]
+            recommendations = context["summary"]["recommendations_for_next"].get("business-logic-analyst", [])
+            print(f"Loaded context from file. Recommendations: {recommendations}")
+            return tech_stack, critical_files, recommendations
+    else:
+        # Fallback to Serena memory
+        try:
+            tech_stack = mcp__serena__read_memory("technology_stack")
+            critical_issues = mcp__serena__read_memory("critical_issues")
+            return tech_stack, [], []
+        except:
+            print("Warning: No context available from previous agent")
+            return None, [], []
+
+tech_stack, critical_files, focus_areas = load_previous_context()
+
+# Focus on recommended files and service/business layers
+if focus_areas:
+    # Use specific recommendations from previous agent
+    target_files = focus_areas
+else:
+    # Use default patterns based on technology
+    service_patterns = {
+        "Java": ["*Service.java", "*Manager.java", "*Controller.java"],
+        ".NET": ["*Service.cs", "*Manager.cs", "*Controller.cs"],
+        "Python": ["*service.py", "*manager.py", "*controller.py"]
+    }
 ```
 
 ### Phase 2: Targeted Business Logic Search
@@ -239,29 +268,88 @@ public ValidationResult validateOrderAmount(Order order, Customer customer) {
 ## Memory Management for Cross-Agent Sharing
 
 ```python
-# Write business rules for other agents
-mcp__serena__write_memory("business_rules", {
-    "total_rules": 75,
-    "critical_rules": 45,
-    "validation_rules": 25,
-    "calculation_rules": 20,
-    "process_rules": 30
-})
+# Dual Output: Write Context Summary for Next Agents
+context_summary = {
+    "agent": "business-logic-analyst",
+    "timestamp": datetime.now().isoformat(),
+    "token_usage": {
+        "input": 22000,
+        "output": 6500,
+        "total": 28500
+    },
+    "summary": {
+        "key_findings": [
+            "75 business rules extracted and cataloged",
+            "4 main business domains identified",
+            "Complex approval workflow with 7 state transitions"
+        ],
+        "priority_items": [
+            "Order processing contains 15 critical validation rules",
+            "Payment calculation uses proprietary algorithm",
+            "Customer credit check is business-critical with 5 decision points"
+        ],
+        "warnings": [
+            "Found conflicting business rules in different modules",
+            "Some validations only enforced client-side",
+            "Undocumented business logic in stored procedures"
+        ],
+        "recommendations_for_next": {
+            "diagram-architect": [
+                "Create sequence diagram for order processing flow",
+                "Visualize payment state machine with all transitions",
+                "Map customer journey through approval process"
+            ],
+            "performance-analyst": [
+                "Check performance of complex validation chains",
+                "Review calculation-heavy payment processing"
+            ],
+            "documentation-specialist": [
+                "Document all 75 business rules in detail",
+                "Create decision matrix for approval logic",
+                "Map business terms to technical implementation"
+            ]
+        }
+    },
+    "data": {
+        "business_rules": {
+            "total_count": 75,
+            "by_category": {
+                "validation": 32,
+                "calculation": 18,
+                "authorization": 15,
+                "workflow": 10
+            },
+            "critical_rules": [
+                {"id": "BR-001", "description": "Order minimum $100 for free shipping", "location": "OrderService.java:145"},
+                {"id": "BR-002", "description": "Credit check required for orders > $5000", "location": "PaymentService.java:89"}
+            ]
+        },
+        "domain_model": {
+            "aggregates": ["Customer", "Order", "Product", "Inventory"],
+            "bounded_contexts": ["Sales", "Inventory", "Customer", "Fulfillment"],
+            "entities": 24,
+            "value_objects": 18,
+            "services": 12
+        },
+        "business_flows": [
+            {"name": "Order Processing", "steps": 12, "complexity": "high"},
+            {"name": "Customer Onboarding", "steps": 8, "complexity": "medium"},
+            {"name": "Returns Processing", "steps": 6, "complexity": "medium"}
+        ]
+    }
+}
 
-# Write domain model for microservices architect
-mcp__serena__write_memory("domain_model", {
-    "aggregates": ["Customer", "Order", "Product", "Inventory"],
-    "bounded_contexts": ["Sales", "Inventory", "Customer", "Fulfillment"],
-    "core_entities": 15,
-    "value_objects": 8
-})
+# Write to file for resilience
+Write("output/context/business-logic-analyst-summary.json", json.dumps(context_summary, indent=2))
 
-# Write process flows for diagram architect
-mcp__serena__write_memory("business_processes", {
-    "primary_flows": ["Order Processing", "Customer Onboarding", "Payment Processing"],
-    "state_machines": ["Order States", "Payment States", "Shipment States"],
-    "integration_points": ["Payment Gateway", "Inventory System", "Shipping Provider"]
-})
+# Also maintain backward compatibility with Serena memory
+try:
+    mcp__serena__write_memory("business_logic_context", context_summary)
+    mcp__serena__write_memory("business_rules", context_summary["data"]["business_rules"])
+    mcp__serena__write_memory("domain_model", context_summary["data"]["domain_model"])
+    mcp__serena__write_memory("business_processes", context_summary["data"]["business_flows"])
+except:
+    print("Note: Using file-based context only")
 ```
 
 ## Output Template

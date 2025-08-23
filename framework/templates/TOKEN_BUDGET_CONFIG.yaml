@@ -1,0 +1,359 @@
+# Token Budget Configuration
+# Philosophy: Quality First, Optimization Second
+#
+# These are GUIDELINES, not hard limits. Agents should exceed these budgets
+# when doing so improves documentation quality and completeness.
+
+# Global Settings
+global:
+  strategy: "quality_first"  # Options: quality_first, balanced, strict_budget
+  allow_overruns: true       # Allow agents to exceed budget for quality
+  overrun_threshold: 2.0     # Allow up to 2x budget if needed
+  track_usage: true          # Track for optimization insights
+  alert_on_overrun: false    # Don't interrupt for overruns
+
+# Project Size Detection
+project_sizing:
+  small:
+    max_files: 100
+    max_lines: 10000
+    complexity: "simple"
+  
+  medium:
+    max_files: 500
+    max_lines: 100000
+    complexity: "moderate"
+  
+  large:
+    max_files: 2000
+    max_lines: 500000
+    complexity: "complex"
+  
+  enterprise:
+    max_files: 10000
+    max_lines: 1000000
+    complexity: "very_complex"
+
+# Token Budgets by Project Size
+# Note: These are BASELINE allocations. Agents can request more.
+token_budgets:
+  
+  small:
+    total_pool: 250000  # Total tokens available
+    
+    agents:
+      mcp-orchestrator: 
+        baseline: 10000
+        max_allowed: 20000
+        priority: "high"
+      
+      legacy-code-detective:
+        baseline: 30000
+        max_allowed: 60000
+        priority: "critical"  # Foundation agent - give what it needs
+      
+      business-logic-analyst:
+        baseline: 25000
+        max_allowed: 50000
+        priority: "critical"  # Business rules must be complete
+      
+      performance-analyst:
+        baseline: 20000
+        max_allowed: 40000
+        priority: "high"
+      
+      security-analyst:
+        baseline: 20000
+        max_allowed: 40000
+        priority: "high"
+      
+      diagram-architect:
+        baseline: 15000
+        max_allowed: 30000
+        priority: "medium"
+      
+      documentation-specialist:
+        baseline: 30000
+        max_allowed: 60000
+        priority: "critical"  # Final output must be complete
+  
+  medium:
+    total_pool: 500000
+    
+    agents:
+      mcp-orchestrator:
+        baseline: 15000
+        max_allowed: 30000
+        priority: "high"
+      
+      legacy-code-detective:
+        baseline: 50000
+        max_allowed: 100000
+        priority: "critical"
+      
+      business-logic-analyst:
+        baseline: 40000
+        max_allowed: 80000
+        priority: "critical"
+      
+      performance-analyst:
+        baseline: 35000
+        max_allowed: 70000
+        priority: "high"
+      
+      security-analyst:
+        baseline: 35000
+        max_allowed: 70000
+        priority: "high"
+      
+      diagram-architect:
+        baseline: 25000
+        max_allowed: 50000
+        priority: "medium"
+      
+      documentation-specialist:
+        baseline: 50000
+        max_allowed: 100000
+        priority: "critical"
+  
+  large:
+    total_pool: 1000000
+    
+    agents:
+      mcp-orchestrator:
+        baseline: 25000
+        max_allowed: 50000
+        priority: "high"
+      
+      legacy-code-detective:
+        baseline: 75000
+        max_allowed: 200000  # Can use much more if needed
+        priority: "critical"
+      
+      business-logic-analyst:
+        baseline: 60000
+        max_allowed: 150000
+        priority: "critical"
+      
+      performance-analyst:
+        baseline: 50000
+        max_allowed: 100000
+        priority: "high"
+      
+      security-analyst:
+        baseline: 50000
+        max_allowed: 100000
+        priority: "high"
+      
+      diagram-architect:
+        baseline: 35000
+        max_allowed: 70000
+        priority: "medium"
+      
+      documentation-specialist:
+        baseline: 75000
+        max_allowed: 200000
+        priority: "critical"
+  
+  enterprise:
+    total_pool: 2000000  # 2M tokens for massive codebases
+    
+    agents:
+      mcp-orchestrator:
+        baseline: 50000
+        max_allowed: 100000
+        priority: "high"
+      
+      legacy-code-detective:
+        baseline: 150000
+        max_allowed: 400000  # No practical limit
+        priority: "critical"
+      
+      business-logic-analyst:
+        baseline: 120000
+        max_allowed: 300000
+        priority: "critical"
+      
+      performance-analyst:
+        baseline: 100000
+        max_allowed: 200000
+        priority: "high"
+      
+      security-analyst:
+        baseline: 100000
+        max_allowed: 200000
+        priority: "high"
+      
+      diagram-architect:
+        baseline: 70000
+        max_allowed: 140000
+        priority: "medium"
+      
+      documentation-specialist:
+        baseline: 150000
+        max_allowed: 400000
+        priority: "critical"
+
+# Quality-First Overrides
+# These scenarios always justify exceeding token budgets
+quality_overrides:
+  
+  always_allow_more_tokens_for:
+    - "Extracting all business rules (minimum 50 for non-trivial systems)"
+    - "Complete sequence diagrams for all business flows"
+    - "Full security vulnerability analysis"
+    - "Comprehensive technical debt assessment"
+    - "Complete API documentation"
+    - "Full database schema documentation"
+  
+  critical_completeness_checks:
+    - "Were all business rules captured?"
+    - "Are all integration points documented?"
+    - "Is the security analysis comprehensive?"
+    - "Are all performance bottlenecks identified?"
+    - "Is the documentation production-ready?"
+
+# Adaptive Token Management
+adaptive_management:
+  
+  # Automatically increase budget when these conditions are met
+  auto_increase_triggers:
+    - condition: "complex_business_logic"
+      description: "More than 50 business rules detected"
+      multiplier: 1.5
+    
+    - condition: "multiple_frameworks"
+      description: "More than 5 different frameworks detected"
+      multiplier: 1.3
+    
+    - condition: "high_technical_debt"
+      description: "Technical debt score > 7"
+      multiplier: 1.4
+    
+    - condition: "many_integrations"
+      description: "More than 10 external integrations"
+      multiplier: 1.3
+    
+    - condition: "poor_documentation"
+      description: "Code has < 10% comment coverage"
+      multiplier: 1.5
+    
+    - condition: "user_request"
+      description: "User explicitly requests more thorough analysis"
+      multiplier: 2.0
+
+# Token Usage Tracking
+tracking:
+  
+  log_format: |
+    Agent: {agent_name}
+    Phase: {phase}
+    Baseline Budget: {baseline}
+    Actual Used: {actual}
+    Overrun: {overrun_amount}
+    Reason: {overrun_reason}
+    Quality Impact: {quality_assessment}
+  
+  metrics_to_track:
+    - tokens_per_file
+    - tokens_per_business_rule
+    - tokens_per_diagram
+    - tokens_per_documentation_page
+    - total_tokens_saved_by_context_summaries
+    - quality_score_vs_token_usage
+
+# Optimization Strategies (Applied AFTER Quality is Assured)
+optimization:
+  
+  techniques:
+    - name: "Context Summaries"
+      description: "Use summaries instead of full content"
+      typical_savings: "40-60%"
+      when_to_use: "Always, unless quality suffers"
+    
+    - name: "Targeted Search"
+      description: "Search specific patterns vs reading all files"
+      typical_savings: "60-80%"
+      when_to_use: "When patterns are well-defined"
+    
+    - name: "Incremental Analysis"
+      description: "Analyze in chunks vs all at once"
+      typical_savings: "30-40%"
+      when_to_use: "For very large codebases"
+    
+    - name: "Caching"
+      description: "Reuse previous analysis results"
+      typical_savings: "70-90%"
+      when_to_use: "For re-analysis or similar projects"
+    
+    - name: "MCP Tools"
+      description: "Use Repomix, Serena, etc."
+      typical_savings: "80-90%"
+      when_to_use: "Always when available"
+
+# Documentation Mode Specific Budgets
+mode_adjustments:
+  
+  QUICK:
+    multiplier: 0.7  # Use less tokens for speed
+    quality_threshold: 0.7  # Accept lower quality
+  
+  GUIDED:
+    multiplier: 1.0  # Standard allocation
+    quality_threshold: 0.9  # High quality required
+  
+  TEMPLATE:
+    multiplier: 0.5  # Less automated analysis needed
+    quality_threshold: 0.6  # User will complete
+
+# Emergency Provisions
+emergency:
+  
+  # If running out of tokens mid-analysis
+  fallback_strategy:
+    - "Complete current agent's critical tasks"
+    - "Write context summary for next agents"
+    - "Skip non-critical analysis"
+    - "Focus on user's priority areas"
+    - "Generate templates for manual completion"
+  
+  # Never skip these, even if low on tokens
+  must_complete:
+    - "Technology stack identification"
+    - "Critical security vulnerabilities"
+    - "Core business rules"
+    - "Primary system architecture"
+    - "Executive summary"
+
+# User Preferences
+user_preferences:
+  
+  # Can be overridden by user
+  defaults:
+    prioritize_quality: true
+    allow_token_overruns: true
+    interactive_budget_approval: false  # Don't ask, just proceed
+    verbose_token_reporting: false      # Don't clutter output
+  
+  # User can set focus areas for token allocation
+  focus_areas:
+    - "business_logic"     # Allocate more here
+    - "security"          # And here
+    - "performance"       # Standard allocation
+    - "documentation"     # Allocate more here
+
+# Notes for Agents
+agent_guidelines: |
+  1. These budgets are GUIDELINES, not hard limits
+  2. ALWAYS prioritize completeness over token savings
+  3. Request more tokens when needed for quality
+  4. Use context summaries to be efficient, not restrictive
+  5. Track usage for future optimization, not current limitation
+  6. If approaching budget, focus on critical items first
+  7. Document when and why you exceeded budget
+  8. Quality metrics matter more than token metrics
+
+# Configuration Version
+version: "2.0"
+last_updated: "2024-01-23"
+philosophy: "Quality-First with Smart Optimization"

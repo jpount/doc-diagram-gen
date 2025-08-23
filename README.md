@@ -1,6 +1,41 @@
 # Codebase Analysis & Documentation Generation Framework
 
-A comprehensive, reusable framework for analyzing any codebase and generating enterprise-grade documentation with visual diagrams. Optimized for Claude Code with intelligent agent orchestration and 90%+ token optimization through MCP integration.
+A comprehensive framework for analyzing existing codebases and generating complete documentation, architecture diagrams, and improvement recommendations. Primary focus is on understanding and documenting your current system, with optional modernization planning capabilities.
+
+## Primary Goals
+
+### 📚 Documentation & Analysis (Default Mode)
+- **Comprehensive Documentation**: Generate complete technical documentation for your existing codebase
+- **Architecture Visualization**: Create detailed diagrams showing system structure and data flows
+- **Technical Debt Analysis**: Identify and catalog technical debt with improvement recommendations
+- **Performance Analysis**: Find bottlenecks and optimization opportunities
+- **Security Assessment**: Discover vulnerabilities and security improvements
+- **Business Logic Extraction**: Document business rules and domain logic
+
+### 🚀 Optional Modernization Planning
+- Available as an add-on feature when needed
+- Creates migration roadmaps and target architectures
+- Requires additional configuration (TARGET_TECH_STACK.md)
+
+## Key Features
+
+### 🎯 Quality-First Approach
+- **Flexible Token Usage**: Prioritizes documentation quality over strict token limits
+- **Context Management**: Dual-layer context system (memory + files) for resilience
+- **Progressive Refinement**: Each agent builds on previous findings efficiently
+
+### 🔄 Three Documentation Modes
+1. **QUICK**: Fully automated, fast analysis (1-2 hours)
+2. **GUIDED**: Interactive with user checkpoints for accuracy (3-4 hours) - Recommended
+3. **TEMPLATE**: Generates templates for manual completion (highest accuracy)
+
+### 💾 Intelligent Context Management
+- Agents write both full analysis and lightweight context summaries
+- Context summaries enable efficient information passing between agents
+- Fallback to file-based context if MCP tools unavailable
+- Quality always takes priority over token optimization
+
+Optimized for Claude Code with intelligent agent orchestration, with flexible token usage that prioritizes quality.
 
 ## 🚀 Quick Start
 
@@ -27,7 +62,8 @@ python3 setup.py
 ### All Platforms
 ```bash
 # 1. Follow the interactive prompts to:
-#    - Configure target technology stack
+#    - Choose analysis mode (Documentation Only / With Modernization)
+#    - Configure target technology stack (only if modernization selected)
 #    - Set up MCP integration
 #    - Configure codebase path
 
@@ -47,7 +83,8 @@ python3 setup.py
 ├── setup.ps1                   # Setup script for Windows PowerShell
 ├── .mcp.json                   # MCP configuration (auto-generated)
 ├── .repomix.config.json        # Repomix config (auto-generated)
-├── TARGET_TECH_STACK.md        # Target stack config (auto-generated)
+├── ANALYSIS_MODE.md            # Analysis mode config (auto-generated)
+├── TARGET_TECH_STACK.md        # Target stack config (only for modernization modes)
 │
 ├── framework/                  # Framework components (DO NOT MODIFY)
 │   ├── scripts/               # Setup and utility scripts
@@ -58,10 +95,15 @@ python3 setup.py
 │   │   ├── mcp.template.json
 │   │   └── repomix.config.template.json
 │   ├── templates/             # Project templates
+│   │   ├── ANALYSIS_MODE.template.md
+│   │   ├── DOCUMENTATION_MODE.template.md
+│   │   ├── CONTEXT_SUMMARY_SCHEMA.md
+│   │   ├── TOKEN_BUDGET_CONFIG.yaml
 │   │   ├── TARGET_TECH_STACK.template.md
 │   │   └── tech-stack-presets.yaml
 │   └── docs/                  # Framework documentation
 │       ├── CLAUDE_FRAMEWORK.md
+│       ├── USER_INTERACTION_GUIDE.md
 │       ├── MCP_USAGE_GUIDE.md
 │       └── MCP_CONFIGURATION_GUIDE.md
 │
@@ -95,6 +137,10 @@ python3 setup.py
 │   │   ├── 04-performance-analysis.md
 │   │   ├── 05-security-analysis.md
 │   │   └── 06-modernization-strategy.md
+│   ├── context/               # Agent context summaries (for efficiency)
+│   │   ├── legacy-code-detective-summary.json
+│   │   ├── business-logic-analyst-summary.json
+│   │   └── [agent-name]-summary.json
 │   ├── diagrams/              # Generated diagrams
 │   │   └── *.mermaid
 │   └── reports/               # Analysis reports
