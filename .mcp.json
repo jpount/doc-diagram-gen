@@ -12,7 +12,8 @@
         "--project",
         "${PWD}/codebase"
       ],
-      "env": {}
+      "env": {},
+      "_comment": "Update --project path to match your codebase location"
     },
     "filesystem": {
       "command": "npx",
@@ -49,7 +50,8 @@
         "${PWD}"
       ],
       "env": {},
-      "disabled": true
+      "disabled": true,
+      "_comment": "Enable if working with git repositories"
     },
     "github": {
       "command": "npx",
@@ -60,7 +62,8 @@
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
       },
-      "disabled": true
+      "disabled": true,
+      "_comment": "Enable if working with GitHub repositories, set GITHUB_TOKEN env var"
     }
   }
 }

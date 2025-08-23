@@ -321,8 +321,8 @@ python framework/scripts/test_mcp_integration.py
 # Install if missing
 npm install -g repomix
 
-# Test configuration
-repomix --config .repomix.config.json --dry-run
+# Generate repomix summary (when ready)
+repomix --config .repomix.config.json
 ```
 
 ### Path Issues

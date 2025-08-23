@@ -281,6 +281,9 @@ class FrameworkSetup:
             
             print(f"{Colors.GREEN}✓ Analysis mode set to: {selected_mode}{Colors.RESET}")
             
+            # Now configure documentation mode
+            self.configure_documentation_mode()
+            
             # Only run tech stack setup if modernization mode is selected
             if choice in ["2", "3"]:
                 print()
@@ -290,9 +293,67 @@ class FrameworkSetup:
         
         print()
     
+    def configure_documentation_mode(self):
+        """Configure documentation generation mode"""
+        print()
+        print(f"{Colors.MAGENTA}Step 1b: Configure Documentation Mode{Colors.RESET}")
+        print("-" * 40)
+        
+        print(f"{Colors.CYAN}How should documentation be generated?{Colors.RESET}")
+        print()
+        print(f"{Colors.YELLOW}1. QUICK Mode{Colors.RESET}")
+        print("   - Fully automated, no user interaction")
+        print("   - Fast (1-2 hours for medium projects)")
+        print("   - Good for initial exploration")
+        print()
+        print(f"{Colors.GREEN}2. GUIDED Mode (Recommended){Colors.RESET}")
+        print("   - Interactive checkpoints for validation")
+        print("   - Captures business context and domain knowledge")
+        print("   - Best balance of automation and accuracy")
+        print()
+        print(f"{Colors.BLUE}3. TEMPLATE Mode{Colors.RESET}")
+        print("   - Generates templates for manual completion")
+        print("   - Maximum accuracy but requires more effort")
+        print("   - Best for compliance/audit documentation")
+        print()
+        
+        while True:
+            choice = input(f"Select mode (1-3) [{Colors.GREEN}2{Colors.RESET}]: ").strip() or "2"
+            if choice in ["1", "2", "3"]:
+                break
+            print(f"{Colors.RED}Invalid choice. Please enter 1, 2, or 3.{Colors.RESET}")
+        
+        modes = {
+            "1": "QUICK",
+            "2": "GUIDED",
+            "3": "TEMPLATE"
+        }
+        
+        selected_mode = modes[choice]
+        
+        # Create DOCUMENTATION_MODE.md from template
+        template_file = self.framework_dir / "templates" / "DOCUMENTATION_MODE.template.md"
+        output_file = self.script_dir / "DOCUMENTATION_MODE.md"
+        
+        if template_file.exists():
+            with open(template_file, 'r') as f:
+                content = f.read()
+            
+            # Replace placeholder with selected mode
+            content = content.replace("{{DOCUMENTATION_MODE}}", selected_mode)
+            
+            with open(output_file, 'w') as f:
+                f.write(content)
+            
+            print(f"{Colors.GREEN}✓ Documentation mode set to: {selected_mode}{Colors.RESET}")
+        else:
+            print(f"{Colors.YELLOW}⚠ Documentation mode template not found, using default (GUIDED){Colors.RESET}")
+        
+        print()
+    
     def run_tech_stack_setup(self, ai_assisted=False):
         """Run technology stack configuration"""
-        print(f"{Colors.MAGENTA}Step 1b: Configure Target Technology Stack{Colors.RESET}")
+        print(f"{Colors.MAGENTA}Step 1c: Configure Target Technology Stack{Colors.RESET}")
         print("-" * 40)
         
         if ai_assisted:
@@ -366,10 +427,13 @@ class FrameworkSetup:
         if analysis_mode_file.exists():
             with open(analysis_mode_file, 'r') as f:
                 content = f.read()
-                if "DOCUMENTATION_WITH_MODERNIZATION" in content:
+                # Look for the mode in the "Selected Mode" section
+                if "Mode:** DOCUMENTATION_WITH_MODERNIZATION" in content:
                     analysis_mode = "DOCUMENTATION_WITH_MODERNIZATION"
-                elif "FULL_MODERNIZATION_ASSISTED" in content:
+                elif "Mode:** FULL_MODERNIZATION_ASSISTED" in content:
                     analysis_mode = "FULL_MODERNIZATION_ASSISTED"
+                elif "Mode:** DOCUMENTATION_ONLY" in content:
+                    analysis_mode = "DOCUMENTATION_ONLY"
         
         print(f"{Colors.MAGENTA}Analysis Mode: {analysis_mode}{Colors.RESET}")
         print()
