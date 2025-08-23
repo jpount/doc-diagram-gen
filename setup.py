@@ -390,6 +390,129 @@ class FrameworkSetup:
         else:
             print(f"{Colors.RED}✗ Template not found{Colors.RESET}")
     
+    def generate_claude_md(self):
+        """Generate CLAUDE.md from template based on configuration"""
+        print(f"{Colors.MAGENTA}Generating CLAUDE.md configuration...{Colors.RESET}")
+        
+        template_file = self.framework_dir / "templates" / "CLAUDE.template.md"
+        output_file = self.script_dir / "CLAUDE.md"
+        
+        if not template_file.exists():
+            print(f"{Colors.YELLOW}⚠ CLAUDE.md template not found{Colors.RESET}")
+            return
+        
+        # Read current configurations
+        analysis_mode = "DOCUMENTATION_ONLY"
+        documentation_mode = "GUIDED"
+        
+        # Read analysis mode
+        analysis_mode_file = self.script_dir / "ANALYSIS_MODE.md"
+        if analysis_mode_file.exists():
+            with open(analysis_mode_file, 'r') as f:
+                content = f.read()
+                if "Mode:** DOCUMENTATION_WITH_MODERNIZATION" in content:
+                    analysis_mode = "DOCUMENTATION_WITH_MODERNIZATION"
+                elif "Mode:** FULL_MODERNIZATION_ASSISTED" in content:
+                    analysis_mode = "FULL_MODERNIZATION_ASSISTED"
+        
+        # Read documentation mode
+        doc_mode_file = self.script_dir / "DOCUMENTATION_MODE.md"
+        if doc_mode_file.exists():
+            with open(doc_mode_file, 'r') as f:
+                content = f.read()
+                if "Mode:** QUICK" in content:
+                    documentation_mode = "QUICK"
+                elif "Mode:** TEMPLATE" in content:
+                    documentation_mode = "TEMPLATE"
+        
+        # Determine project size (simplified)
+        codebase_dir = self.script_dir / "codebase"
+        project_size = "medium"
+        if self.project_name and (codebase_dir / self.project_name).exists():
+            # Could add logic to count files/lines here
+            project_size = "medium"
+        
+        # Read template
+        with open(template_file, 'r') as f:
+            template = f.read()
+        
+        # Replace placeholders
+        from datetime import datetime
+        
+        replacements = {
+            "{{PROJECT_NAME}}": self.project_name or "Not specified",
+            "{{PROJECT_PATH}}": self.project_name or "[project-name]",
+            "{{ANALYSIS_MODE}}": analysis_mode,
+            "{{DOCUMENTATION_MODE}}": documentation_mode,
+            "{{ANALYSIS_FOCUS}}": "Existing codebase documentation and analysis" if "DOCUMENTATION_ONLY" in analysis_mode else "Documentation with modernization planning",
+            "{{MODERNIZATION_ENABLED}}": "No" if "DOCUMENTATION_ONLY" in analysis_mode else "Yes",
+            "{{USER_INTERACTION}}": "None" if documentation_mode == "QUICK" else ("Interactive" if documentation_mode == "GUIDED" else "Template-based"),
+            "{{PROJECT_SIZE}}": project_size.capitalize(),
+            "{{TOKEN_BUDGET}}": "500,000 tokens (flexible)" if project_size == "medium" else "250,000 tokens (flexible)",
+            "{{SETUP_DATE}}": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        }
+        
+        # Add modernization agents section if needed
+        if "DOCUMENTATION_ONLY" in analysis_mode:
+            replacements["{{MODERNIZATION_AGENTS}}"] = ""
+            replacements["{{TARGET_TECH_STACK_FILE}}"] = ""
+        else:
+            replacements["{{MODERNIZATION_AGENTS}}"] = """
+### Modernization Agents (When Enabled)
+- `@modernization-architect` - Create migration roadmap
+- `@angular-architect` - Angular-specific migration guidance"""
+            replacements["{{TARGET_TECH_STACK_FILE}}"] = "- `TARGET_TECH_STACK.md` - Target technology configuration"
+        
+        # Add workflow steps based on documentation mode
+        if documentation_mode == "QUICK":
+            replacements["{{WORKFLOW_STEPS}}"] = """1. Run `@mcp-orchestrator` to coordinate analysis
+2. Agents run automatically without interaction
+3. Review generated documentation in `output/docs/`"""
+        elif documentation_mode == "GUIDED":
+            replacements["{{WORKFLOW_STEPS}}"] = """1. Run `@mcp-orchestrator` to coordinate analysis
+2. Respond to prompts at key checkpoints:
+   - After discovery: Validate technology stack
+   - After business logic: Confirm business rules
+   - Before diagrams: Specify diagram requirements
+   - After generation: Review and refine
+3. Review and iterate on documentation"""
+        else:  # TEMPLATE
+            replacements["{{WORKFLOW_STEPS}}"] = """1. Run `@mcp-orchestrator` to generate templates
+2. Review templates in `output/templates/`
+3. Fill in domain knowledge and business context
+4. Validate completeness with checklist"""
+        
+        # Add MCP tools section
+        replacements["{{MCP_TOOLS}}"] = """- `@serena` - Semantic code analysis (if configured)
+- `repomix` - Codebase compression (if installed)
+- File system access via MCP
+- Memory for cross-agent communication"""
+        
+        # Add project notes
+        if self.project_name:
+            replacements["{{PROJECT_NOTES}}"] = f"- Project '{self.project_name}' configured in codebase directory\n- Run repomix before starting analysis"
+        else:
+            replacements["{{PROJECT_NOTES}}"] = "- No specific project configured yet\n- Place code in codebase/[project-name]/"
+        
+        # Add next steps
+        if documentation_mode == "QUICK":
+            replacements["{{NEXT_STEPS}}"] = "1. Run repomix summary\n2. Start with @mcp-orchestrator\n3. Review generated documentation"
+        elif documentation_mode == "GUIDED":
+            replacements["{{NEXT_STEPS}}"] = "1. Run repomix summary\n2. Start with @mcp-orchestrator\n3. Provide input at checkpoints\n4. Review and refine output"
+        else:
+            replacements["{{NEXT_STEPS}}"] = "1. Run repomix summary\n2. Generate templates with @mcp-orchestrator\n3. Complete templates with domain knowledge"
+        
+        # Apply replacements
+        for key, value in replacements.items():
+            template = template.replace(key, value)
+        
+        # Write output
+        with open(output_file, 'w') as f:
+            f.write(template)
+        
+        print(f"{Colors.GREEN}✓ Generated CLAUDE.md with project configuration{Colors.RESET}")
+        print()
+    
     def run_mcp_setup(self):
         """Run MCP configuration"""
         print(f"{Colors.MAGENTA}Step 2: Configure MCP Integration{Colors.RESET}")
@@ -493,6 +616,7 @@ class FrameworkSetup:
             self.configure_codebase_path()
             self.configure_analysis_mode()  # This replaces run_tech_stack_setup
             self.run_mcp_setup()
+            self.generate_claude_md()  # Generate CLAUDE.md from template
             self.show_next_steps()
             
             return 0
