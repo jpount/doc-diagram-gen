@@ -6,6 +6,12 @@ This framework provides a comprehensive, reusable approach for analyzing any cod
 
 ## Core Principles
 
+### 0. Data Integrity (CRITICAL)
+- **ALL agents MUST use only actual data from the codebase**
+- **NEVER use hardcoded examples or placeholder data**
+- **See `framework/templates/AGENT_DATA_INTEGRITY_RULES.md` for mandatory rules**
+- **Violations will produce incorrect analysis**
+
 ### 1. Token Optimization
 - **Use Serena MCP** for semantic code analysis instead of full file reads
 - **Agent Memory** for cross-agent knowledge sharing

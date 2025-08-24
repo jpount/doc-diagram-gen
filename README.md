@@ -45,7 +45,7 @@ Optimized for Claude Code with intelligent agent orchestration, with flexible to
 @mcp-orchestrator           # Token optimization
 @repomix-analyzer          # Codebase compression
 @architecture-selector     # IMPORTANT: Detects your tech stack
-@[technology]-architect    # Run recommended specialists (e.g., @java-architect, @angular-architect)
+@[technology]-architect    # Run recommended specialists (e.g., @java-architect-enhanced, @angular-architect)
 @business-logic-analyst    # Extract business rules
 @performance-analyst       # Find bottlenecks
 @security-analyst         # Security assessment
@@ -206,7 +206,7 @@ python3 setup.py
 | `@mcp-orchestrator` | Coordinates MCP usage | output/reports/ | Always run first for token optimization |
 | `@repomix-analyzer` | Analyzes compressed code | output/reports/ | After MCP orchestrator |
 | **`@architecture-selector`** | **Detects technologies & recommends specialists** | **output/docs/00-agent-selection-report.md** | **Run BEFORE any analysis agents** |
-| `@java-architect` | Java/Spring/J2EE analysis | output/docs/01-java-*.md | When Java detected |
+| `@java-architect-enhanced` | Java/Spring/J2EE analysis with visual indicators | output/docs/01-java-*.md | When Java detected |
 | `@dotnet-architect` | .NET/C#/ASP.NET analysis | output/docs/01-dotnet-*.md | When .NET detected |
 | `@angular-architect` | Angular/AngularJS analysis | output/docs/01-angular-*.md | When Angular detected |
 | `@legacy-code-detective` | Generic technology analysis | output/docs/01-*.md | ONLY for unknown/5+ technologies |
@@ -262,7 +262,7 @@ In Claude Code, run agents in sequence:
 
 # 3. Technology-Specific Analysis (based on detection results)
 # Example for Java + Angular application:
-@java-architect          # Backend analysis (if Java detected)
+@java-architect-enhanced  # Backend analysis with visual indicators (if Java detected)
 @angular-architect       # Frontend analysis (if Angular detected)
 # Run these in parallel for faster analysis
 
@@ -378,7 +378,7 @@ find codebase -name "*.cs" | head -5    # .NET files
 find codebase -name "*.ts" -o -name "angular.json" | head -5  # Angular files
 
 # If technologies found but selector missed them, run specialists directly:
-@java-architect      # For Java code
+@java-architect-enhanced  # For Java code (with visual indicators)
 @angular-architect   # For Angular code
 ```
 
