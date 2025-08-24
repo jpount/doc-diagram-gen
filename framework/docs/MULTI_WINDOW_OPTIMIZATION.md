@@ -13,7 +13,7 @@ graph TD
     D[Window 2: architecture-selector] -->|Reads| B
     D -->|Creates| E[architecture-analysis-summary.json]
     
-    F[Window 3: java-architect-enhanced] -->|Reads| B
+    F[Window 3: java-architect] -->|Reads| B
     F -->|Reads| E
     F -->|Updates| E
     
@@ -81,7 +81,7 @@ All agents follow this hierarchy:
 ### Window 2: Architecture Analysis
 ```bash
 # Uses repomix summary, creates shared context
-@java-architect-enhanced
+@java-architect
 # OR
 @dotnet-architect
 # OR

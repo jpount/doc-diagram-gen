@@ -31,7 +31,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/mermaid_diagram_validation.py"
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/simple_mermaid_validation.py"
           },
           {
             "type": "command",

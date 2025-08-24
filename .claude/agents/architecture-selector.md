@@ -77,12 +77,12 @@ else:
 ```python
 # Define technology indicators and their specialist agents
 tech_to_agent_mapping = {
-    "java": "java-architect-enhanced",
-    "spring": "java-architect-enhanced",
-    "j2ee": "java-architect-enhanced",
-    "hibernate": "java-architect-enhanced",
-    "maven": "java-architect-enhanced",
-    "gradle": "java-architect-enhanced",
+    "java": "java-architect",
+    "spring": "java-architect",
+    "j2ee": "java-architect",
+    "hibernate": "java-architect",
+    "maven": "java-architect",
+    "gradle": "java-architect",
     
     "csharp": "dotnet-architect",
     "dotnet": "dotnet-architect",

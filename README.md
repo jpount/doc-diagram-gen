@@ -45,7 +45,7 @@ Optimized for Claude Code with intelligent agent orchestration, with flexible to
 @mcp-orchestrator           # Token optimization
 @repomix-analyzer          # Codebase compression
 @architecture-selector     # IMPORTANT: Detects your tech stack
-@[technology]-architect    # Run recommended specialists (e.g., @java-architect-enhanced, @angular-architect)
+@[technology]-architect    # Run recommended specialists (e.g., @java-architect, @angular-architect)
 @business-logic-analyst    # Extract business rules
 @performance-analyst       # Find bottlenecks
 @security-analyst         # Security assessment
@@ -95,10 +95,12 @@ python3 setup.py
 ├── setup.sh                    # Setup script for Mac/Linux
 ├── setup.py                    # Setup script for all platforms (RECOMMENDED)
 ├── setup.ps1                   # Setup script for Windows PowerShell
-├── .mcp.json                   # MCP configuration (auto-generated)
-├── .repomix.config.json        # Repomix config (auto-generated)
-├── ANALYSIS_MODE.md            # Analysis mode config (auto-generated)
-├── TARGET_TECH_STACK.md        # Target stack config (only for modernization modes)
+├── .mcp.json                   # MCP configuration (auto-generated, git-ignored)
+├── .repomix.config.json        # Repomix config (auto-generated, git-ignored)
+├── ANALYSIS_MODE.md            # Analysis mode config (auto-generated, git-ignored)
+├── CLAUDE.md                   # Project config for Claude Code (auto-generated, git-ignored)
+├── DOCUMENTATION_MODE.md       # Documentation mode config (auto-generated, git-ignored)
+├── TARGET_TECH_STACK.md        # Target stack config (only for modernization modes, git-ignored)
 │
 ├── framework/                  # Framework components (DO NOT MODIFY)
 │   ├── scripts/               # Setup and utility scripts
@@ -133,10 +135,7 @@ python3 setup.py
 │   │   ├── mcp-orchestrator.md
 │   │   └── repomix-analyzer.md
 │   ├── hooks/                 # Validation hooks (Python for cross-platform)
-│   │   ├── mermaid_diagram_validation.py
-│   │   ├── documentation_completeness_check.py
-│   │   ├── business_rule_validation.py
-│   │   └── (legacy .sh versions kept for compatibility)
+│   │   └── simple_mermaid_validation.py  # Pre-write Mermaid validation
 │   └── settings.local.json    # Claude settings
 │
 ├── codebase/                   # YOUR CODE GOES HERE
@@ -206,7 +205,7 @@ python3 setup.py
 | `@mcp-orchestrator` | Coordinates MCP usage | output/reports/ | Always run first for token optimization |
 | `@repomix-analyzer` | Analyzes compressed code | output/reports/ | After MCP orchestrator |
 | **`@architecture-selector`** | **Detects technologies & recommends specialists** | **output/docs/00-agent-selection-report.md** | **Run BEFORE any analysis agents** |
-| `@java-architect-enhanced` | Java/Spring/J2EE analysis with visual indicators | output/docs/01-java-*.md | When Java detected |
+| `@java-architect` | Java/Spring/J2EE analysis with visual indicators | output/docs/01-java-*.md | When Java detected |
 | `@dotnet-architect` | .NET/C#/ASP.NET analysis | output/docs/01-dotnet-*.md | When .NET detected |
 | `@angular-architect` | Angular/AngularJS analysis | output/docs/01-angular-*.md | When Angular detected |
 | `@legacy-code-detective` | Generic technology analysis | output/docs/01-*.md | ONLY for unknown/5+ technologies |
@@ -262,7 +261,7 @@ In Claude Code, run agents in sequence:
 
 # 3. Technology-Specific Analysis (based on detection results)
 # Example for Java + Angular application:
-@java-architect-enhanced  # Backend analysis with visual indicators (if Java detected)
+@java-architect  # Backend analysis with visual indicators (if Java detected)
 @angular-architect       # Frontend analysis (if Angular detected)
 # Run these in parallel for faster analysis
 
@@ -334,14 +333,14 @@ To run manually:
 
 **Windows:**
 ```powershell
-python .claude\hooks\mermaid_diagram_validation.py
+python .claude\hooks\simple_mermaid_validation.py
 python .claude\hooks\documentation_completeness_check.py
 python .claude\hooks\business_rule_validation.py
 ```
 
 **Mac/Linux:**
 ```bash
-python3 .claude/hooks/mermaid_diagram_validation.py
+python3 .claude/hooks/simple_mermaid_validation.py
 python3 .claude/hooks/documentation_completeness_check.py
 python3 .claude/hooks/business_rule_validation.py
 ```
@@ -378,18 +377,29 @@ find codebase -name "*.cs" | head -5    # .NET files
 find codebase -name "*.ts" -o -name "angular.json" | head -5  # Angular files
 
 # If technologies found but selector missed them, run specialists directly:
-@java-architect-enhanced  # For Java code (with visual indicators)
+@java-architect  # For Java code (with visual indicators)
 @angular-architect   # For Angular code
+```
+
+### Mermaid Diagram Issues
+```bash
+# Validate and auto-fix all diagrams
+python3 framework/scripts/smart_mermaid_validator.py output/ --fix
+
+# Run final check
+python3 framework/scripts/mermaid_final_check.py output/
+
+# Test in browser
+# Open framework/document-viewer.html and load your output directory
 ```
 
 ### MCP Not Working
 ```bash
 # Run diagnostic test (all platforms)
-python framework/scripts/test_mcp_integration.py
+python3 framework/scripts/test_mcp_integration.py
 
 # Check .mcp.json exists in root
-# Windows: dir .mcp.json
-# Mac/Linux: ls -la .mcp.json
+ls -la .mcp.json
 
 # Restart Claude Code after changes
 ```
@@ -421,6 +431,8 @@ repomix --config .repomix.config.json codebase/daytrader/
 
 ### Framework Documentation
 - `framework/docs/CLAUDE_FRAMEWORK.md` - Complete framework guide
+- `framework/docs/MERMAID_COMPLETE_GUIDE.md` - Comprehensive Mermaid validation guide
+- `framework/docs/MERMAID_STRICT_RULES.md` - Quick reference for diagram rules
 - `framework/docs/MCP_USAGE_GUIDE.md` - MCP optimization strategies
 - `framework/docs/MCP_CONFIGURATION_GUIDE.md` - MCP setup details
 

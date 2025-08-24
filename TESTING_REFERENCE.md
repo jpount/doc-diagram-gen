@@ -1,9 +1,4 @@
-# Testing Reference Card
-
-## 🔐 Backup Information
-**Backup Created:** 2025-08-23 18:46:08  
-**Backup Location:** `backup_20250823_184608/`  
-**Restore Script:** `backup_20250823_184608/restore.py`
+# Testing Reference Guide
 
 ## 🧪 Quick Test Commands
 
@@ -11,131 +6,152 @@
 ```bash
 python3 framework/scripts/test_framework.py
 ```
-Expected: 37/37 tests passing
+Verifies all framework components are in place and working.
 
 ### 2. Test MCP Integration
 ```bash
 python3 framework/scripts/test_mcp_integration.py
 ```
+Checks MCP configuration and availability.
 
-### 3. Test Agent Orchestration
+### 3. Test Mermaid Validation System
 ```bash
-python3 framework/scripts/agent_orchestrator.py workflow
+# Validate all diagrams
+python3 framework/scripts/smart_mermaid_validator.py output/
+
+# Validate and auto-fix
+python3 framework/scripts/smart_mermaid_validator.py output/ --fix
+
+# Final comprehensive check
+python3 framework/scripts/mermaid_final_check.py output/
+
+# Test in browser
+# Open framework/document-viewer.html in browser
+# Load output/ directory to view all diagrams
 ```
 
 ### 4. Test Setup Scripts
 ```bash
-# Test MCP setup (interactive)
+# Test MCP setup
 python3 framework/scripts/setup_mcp.py
 
 # Test tech stack setup
 python3 framework/scripts/setup_tech_stack.py --preset cloud-native
 ```
 
-### 5. Test Notifications
+### 5. Test Agent Orchestration
 ```bash
-# Test terminal notification
-python3 .claude/hooks/notifications.py "Test message" --method terminal
+# Show workflow
+python3 framework/scripts/agent_orchestrator.py workflow
 
-# Test all notification methods
-python3 .claude/hooks/notifications.py "Test complete" --method all
-```
-
-### 6. Test Mermaid Validation
-```bash
-python3 framework/scripts/validate_mermaid.py --output-dir output/docs
-```
-
-## 🔄 If Something Breaks
-
-### Quick Restore Everything
-```bash
-cd backup_20250823_184608
-python3 restore.py --component all
-```
-
-### Restore Specific Components
-```bash
-# Just framework
-python3 backup_20250823_184608/restore.py --component framework
-
-# Just hooks and agents
-python3 backup_20250823_184608/restore.py --component claude
-
-# Just configuration files
-python3 backup_20250823_184608/restore.py --component config
-```
-
-### Manual Restore
-```bash
-# Restore framework
-cp -r backup_20250823_184608/framework/* framework/
-
-# Restore Claude configuration
-cp -r backup_20250823_184608/.claude/* .claude/
-
-# Restore MCP config
-cp backup_20250823_184608/.mcp.json .mcp.json
+# In Claude Code, test agents:
+@mcp-orchestrator
+@repomix-analyzer
+@architecture-selector
 ```
 
 ## ✅ Testing Checklist
 
 ### Framework Structure
-- [ ] All directories exist
-- [ ] All Python scripts executable
-- [ ] No shell scripts in hooks
+- [ ] All directories exist (`framework/`, `.claude/`, `output/`, `codebase/`)
+- [ ] All Python scripts are executable
+- [ ] Configuration templates are in place
 
 ### MCP Configuration
-- [ ] .mcp.json uses `${PWD}/codebase` (not hardcoded)
+- [ ] `.mcp.json` exists at root (git-ignored)
+- [ ] Uses `${PWD}/codebase` path (not hardcoded)
 - [ ] Repomix config generates correctly
-- [ ] Can switch between all repos and specific repo
+- [ ] MCPs restart after configuration changes
 
-### Notifications
-- [ ] Stop hook triggers notification
-- [ ] User prompt hook triggers notification
-- [ ] Logs written to `logs/notifications.log`
-
-### Multi-Repository Support
-- [ ] Can configure for all repositories
-- [ ] Can configure for specific repository
-- [ ] Repomix creates single combined file
+### Mermaid Validation
+- [ ] Smart validator fixes common errors
+- [ ] Pre-write hook prevents broken diagrams
+- [ ] Final check validates all output
+- [ ] Document viewer renders diagrams correctly
 
 ### Documentation Generation
-- [ ] Agents can be invoked
-- [ ] Validation hooks run on file write
+- [ ] Agents can be invoked in Claude Code
 - [ ] Output goes to correct directories
+- [ ] Context summaries are created
+- [ ] Diagrams are valid Mermaid syntax
 
-## 📊 Current State Summary
+## 📊 Current System Status
 
-### What's Changed
-1. **All scripts are Python** - No shell scripts in hooks
-2. **No hardcoded repos** - Uses `${PWD}/codebase`
-3. **Generic notifications** - Single notifications.py for all hooks
-4. **Organized framework** - All framework files in framework/
-5. **Multi-repo support** - Can analyze multiple repositories
+### What's Working
+1. **Smart Mermaid Validation** - 3-layer system with intelligent fixing
+2. **Clean Structure** - Organized framework with clear separation
+3. **Git-Ignored Configs** - Personal settings don't pollute repository
+4. **Cross-Platform Support** - Python scripts work everywhere
+5. **Browser Validation** - Visual verification with document-viewer.html
 
-### Configuration
-- **MCP Path:** `${PWD}/codebase` (all repos)
-- **Hooks:** 6 Python hooks
-- **Agents:** 10 specialized agents
-- **Scripts:** 11 Python scripts
+### Key Scripts
+- `smart_mermaid_validator.py` - Main validation with error-based fixing
+- `mermaid_pre_write_hook.py` - Pre-write validation
+- `mermaid_final_check.py` - Final validation pass
+- `test_mcp_integration.py` - MCP diagnostic
+- `setup_mcp.py` - MCP configuration
+- `agent_orchestrator.py` - Agent workflow
+
+### Configuration Files (Git-Ignored)
+- `.mcp.json` - MCP configuration
+- `.repomix.config.json` - Repomix settings
+- `CLAUDE.md` - Project configuration
+- `ANALYSIS_MODE.md` - Analysis mode
+- `DOCUMENTATION_MODE.md` - Documentation mode
+- `TARGET_TECH_STACK.md` - Target technology
+
+## 🔄 Common Issues & Solutions
+
+### Mermaid Diagrams Not Rendering
+```bash
+# Auto-fix all diagrams
+python3 framework/scripts/smart_mermaid_validator.py output/ --fix
+
+# Check specific file
+python3 framework/scripts/smart_mermaid_validator.py output/diagrams/example.mmd
+```
+
+### MCP Not Available
+```bash
+# Check configuration
+cat .mcp.json
+
+# Test integration
+python3 framework/scripts/test_mcp_integration.py
+
+# Restart Claude Code after changes
+```
+
+### Agents Not Working
+```bash
+# Check agent files exist
+ls -la .claude/agents/
+
+# In Claude Code:
+# 1. Ensure .mcp.json is at root
+# 2. Restart Claude Code
+# 3. Try @mcp-orchestrator first
+```
 
 ## 🚨 Important Notes
 
-1. **Restart Claude Code** after changing .mcp.json
-2. **Backup is timestamped** - Don't delete until testing complete
-3. **Output directory** not backed up (it's generated content)
-4. **Codebase directory** not backed up (it's your test data)
+1. **Restart Claude Code** after changing `.mcp.json`
+2. **Configuration files are git-ignored** - they're personal to each developer
+3. **Output directory** contains generated content - can be deleted and regenerated
+4. **Archive directory** contains old scripts - kept for reference only
 
-## 📝 Test Log
+## 📝 Test Results Log
 
-Use this space to track your tests:
+Use this to track your testing:
 
-- [ ] Framework test: ___________
-- [ ] MCP test: ___________
-- [ ] Notification test: ___________
-- [ ] Agent test: ___________
-- [ ] Setup script test: ___________
+- [ ] Framework test passed: ___________
+- [ ] MCP integration working: ___________
+- [ ] Mermaid validation working: ___________
+- [ ] Agents responding: ___________
+- [ ] Output generation successful: ___________
 
 ---
-**Remember:** Your backup is safe in `backup_20250823_184608/` - you can always restore!
+
+**Framework Version**: 2.1.0  
+**Last Updated**: 2025-08-24  
+**Status**: ✅ All Systems Operational
