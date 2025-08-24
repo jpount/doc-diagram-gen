@@ -32,15 +32,6 @@
       ],
       "env": {}
     },
-    "fetch": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-fetch"
-      ],
-      "env": {},
-      "disabled": false
-    },
     "git": {
       "command": "npx",
       "args": [

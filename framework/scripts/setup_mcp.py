@@ -213,7 +213,9 @@ class MCPSetup:
                             "--project",
                             f"${{PWD}}/codebase/{project_name}"
                         ],
-                        "env": {}
+                        "env": {},
+                        "disabled": True,
+                        "_comment": "OPTIONAL: Enable for semantic code analysis (60% token reduction)"
                     },
                     "filesystem": {
                         "command": "npx",
@@ -238,6 +240,24 @@ class MCPSetup:
         # Update project path in config
         if "serena" in mcp_config["mcpServers"]:
             mcp_config["mcpServers"]["serena"]["args"][-1] = project_path
+            
+            # Ask if user wants to enable Serena
+            print(f"\n{Colors.CYAN}Serena MCP Configuration:{Colors.RESET}")
+            print("Serena provides semantic code analysis with 60% token reduction.")
+            print("It requires Python uvx/uv to be installed.")
+            enable_serena = input("Enable Serena MCP? (y/n) [n]: ").strip().lower()
+            
+            if enable_serena == 'y':
+                # Remove disabled flag or set to False
+                if "disabled" in mcp_config["mcpServers"]["serena"]:
+                    del mcp_config["mcpServers"]["serena"]["disabled"]
+                print(f"{Colors.GREEN}✅ Serena MCP enabled{Colors.RESET}")
+                if not self.mcp_status["uvx"]:
+                    print(f"{Colors.YELLOW}⚠️  Remember to install uvx: pip install uv{Colors.RESET}")
+            else:
+                # Keep it disabled
+                mcp_config["mcpServers"]["serena"]["disabled"] = True
+                print(f"{Colors.YELLOW}ℹ️  Serena MCP disabled (can be enabled later in .mcp.json){Colors.RESET}")
         
         # Write configuration
         with open(self.mcp_json_path, 'w') as f:
@@ -324,6 +344,66 @@ class MCPSetup:
         else:
             print(f"{Colors.GREEN}✅ Cache directory exists{Colors.RESET}")
     
+    def create_settings_local(self):
+        """Create or update .claude/settings.local.json"""
+        settings_path = self.project_root / ".claude" / "settings.local.json"
+        template_path = self.project_root / "framework" / "templates" / "settings.local.template.json"
+        
+        print(f"\n{Colors.YELLOW}Configuring Claude Code settings...{Colors.RESET}")
+        
+        # Check if settings already exists
+        if settings_path.exists():
+            # Update existing settings to ensure correct MCP configuration
+            try:
+                with open(settings_path, 'r') as f:
+                    settings = json.load(f)
+                
+                # Ensure filesystem and memory are enabled by default
+                current_servers = settings.get('enabledMcpjsonServers', [])
+                if "filesystem" not in current_servers:
+                    current_servers.append("filesystem")
+                if "memory" not in current_servers:
+                    current_servers.append("memory")
+                settings['enabledMcpjsonServers'] = current_servers
+                
+                # Ensure enableAllProjectMcpServers is false (selective enablement)
+                settings['enableAllProjectMcpServers'] = False
+                
+                # Write updated settings
+                with open(settings_path, 'w') as f:
+                    json.dump(settings, f, indent=2)
+                
+                print(f"{Colors.GREEN}✅ Updated settings.local.json with correct MCP configuration{Colors.RESET}")
+            except Exception as e:
+                print(f"{Colors.YELLOW}⚠️  Could not update settings.local.json: {e}{Colors.RESET}")
+        else:
+            # Create new settings from template
+            if template_path.exists():
+                with open(template_path, 'r') as f:
+                    settings = json.load(f)
+            else:
+                # Fallback if template doesn't exist
+                settings = {
+                    "permissions": {
+                        "allow": ["Bash(python3:*)", "mcp__memory__read_graph"],
+                        "deny": [],
+                        "ask": []
+                    },
+                    "enableAllProjectMcpServers": False,
+                    "enabledMcpjsonServers": ["filesystem", "memory"],
+                    "hooks": {},
+                    "agentDirectories": [".claude/agents"]
+                }
+            
+            # Ensure .claude directory exists
+            settings_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Write settings
+            with open(settings_path, 'w') as f:
+                json.dump(settings, f, indent=2)
+            
+            print(f"{Colors.GREEN}✅ Created settings.local.json with default MCP configuration{Colors.RESET}")
+    
     def test_repomix(self):
         """Test Repomix with dry run"""
         if not self.mcp_status["repomix"]:
@@ -400,6 +480,7 @@ class MCPSetup:
         
         # Create configurations
         self.create_mcp_json()
+        self.create_settings_local()
         self.create_repomix_config()
         self.create_cache_directory()
         

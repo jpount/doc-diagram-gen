@@ -402,4 +402,22 @@ mcp__serena__write_memory("modernization_strategy", {
 - [ ] Business value articulated for each phase
 - [ ] Output written to docs/07-modernization-strategy.md
 
+## Output Generation
+
+### CRITICAL: Validate Mermaid Diagrams
+When saving modernization strategies with diagrams:
+
+```python
+# Save modernization blueprint with validated diagrams
+Write("output/docs/06-modernization-blueprint.md", modernization_content)
+
+# Auto-fix any Mermaid diagram errors
+Bash("python3 framework/scripts/fix_mermaid.py output/docs/06-modernization-blueprint.md")
+
+# Also save to memory for other agents
+mcp__serena__write_memory("modernization_strategy", strategy_summary)
+```
+
+**IMPORTANT: Always use the Write tool to save your analysis to `output/docs/06-modernization-blueprint.md`**
+
 Always create pragmatic, achievable modernization strategies that balance technical excellence with business constraints and deliver incremental value throughout the transformation journey.

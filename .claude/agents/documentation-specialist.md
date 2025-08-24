@@ -48,17 +48,64 @@ Establish comprehensive documentation approach:
     "audience_analysis": "Technical teams, business stakeholders, operations",
     "documentation_types": "Architecture, API, database, procedures, guides",
     "delivery_methods": "Markdown files, interactive docs, PDF exports",
-    "maintenance_strategy": "Version control, review cycles, automated updates"
+    "maintenance_strategy": "Version control, review cycles, automated updates",
+    "configuration_file": "framework/configs/documentation-config.json"
   }
 }
 ```
 
+**IMPORTANT: Documentation Generation Configuration**
+
+Before generating documentation, load and check the configuration file at `framework/configs/documentation-config.json` to determine:
+1. Which documents should be generated (check `enabled` flag)
+2. Whether modernization mode is active (for modernization-specific documents)
+3. Document priorities and categories
+4. Custom document requirements
+
+Only generate documents that have `enabled: true` in the configuration. For modernization documents, also verify that the project has modernization enabled.
+
 Documentation planning methodology:
+- **Configuration Loading**: Read `framework/configs/documentation-config.json` to determine enabled documents
 - **Audience Identification**: Define primary and secondary documentation consumers
-- **Content Inventory**: Catalog all documentation requirements and existing content
+- **Content Inventory**: Catalog only enabled documentation requirements from config
 - **Information Architecture**: Design logical structure and navigation
-- **Template Development**: Create consistent templates for different document types
+- **Template Development**: Create consistent templates for enabled document types
 - **Tool Selection**: Choose appropriate tools for creation, maintenance, and publishing
+
+### Configuration-Driven Document Generation
+
+When starting documentation generation:
+
+```python
+import json
+import os
+
+# Load documentation configuration
+config_path = "framework/configs/documentation-config.json"
+with open(config_path, 'r') as f:
+    config = json.load(f)
+
+# Determine which documents to generate
+documents_to_generate = []
+
+# Check default documents
+for doc_name, doc_config in config['documentation']['default_documents'].items():
+    if doc_config['enabled']:
+        documents_to_generate.append(doc_name)
+
+# Check optional documents
+for doc_name, doc_config in config['documentation']['optional_documents'].items():
+    if doc_config['enabled']:
+        documents_to_generate.append(doc_name)
+
+# Check modernization documents (only if modernization is enabled)
+if modernization_mode_enabled:  # This should be determined from project settings
+    for doc_name, doc_config in config['documentation']['modernization_documents'].items():
+        if doc_config['enabled'] and doc_config.get('requires_modernization', False):
+            documents_to_generate.append(doc_name)
+
+print(f"Generating documents: {documents_to_generate}")
+```
 
 ### Phase 2: System Architecture Documentation
 
@@ -484,17 +531,41 @@ docker pull registry.company.com/customer-service:v1.2.3
 - **Modernisation Architect**: Overall strategy and architectural decisions for JSF/JSP to Angular migration
 
 ### Output Deliverables
+
+**Configuration-Based Deliverables**
+
+The actual deliverables are determined by the configuration file at `framework/configs/documentation-config.json`. The default configuration includes:
+
 ```json
 {
   "documentation_deliverables": {
-    "system_documentation": "Complete system architecture and component docs",
-    "api_documentation": "OpenAPI specs and developer guides",
-    "database_documentation": "Schema docs and data dictionaries",
-    "migration_guides": "Step-by-step transformation procedures",
-    "operational_runbooks": "Deployment and maintenance procedures"
+    "default_enabled": [
+      "SYSTEM-ARCHITECTURE.md",
+      "TECHNICAL-DEBT-REPORT.md",
+      "DEVELOPER-GUIDE.md",
+      "CONFIGURATION-GUIDE.md",
+      "API-DOCUMENTATION.md"
+    ],
+    "optional": [
+      "DATABASE-SCHEMA.md",
+      "DEPLOYMENT-GUIDE.md",
+      "TESTING-GUIDE.md",
+      "TROUBLESHOOTING-GUIDE.md",
+      "BUSINESS-RULES-CATALOG.md",
+      "SECURITY-ANALYSIS.md",
+      "PERFORMANCE-ANALYSIS.md"
+    ],
+    "modernization_only": [
+      "MIGRATION-ROADMAP.md",
+      "LEGACY-SYSTEM-ANALYSIS.md",
+      "TRANSFORMATION-STRATEGY.md",
+      "TECHNOLOGY-MIGRATION-GUIDE.md"
+    ]
   }
 }
 ```
+
+**IMPORTANT**: Always check the configuration file to determine which documents to generate. Do not generate documents that are disabled in the configuration.
 
 ### Collaboration Protocols
 - **Review Cycles**: Regular technical review with subject matter experts

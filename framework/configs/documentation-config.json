@@ -1,0 +1,155 @@
+{
+  "documentation": {
+    "description": "Configuration for documentation generation by documentation-specialist agent",
+    "version": "1.0",
+    "default_documents": {
+      "SYSTEM-ARCHITECTURE.md": {
+        "enabled": true,
+        "description": "High-level system architecture overview and component documentation",
+        "category": "technical",
+        "priority": 1
+      },
+      "TECHNICAL-DEBT-REPORT.md": {
+        "enabled": true,
+        "description": "Analysis of technical debt, code quality issues, and remediation recommendations",
+        "category": "technical",
+        "priority": 2
+      },
+      "DEVELOPER-GUIDE.md": {
+        "enabled": true,
+        "description": "Development setup, build processes, and coding standards",
+        "category": "technical",
+        "priority": 3
+      },
+      "CONFIGURATION-GUIDE.md": {
+        "enabled": true,
+        "description": "Environment configuration, deployment settings, and system parameters",
+        "category": "operational",
+        "priority": 4
+      },
+      "API-DOCUMENTATION.md": {
+        "enabled": true,
+        "description": "REST API endpoints, request/response formats, and authentication",
+        "category": "technical",
+        "priority": 5
+      }
+    },
+    "optional_documents": {
+      "DATABASE-SCHEMA.md": {
+        "enabled": false,
+        "description": "Database tables, relationships, and data dictionary",
+        "category": "technical",
+        "priority": 6
+      },
+      "DEPLOYMENT-GUIDE.md": {
+        "enabled": false,
+        "description": "Deployment procedures, infrastructure requirements, and rollback strategies",
+        "category": "operational",
+        "priority": 7
+      },
+      "TESTING-GUIDE.md": {
+        "enabled": false,
+        "description": "Testing strategies, test execution, and quality assurance processes",
+        "category": "technical",
+        "priority": 8
+      },
+      "TROUBLESHOOTING-GUIDE.md": {
+        "enabled": false,
+        "description": "Common issues, debugging procedures, and resolution steps",
+        "category": "operational",
+        "priority": 9
+      },
+      "BUSINESS-RULES-CATALOG.md": {
+        "enabled": false,
+        "description": "Business logic documentation, domain rules, and process flows",
+        "category": "business",
+        "priority": 10
+      },
+      "SECURITY-ANALYSIS.md": {
+        "enabled": false,
+        "description": "Security vulnerabilities, compliance requirements, and remediation",
+        "category": "security",
+        "priority": 11
+      },
+      "PERFORMANCE-ANALYSIS.md": {
+        "enabled": false,
+        "description": "Performance bottlenecks, optimization opportunities, and benchmarks",
+        "category": "technical",
+        "priority": 12
+      }
+    },
+    "modernization_documents": {
+      "description": "Documents only generated when modernization mode is enabled",
+      "MIGRATION-ROADMAP.md": {
+        "enabled": false,
+        "description": "Step-by-step migration plan from legacy to modern architecture",
+        "category": "modernization",
+        "priority": 13,
+        "requires_modernization": true
+      },
+      "LEGACY-SYSTEM-ANALYSIS.md": {
+        "enabled": false,
+        "description": "Deep analysis of legacy codebase, dependencies, and technical debt",
+        "category": "modernization",
+        "priority": 14,
+        "requires_modernization": true
+      },
+      "TRANSFORMATION-STRATEGY.md": {
+        "enabled": false,
+        "description": "Strategic approach to modernization including phasing and risk assessment",
+        "category": "modernization",
+        "priority": 15,
+        "requires_modernization": true
+      },
+      "TECHNOLOGY-MIGRATION-GUIDE.md": {
+        "enabled": false,
+        "description": "Technology-specific migration guides (e.g., JSF to Angular, EJB to Spring)",
+        "category": "modernization",
+        "priority": 16,
+        "requires_modernization": true
+      }
+    },
+    "generation_settings": {
+      "output_directory": "output/docs",
+      "file_format": "markdown",
+      "include_table_of_contents": true,
+      "include_metadata": true,
+      "include_timestamps": true,
+      "max_file_size_mb": 10,
+      "generate_index": true
+    },
+    "categories": {
+      "technical": {
+        "description": "Technical documentation for developers and architects",
+        "default_enabled": true
+      },
+      "operational": {
+        "description": "Operational guides for deployment and maintenance",
+        "default_enabled": true
+      },
+      "business": {
+        "description": "Business logic and domain documentation",
+        "default_enabled": false
+      },
+      "security": {
+        "description": "Security analysis and compliance documentation",
+        "default_enabled": false
+      },
+      "modernization": {
+        "description": "Legacy modernization and migration documentation",
+        "default_enabled": false,
+        "requires_flag": "modernization_enabled"
+      }
+    },
+    "customization": {
+      "allow_custom_documents": true,
+      "custom_document_template": {
+        "name": "CUSTOM-DOCUMENT.md",
+        "enabled": false,
+        "description": "User-defined custom documentation",
+        "category": "custom",
+        "priority": 99
+      }
+    }
+  }
+}

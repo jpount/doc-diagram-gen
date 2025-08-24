@@ -13,7 +13,8 @@
         "${PWD}/codebase"
       ],
       "env": {},
-      "_comment": "Update --project path to match your codebase location"
+      "disabled": true,
+      "_comment": "OPTIONAL: Enable for semantic code analysis (60% token reduction). Update --project path to match your codebase location"
     },
     "filesystem": {
       "command": "npx",
@@ -31,15 +32,6 @@
         "@modelcontextprotocol/server-memory"
       ],
       "env": {}
-    },
-    "fetch": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-fetch"
-      ],
-      "env": {},
-      "disabled": false
     },
     "git": {
       "command": "npx",

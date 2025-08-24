@@ -152,10 +152,17 @@ python3 setup.py
 
 ## 🎯 Key Features
 
-### Token Optimization (90%+ Reduction)
-- **Repomix**: Compresses codebase by 80%
-- **Serena MCP**: Semantic search saves 60%
-- **Combined**: 90-95% token reduction
+### Token Optimization (Up to 90% Reduction)
+- **Default (Raw Codebase)**: Direct file access, no optimization needed
+- **Repomix (Optional)**: Compresses codebase by 80% - if generated, agents will use it automatically
+- **Serena MCP (Optional)**: Semantic search saves 60% - for advanced symbol analysis
+- **Combined (All Optional Tools)**: 90-95% token reduction
+
+**How It Works:**
+1. Agents first check for Repomix summary (`output/reports/repomix-summary.md`)
+2. If Repomix exists, agents use it for initial analysis (80% token savings)
+3. If no Repomix, agents read directly from `codebase/` directory
+4. Serena (if enabled) provides semantic search on top of either approach
 
 ### Comprehensive Analysis
 - **50+ Business Rules**: Extracted with code references
@@ -184,6 +191,7 @@ python3 setup.py
 | `@performance-analyst` | Performance bottlenecks | output/docs/04-*.md |
 | `@security-analyst` | Security vulnerabilities | output/docs/05-*.md |
 | `@modernization-architect` | Migration strategy | output/docs/06-*.md |
+| `@documentation-specialist` | Comprehensive documentation | output/docs/*.md |
 
 ## 📋 Workflow
 
@@ -203,12 +211,12 @@ python3 setup.py
 ./setup.sh
 ```
 
-### Phase 2: MCP Pre-Analysis (Optional but Recommended)
+### Phase 2: Pre-Analysis Setup (Optional)
 ```bash
-# Generate compressed summary (all platforms)
+# Optional: Generate compressed summary for token optimization (all platforms)
 repomix --config .repomix.config.json
 
-# Test MCP integration
+# Test MCP integration (shows which MCPs are available)
 # Windows:
 python framework\scripts\test_mcp_integration.py
 
@@ -220,11 +228,11 @@ python3 framework/scripts/test_mcp_integration.py
 In Claude Code, run agents in sequence:
 
 ```
-# 1. MCP Optimization (if available)
+# 1. Optional: MCP Optimization (if Repomix/Serena enabled)
 @mcp-orchestrator
 @repomix-analyzer
 
-# 2. Core Analysis
+# 2. Core Analysis (works with raw codebase)
 @legacy-code-detective
 @business-logic-analyst
 @diagram-architect
@@ -233,6 +241,9 @@ In Claude Code, run agents in sequence:
 @performance-analyst
 @security-analyst
 @modernization-architect
+
+# 4. Final Documentation
+@documentation-specialist  
 ```
 
 ### Phase 4: Review Output
@@ -251,10 +262,17 @@ Configure your target technology stack:
 Or edit `TARGET_TECH_STACK.md` directly after setup.
 
 ### MCP Configuration
-The `.mcp.json` file is auto-generated during setup.
-To reconfigure:
+The `.mcp.json` file is auto-generated during setup with Serena disabled by default.
+
+To enable Serena for semantic code analysis (60% token reduction):
+1. Edit `.mcp.json` and remove the `"disabled": true` line from the serena section
+2. Edit `.claude/settings.local.json` and either:
+   - Set `"enableAllProjectMcpServers": true` to enable all MCPs, OR
+   - Add `"serena"` to the `"enabledMcpjsonServers"` array
+
+To reconfigure from scratch:
 ```bash
-./framework/scripts/setup-mcp.sh
+python3 framework/scripts/setup_mcp.py
 ```
 
 ### Codebase Path
@@ -315,6 +333,12 @@ python framework/scripts/test_mcp_integration.py
 
 # Restart Claude Code after changes
 ```
+
+### Serena Not Available
+Serena is disabled by default. To enable:
+1. Remove `"disabled": true` from serena section in `.mcp.json`
+2. Restart Claude Code
+3. Serena will be available as `@serena` in Claude Code
 
 ### Repomix Issues
 ```bash

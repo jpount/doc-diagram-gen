@@ -12,11 +12,15 @@ from datetime import datetime
 from pathlib import Path
 
 
-def log_message(message):
-    """Log security events to the security log file"""
+def log_message(message, log_type='security'):
+    """Log security events to the appropriate log file"""
     log_dir = Path(os.getenv('CLAUDE_PROJECT_DIR', '')) / 'logs'
     log_dir.mkdir(exist_ok=True)
-    log_file = log_dir / 'security.log'
+    
+    if log_type == 'allowed':
+        log_file = log_dir / 'security-allowed.log'
+    else:
+        log_file = log_dir / 'security-blocked.log'
     
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     with open(log_file, 'a') as f:
@@ -144,7 +148,7 @@ def check_dangerous_patterns(command):
     
     for pattern in dangerous_patterns:
         if re.search(pattern, command, re.IGNORECASE):
-            log_message(f"SECURITY ALERT: Dangerous command blocked - Pattern: {pattern}")
+            log_message(f"BLOCKED - Dangerous pattern detected - Command: {command} - Pattern: {pattern}", log_type='security')
             print(f"SECURITY ALERT: Dangerous command blocked!", file=sys.stderr)
             print(f"Command: {command}", file=sys.stderr)
             print(f"Matched pattern: {pattern}", file=sys.stderr)
@@ -161,7 +165,7 @@ def check_suspicious_patterns(command):
     
     for pattern in suspicious_patterns:
         if re.search(pattern, command, re.IGNORECASE):
-            log_message(f"WARNING: Suspicious command detected - Pattern: {pattern}")
+            log_message(f"WARNING - Suspicious pattern detected but allowed - Command: {command} - Pattern: {pattern}", log_type='allowed')
             print(f"WARNING: Potentially risky command detected:", file=sys.stderr)
             print(f"Command: {command}", file=sys.stderr)
             print(f"Matched pattern: {pattern}", file=sys.stderr)
@@ -177,7 +181,7 @@ def check_critical_directories(command):
     for directory in critical_dirs:
         pattern = rf'(rm|mv|cp|chmod|chown).*{re.escape(directory)}'
         if re.search(pattern, command, re.IGNORECASE):
-            log_message(f"SECURITY ALERT: Command targets critical system directory: {directory}")
+            log_message(f"BLOCKED - Critical directory access - Command: {command} - Directory: {directory}", log_type='security')
             print(f"SECURITY ALERT: Command targets critical system directory!", file=sys.stderr)
             print(f"Command: {command}", file=sys.stderr)
             print(f"Critical directory: {directory}", file=sys.stderr)
@@ -196,7 +200,7 @@ def check_security_files(command):
         escaped_path = re.escape(file_path)
         pattern = rf'(rm|mv|cp|chmod|chown|echo.*>|cat.*>).*{escaped_path}'
         if re.search(pattern, command, re.IGNORECASE):
-            log_message(f"SECURITY ALERT: Command targets security-sensitive file: {file_path}")
+            log_message(f"BLOCKED - Security file access - Command: {command} - File: {file_path}", log_type='security')
             print(f"SECURITY ALERT: Command targets security-sensitive file!", file=sys.stderr)
             print(f"Command: {command}", file=sys.stderr)
             print(f"Security file: {file_path}", file=sys.stderr)
@@ -210,7 +214,7 @@ def check_command_chaining(command):
     """Check for dangerous command chaining"""
     chaining_pattern = r';\s*(rm|dd|mkfs|fdisk)'
     if re.search(chaining_pattern, command, re.IGNORECASE):
-        log_message("SECURITY ALERT: Command chaining with dangerous operations detected")
+        log_message(f"BLOCKED - Dangerous command chaining - Command: {command}", log_type='security')
         print("SECURITY ALERT: Dangerous command chaining detected!", file=sys.stderr)
         print(f"Command: {command}", file=sys.stderr)
         print("Command chaining with destructive operations is not allowed.", file=sys.stderr)
@@ -223,7 +227,7 @@ def check_environment_manipulation(command):
     """Check for potentially dangerous environment variable manipulation"""
     env_pattern = r'(export|unset)\s+(PATH|LD_LIBRARY_PATH|HOME)'
     if re.search(env_pattern, command, re.IGNORECASE):
-        log_message("WARNING: Environment variable manipulation detected")
+        log_message(f"WARNING - Environment manipulation allowed - Command: {command}", log_type='allowed')
         print("WARNING: Environment variable manipulation detected:", file=sys.stderr)
         print(f"Command: {command}", file=sys.stderr)
         print("Modifying system environment variables can affect security.", file=sys.stderr)
@@ -232,10 +236,12 @@ def check_environment_manipulation(command):
 def validate_command(command):
     """Main validation function for bash commands"""
     if not command:
-        log_message("No command provided for analysis")
+        # Empty commands are allowed but logged
+        log_message("Empty command - allowed", log_type='allowed')
         return True
     
-    log_message(f"Analyzing command: {command}")
+    # Log command analysis start
+    log_message(f"Analyzing command: {command}", log_type='allowed')
     
     # Check for dangerous patterns (blocking)
     if not check_dangerous_patterns(command):
@@ -259,7 +265,8 @@ def validate_command(command):
     # Check for environment manipulation (warnings only)
     check_environment_manipulation(command)
     
-    log_message(f"Command security check passed: {command}")
+    # Command passed all checks - log as allowed
+    log_message(f"ALLOWED - Command passed all security checks - Command: {command}", log_type='allowed')
     return True
 
 
@@ -276,13 +283,14 @@ def main():
         if validate_command(command):
             sys.exit(0)  # Allow command
         else:
+            # Command was blocked - already logged in validate_command
             sys.exit(2)  # Block command
     
     except json.JSONDecodeError:
-        log_message("Invalid JSON input received")
+        log_message("ERROR - Invalid JSON input received", log_type='security')
         sys.exit(1)
     except Exception as e:
-        log_message(f"Unexpected error: {e}")
+        log_message(f"ERROR - Unexpected error: {e}", log_type='security')
         sys.exit(1)
 
 

@@ -23,7 +23,7 @@ mcps:
     token_savings: "80%"
     
   serena:
-    enabled: true
+    enabled: false
     priority: 2
     description: "Semantic code search and symbol analysis"
     installation: |

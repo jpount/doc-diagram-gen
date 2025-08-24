@@ -22,9 +22,9 @@ This guide explains how to effectively use MCPs (Model Context Protocols) to ach
 - Provides token counting and metrics
 - Tree-sitter based code understanding
 
-### 2. Serena - Semantic Code Search (60% Token Reduction)
-**Purpose**: Intelligent semantic search and symbol analysis
-**When to Use**: Throughout all analysis phases
+### 2. Serena - Semantic Code Search (60% Token Reduction) [OPTIONAL]
+**Purpose**: Intelligent semantic search and symbol analysis (not required, but recommended for large codebases)
+**When to Use**: Throughout all analysis phases if enabled
 **Key Features**:
 - Symbol-level code understanding
 - Cross-agent memory management
@@ -101,29 +101,59 @@ src login
 src search -repo="file:./codebase" "pattern"
 ```
 
+## Data Source Priority (How Agents Choose What to Analyze)
+
+The framework agents follow this priority order when analyzing code:
+
+1. **Check for Repomix Summary** 
+   - Location: `output/reports/repomix-summary.md`
+   - If exists → Use it (80% token savings)
+   - If not → Continue to step 2
+
+2. **Read from Raw Codebase**
+   - Location: `codebase/` directory  
+   - Direct file access using Read, Grep, Glob tools
+   - No optimization but full access to all code
+
+3. **Serena Enhancement (if enabled)**
+   - Works on top of either Repomix or raw files
+   - Provides semantic search and symbol analysis
+   - Optional - not required for basic operation
+
+**Important:** Even with Serena disabled, Repomix summaries are still used if available!
+
 ## Usage Strategies
 
 ### Strategy by Project Size
 
 #### Small Projects (<10K lines)
 ```yaml
-MCPs Required: Serena only
-Optional: Repomix for summary
-Token Savings: 60%
-Workflow:
-  1. Activate Serena
+MCPs Required: None (works with raw codebase)
+Optional: Repomix or Serena for optimization
+Token Savings: 0-60%
+Workflow (without MCPs):
+  1. Direct file reading from codebase/
+  2. Built-in grep and search tools
+  3. Standard Claude Code capabilities
+Workflow (with optional MCPs):
+  1. Activate Serena if available
   2. Use semantic search
   3. Native tools for simple patterns
 ```
 
 #### Medium Projects (10K-100K lines)
 ```yaml
-MCPs Required: Repomix + Serena
+MCPs Required: None (but recommended for efficiency)
+Recommended: Repomix + Serena
 Optional: Sourcegraph
-Token Savings: 85%
-Workflow:
+Token Savings: 0-85%
+Workflow (without MCPs):
+  1. Direct file reading (higher token usage)
+  2. Built-in search capabilities
+  3. May require more targeted analysis
+Workflow (with MCPs):
   1. Generate Repomix summary
-  2. Activate Serena indexing
+  2. Activate Serena indexing if available
   3. Use Sourcegraph for complex patterns
 ```
 

@@ -53,6 +53,7 @@ class FrameworkSetup:
         self.codebase_dir = self.script_dir / "codebase"
         self.cache_dir = self.script_dir / ".mcp-cache"
         self.project_name = None
+        self.modernization_enabled = False
         
         # Enable colors on Windows
         Colors.enable_windows_colors()
@@ -281,6 +282,9 @@ class FrameworkSetup:
             
             print(f"{Colors.GREEN}✓ Analysis mode set to: {selected_mode}{Colors.RESET}")
             
+            # Store the modernization choice for later use
+            self.modernization_enabled = choice in ["2", "3"]
+            
             # Now configure documentation mode
             self.configure_documentation_mode()
             
@@ -350,6 +354,151 @@ class FrameworkSetup:
             print(f"{Colors.YELLOW}⚠ Documentation mode template not found, using default (GUIDED){Colors.RESET}")
         
         print()
+        
+        # Now configure which documents to generate
+        self.configure_documentation_selection()
+    
+    def configure_documentation_selection(self):
+        """Configure which documents should be generated"""
+        print()
+        print(f"{Colors.MAGENTA}Step 1c: Select Documents to Generate{Colors.RESET}")
+        print("-" * 40)
+        
+        # Load the configuration file
+        config_file = self.framework_dir / "configs" / "documentation-config.json"
+        
+        if not config_file.exists():
+            print(f"{Colors.YELLOW}⚠ Documentation configuration file not found{Colors.RESET}")
+            print(f"{Colors.BLUE}ℹ Using default document selection{Colors.RESET}")
+            return
+        
+        with open(config_file, 'r') as f:
+            config = json.load(f)
+        
+        print(f"{Colors.CYAN}Select which documents to generate:{Colors.RESET}")
+        print()
+        
+        # Default documents (always shown)
+        print(f"{Colors.GREEN}Default Documents (Recommended):{Colors.RESET}")
+        default_docs = config['documentation']['default_documents']
+        for doc_name, doc_info in default_docs.items():
+            status = "✓" if doc_info['enabled'] else " "
+            print(f"  [{status}] {doc_name}: {doc_info['description']}")
+        
+        print()
+        
+        # Optional documents
+        print(f"{Colors.YELLOW}Optional Documents:{Colors.RESET}")
+        optional_docs = config['documentation']['optional_documents']
+        for doc_name, doc_info in optional_docs.items():
+            status = "✓" if doc_info['enabled'] else " "
+            print(f"  [{status}] {doc_name}: {doc_info['description']}")
+        
+        # Modernization documents (only if modernization is enabled)
+        if self.modernization_enabled:
+            print()
+            print(f"{Colors.BLUE}Modernization Documents:{Colors.RESET}")
+            mod_docs = config['documentation']['modernization_documents']
+            for doc_name, doc_info in mod_docs.items():
+                if doc_name != 'description':
+                    status = "✓" if doc_info.get('enabled', False) else " "
+                    print(f"  [{status}] {doc_name}: {doc_info['description']}")
+        
+        print()
+        print(f"{Colors.CYAN}Configuration Options:{Colors.RESET}")
+        print("1. Use default selection (recommended)")
+        print("2. Enable all documents")
+        print("3. Customize selection")
+        print("4. Minimal set (5 core documents only)")
+        print()
+        
+        while True:
+            choice = input(f"Select option (1-4) [{Colors.GREEN}1{Colors.RESET}]: ").strip() or "1"
+            if choice in ["1", "2", "3", "4"]:
+                break
+            print(f"{Colors.RED}Invalid choice. Please enter 1, 2, 3, or 4.{Colors.RESET}")
+        
+        if choice == "1":
+            # Keep default configuration
+            print(f"{Colors.GREEN}✓ Using default document selection{Colors.RESET}")
+        
+        elif choice == "2":
+            # Enable all documents
+            for doc_info in default_docs.values():
+                doc_info['enabled'] = True
+            for doc_info in optional_docs.values():
+                doc_info['enabled'] = True
+            if self.modernization_enabled:
+                for doc_name, doc_info in mod_docs.items():
+                    if doc_name != 'description':
+                        doc_info['enabled'] = True
+            print(f"{Colors.GREEN}✓ All documents enabled{Colors.RESET}")
+        
+        elif choice == "3":
+            # Custom selection
+            print()
+            print(f"{Colors.CYAN}Customize document selection (y/n for each):{Colors.RESET}")
+            print()
+            
+            # Default documents
+            print("Default Documents:")
+            for doc_name, doc_info in default_docs.items():
+                current = "y" if doc_info['enabled'] else "n"
+                response = input(f"  Generate {doc_name}? (y/n) [{current}]: ").strip().lower() or current
+                doc_info['enabled'] = response == 'y'
+            
+            # Optional documents
+            print("\nOptional Documents:")
+            for doc_name, doc_info in optional_docs.items():
+                current = "y" if doc_info['enabled'] else "n"
+                response = input(f"  Generate {doc_name}? (y/n) [{current}]: ").strip().lower() or current
+                doc_info['enabled'] = response == 'y'
+            
+            # Modernization documents
+            if self.modernization_enabled:
+                print("\nModernization Documents:")
+                for doc_name, doc_info in mod_docs.items():
+                    if doc_name != 'description':
+                        current = "y" if doc_info.get('enabled', False) else "n"
+                        response = input(f"  Generate {doc_name}? (y/n) [{current}]: ").strip().lower() or current
+                        doc_info['enabled'] = response == 'y'
+            
+            print(f"{Colors.GREEN}✓ Custom selection saved{Colors.RESET}")
+        
+        elif choice == "4":
+            # Minimal set - only the 5 core documents
+            core_docs = [
+                "SYSTEM-ARCHITECTURE.md",
+                "TECHNICAL-DEBT-REPORT.md",
+                "DEVELOPER-GUIDE.md",
+                "CONFIGURATION-GUIDE.md",
+                "API-DOCUMENTATION.md"
+            ]
+            
+            # Disable all first
+            for doc_info in default_docs.values():
+                doc_info['enabled'] = False
+            for doc_info in optional_docs.values():
+                doc_info['enabled'] = False
+            if self.modernization_enabled:
+                for doc_name, doc_info in mod_docs.items():
+                    if doc_name != 'description':
+                        doc_info['enabled'] = False
+            
+            # Enable only core documents
+            for doc_name in core_docs:
+                if doc_name in default_docs:
+                    default_docs[doc_name]['enabled'] = True
+                elif doc_name in optional_docs:
+                    optional_docs[doc_name]['enabled'] = True
+            
+            print(f"{Colors.GREEN}✓ Minimal document set selected (5 core documents){Colors.RESET}")
+        
+        # Save the updated configuration
+        with open(config_file, 'w') as f:
+            json.dump(config, f, indent=2)
+        
+        print(f"{Colors.GREEN}✓ Document configuration saved to: framework/configs/documentation-config.json{Colors.RESET}")
     
     def run_tech_stack_setup(self, ai_assisted=False):
         """Run technology stack configuration"""

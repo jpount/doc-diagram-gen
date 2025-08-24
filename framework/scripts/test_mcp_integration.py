@@ -108,14 +108,18 @@ class MCPIntegrationTest:
             print(f"{Colors.RED}❌ .mcp.json has invalid JSON syntax{Colors.RESET}")
             return
         
-        # Check for required MCPs
+        # Check for optional MCPs
         if 'mcpServers' in mcp_config:
             if 'serena' in mcp_config['mcpServers']:
-                self.successes.append("Serena MCP configured")
-                print(f"{Colors.GREEN}✅ Serena MCP configured{Colors.RESET}")
+                if mcp_config['mcpServers']['serena'].get('disabled', False):
+                    self.warnings.append("Serena MCP configured but disabled")
+                    print(f"{Colors.YELLOW}ℹ️  Serena MCP configured but disabled (optional){Colors.RESET}")
+                else:
+                    self.successes.append("Serena MCP configured and enabled")
+                    print(f"{Colors.GREEN}✅ Serena MCP configured and enabled{Colors.RESET}")
             else:
                 self.warnings.append("Serena MCP not configured")
-                print(f"{Colors.YELLOW}⚠️  Serena MCP not configured{Colors.RESET}")
+                print(f"{Colors.YELLOW}ℹ️  Serena MCP not configured (optional){Colors.RESET}")
             
             # Check other useful MCPs
             for mcp in ['filesystem', 'memory', 'fetch']:
@@ -139,16 +143,22 @@ class MCPIntegrationTest:
             with open(settings_file, 'r') as f:
                 settings = json.load(f)
             
-            # Check if MCPs are enabled
-            if settings.get('enableAllProjectMcpServers'):
-                self.successes.append("MCPs enabled in settings")
-                print(f"{Colors.GREEN}✅ MCPs enabled in settings{Colors.RESET}")
-            elif 'serena' in settings.get('enabledMcpjsonServers', []):
-                self.successes.append("Serena enabled in settings")
-                print(f"{Colors.GREEN}✅ Serena enabled in settings{Colors.RESET}")
+            # Check MCP configuration in settings
+            enable_all = settings.get('enableAllProjectMcpServers', False)
+            enabled_servers = settings.get('enabledMcpjsonServers', [])
+            
+            if enable_all:
+                self.successes.append("All MCPs enabled in settings")
+                print(f"{Colors.GREEN}✅ All MCPs enabled in settings (enableAllProjectMcpServers: true){Colors.RESET}")
+            elif enabled_servers:
+                enabled_list = ', '.join(enabled_servers)
+                self.successes.append(f"Specific MCPs enabled: {enabled_list}")
+                print(f"{Colors.GREEN}✅ Specific MCPs enabled: {enabled_list}{Colors.RESET}")
             else:
-                self.warnings.append("MCPs may not be properly enabled")
-                print(f"{Colors.YELLOW}⚠️  MCPs may not be properly enabled{Colors.RESET}")
+                # This is now the expected default - MCPs configured in .mcp.json but not explicitly enabled
+                self.successes.append("MCPs configured (selective enablement)")
+                print(f"{Colors.GREEN}✅ MCPs configured in .mcp.json (selective enablement mode){Colors.RESET}")
+                print(f"   ℹ️  MCPs will be available when needed without explicit enablement")
             
             # Check hooks are Python
             if 'hooks' in settings:

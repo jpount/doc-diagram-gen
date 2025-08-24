@@ -49,15 +49,6 @@ This guide ensures proper MCP configuration for Claude Code to achieve 90%+ toke
         "@modelcontextprotocol/server-memory"
       ],
       "env": {}
-    },
-    "fetch": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-fetch"
-      ],
-      "env": {},
-      "disabled": false
     }
   }
 }
@@ -69,18 +60,22 @@ This guide ensures proper MCP configuration for Claude Code to achieve 90%+ toke
 
 ```json
 {
-  "enableAllProjectMcpServers": true,
+  "enableAllProjectMcpServers": false,
   "enabledMcpjsonServers": [
-    "serena",
     "filesystem",
-    "memory",
-    "fetch"
+    "memory"
   ],
   "agentDirectories": [
     ".claude/agents"
   ]
 }
 ```
+
+**Important Notes:**
+- **Default MCPs**: Only `filesystem` and `memory` are enabled by default (no installation required)
+- **Serena**: NOT included by default - it's optional and requires uvx/uv
+- **Selective enablement**: `enableAllProjectMcpServers: false` means only explicitly listed MCPs are enabled
+- **To enable Serena**: Add `"serena"` to the array AND remove `"disabled": true` from `.mcp.json`
 
 ### 3. `.repomix.config.json`
 **Location**: `/Users/jp/work/xxx/doc-diagram-gen/.repomix.config.json`
@@ -110,8 +105,9 @@ When analyzing a different codebase, update the Serena project path:
 
 ## Installation Requirements
 
-### 1. Serena MCP
+### 1. Serena MCP (Optional - for 60% token reduction)
 ```bash
+# Only required if you want to enable Serena
 # Requires Python and uv/uvx
 pip install uv
 # Or
