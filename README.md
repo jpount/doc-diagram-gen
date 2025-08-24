@@ -39,6 +39,20 @@ Optimized for Claude Code with intelligent agent orchestration, with flexible to
 
 ## 🚀 Quick Start
 
+### ⚡ TL;DR - Optimal Agent Workflow
+```bash
+# After setup, run these agents in Claude Code:
+@mcp-orchestrator           # Token optimization
+@repomix-analyzer          # Codebase compression
+@architecture-selector     # IMPORTANT: Detects your tech stack
+@[technology]-architect    # Run recommended specialists (e.g., @java-architect, @angular-architect)
+@business-logic-analyst    # Extract business rules
+@performance-analyst       # Find bottlenecks
+@security-analyst         # Security assessment
+@diagram-architect        # Create diagrams
+@documentation-specialist # Generate final docs
+```
+
 ### Cross-Platform Setup
 
 #### Windows
@@ -152,6 +166,12 @@ python3 setup.py
 
 ## 🎯 Key Features
 
+### 🚀 Technology-Specific Analysis (NEW!)
+- **Smart Detection**: `@architecture-selector` automatically identifies your tech stack
+- **Specialist Agents**: Dedicated architects for Java, .NET, and Angular
+- **Better Results**: Technology-specific patterns, anti-patterns, and best practices
+- **Parallel Execution**: Run backend and frontend specialists simultaneously
+
 ### Token Optimization (Up to 90% Reduction)
 - **Default (Raw Codebase)**: Direct file access, no optimization needed
 - **Repomix (Optional)**: Compresses codebase by 80% - if generated, agents will use it automatically
@@ -181,17 +201,21 @@ python3 setup.py
 
 ### Core Analysis Agents
 
-| Agent | Purpose | Output Location |
-|-------|---------|-----------------|
-| `@mcp-orchestrator` | Coordinates MCP usage | output/reports/ |
-| `@repomix-analyzer` | Analyzes compressed code | output/reports/ |
-| `@legacy-code-detective` | Technology stack analysis | output/docs/01-*.md |
-| `@business-logic-analyst` | Business rule extraction | output/docs/02-*.md |
-| `@diagram-architect` | Visual documentation | output/diagrams/ |
-| `@performance-analyst` | Performance bottlenecks | output/docs/04-*.md |
-| `@security-analyst` | Security vulnerabilities | output/docs/05-*.md |
-| `@modernization-architect` | Migration strategy | output/docs/06-*.md |
-| `@documentation-specialist` | Comprehensive documentation | output/docs/*.md |
+| Agent | Purpose | Output Location | When to Use |
+|-------|---------|-----------------|-------------|
+| `@mcp-orchestrator` | Coordinates MCP usage | output/reports/ | Always run first for token optimization |
+| `@repomix-analyzer` | Analyzes compressed code | output/reports/ | After MCP orchestrator |
+| **`@architecture-selector`** | **Detects technologies & recommends specialists** | **output/docs/00-agent-selection-report.md** | **Run BEFORE any analysis agents** |
+| `@java-architect` | Java/Spring/J2EE analysis | output/docs/01-java-*.md | When Java detected |
+| `@dotnet-architect` | .NET/C#/ASP.NET analysis | output/docs/01-dotnet-*.md | When .NET detected |
+| `@angular-architect` | Angular/AngularJS analysis | output/docs/01-angular-*.md | When Angular detected |
+| `@legacy-code-detective` | Generic technology analysis | output/docs/01-*.md | ONLY for unknown/5+ technologies |
+| `@business-logic-analyst` | Business rule extraction | output/docs/02-*.md | Always run |
+| `@diagram-architect` | Visual documentation | output/diagrams/ | Always run |
+| `@performance-analyst` | Performance bottlenecks | output/docs/04-*.md | Always run |
+| `@security-analyst` | Security vulnerabilities | output/docs/05-*.md | Always run |
+| `@modernization-architect` | Migration strategy | output/docs/06-*.md | For modernization projects |
+| `@documentation-specialist` | Comprehensive documentation | output/docs/*.md | Always run last |
 
 ## 📋 Workflow
 
@@ -227,23 +251,43 @@ python3 framework/scripts/test_mcp_integration.py
 ### Phase 3: Run Analysis Agents
 In Claude Code, run agents in sequence:
 
+#### 🎯 Recommended Workflow (with Specialist Agents)
 ```
 # 1. Optional: MCP Optimization (if Repomix/Serena enabled)
 @mcp-orchestrator
 @repomix-analyzer
 
-# 2. Core Analysis (works with raw codebase)
-@legacy-code-detective
+# 2. Technology Detection (IMPORTANT: Run this first!)
+@architecture-selector    # Detects technologies and recommends specialists
+
+# 3. Technology-Specific Analysis (based on detection results)
+# Example for Java + Angular application:
+@java-architect          # Backend analysis (if Java detected)
+@angular-architect       # Frontend analysis (if Angular detected)
+# Run these in parallel for faster analysis
+
+# 4. Cross-Cutting Analysis (always run these)
+@business-logic-analyst
+@performance-analyst
+@security-analyst
+
+# 5. Documentation Generation
+@diagram-architect
+@modernization-architect  # If doing modernization
+@documentation-specialist  
+```
+
+#### Alternative: Generic Workflow (for unknown codebases)
+```
+# Only use this if architecture-selector finds 5+ technologies
+# or completely unknown tech stack
+@legacy-code-detective   # Generic analysis
 @business-logic-analyst
 @diagram-architect
-
-# 3. Specialized Analysis
 @performance-analyst
 @security-analyst
 @modernization-architect
-
-# 4. Final Documentation
-@documentation-specialist  
+@documentation-specialist
 ```
 
 ### Phase 4: Review Output
@@ -305,13 +349,14 @@ python3 .claude/hooks/business_rule_validation.py
 ## 📊 Expected Outputs
 
 ### Documentation Deliverables
-1. **Executive Summary** - High-level overview
-2. **Technical Analysis** - Architecture and dependencies
+1. **Agent Selection Report** - Technology detection and specialist recommendations
+2. **Technology-Specific Analysis** - Deep dive by Java/Angular/.NET architects
 3. **Business Rules Catalog** - 50+ rules with code references
 4. **Visual Documentation** - Mermaid diagrams
 5. **Performance Report** - Bottlenecks and optimizations
 6. **Security Assessment** - Vulnerabilities and remediation
 7. **Modernization Roadmap** - Phased migration strategy
+8. **Executive Summary** - High-level overview
 
 ### Quality Metrics
 - ✅ Business Rules: Minimum 50+ extracted
@@ -321,6 +366,21 @@ python3 .claude/hooks/business_rule_validation.py
 - ✅ Performance Metrics: Quantified
 
 ## 🆘 Troubleshooting
+
+### Architecture Selector Not Finding Technologies
+```bash
+# Check if codebase is in correct location
+ls -la codebase/
+
+# Manually check for technology indicators
+find codebase -name "*.java" | head -5  # Java files
+find codebase -name "*.cs" | head -5    # .NET files
+find codebase -name "*.ts" -o -name "angular.json" | head -5  # Angular files
+
+# If technologies found but selector missed them, run specialists directly:
+@java-architect      # For Java code
+@angular-architect   # For Angular code
+```
 
 ### MCP Not Working
 ```bash
@@ -370,10 +430,12 @@ All generated documentation goes to `output/docs/`
 ## 🤝 Best Practices
 
 1. **Always run setup.sh first** - Ensures proper configuration
-2. **Use MCPs when available** - 90%+ token savings
-3. **Run agents in sequence** - Each builds on previous
-4. **Validate outputs** - Use provided hooks
-5. **Keep framework updated** - Don't modify framework/ directory
+2. **Run @architecture-selector early** - Identifies which specialists to use
+3. **Use specialist agents** - Better results than generic legacy-code-detective
+4. **Run specialists in parallel** - Java and Angular architects can run simultaneously
+5. **Use MCPs when available** - 90%+ token savings
+6. **Validate outputs** - Use provided hooks
+7. **Keep framework updated** - Don't modify framework/ directory
 
 ## 📝 Notes
 

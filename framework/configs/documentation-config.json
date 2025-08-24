@@ -60,19 +60,19 @@
         "priority": 9
       },
       "BUSINESS-RULES-CATALOG.md": {
-        "enabled": false,
+        "enabled": true,
         "description": "Business logic documentation, domain rules, and process flows",
         "category": "business",
         "priority": 10
       },
       "SECURITY-ANALYSIS.md": {
-        "enabled": false,
+        "enabled": true,
         "description": "Security vulnerabilities, compliance requirements, and remediation",
         "category": "security",
         "priority": 11
       },
       "PERFORMANCE-ANALYSIS.md": {
-        "enabled": false,
+        "enabled": true,
         "description": "Performance bottlenecks, optimization opportunities, and benchmarks",
         "category": "technical",
         "priority": 12

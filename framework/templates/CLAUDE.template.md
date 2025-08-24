@@ -15,6 +15,8 @@
 - **User Interaction:** {{USER_INTERACTION}}
 - **Token Strategy:** Quality-first with smart optimization
 
+{{MODERNIZATION_CONSTRAINTS}}
+
 ## Quick Commands
 
 ### Start Analysis
@@ -66,6 +68,7 @@ python3 framework/scripts/test_mcp_integration.py
 - `DOCUMENTATION_MODE.md` - Documentation generation settings
 {{TARGET_TECH_STACK_FILE}}
 - `framework/docs/USER_INTERACTION_GUIDE.md` - User interaction guidance
+- `framework/docs/MODERNIZATION_CONSTRAINTS.md` - Agent modernization guidelines
 - `framework/templates/CONTEXT_SUMMARY_SCHEMA.md` - Agent communication format
 
 ## Project-Specific Notes

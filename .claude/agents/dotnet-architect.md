@@ -99,6 +99,34 @@ dotnet_security = {
 
 ```python
 # Write comprehensive .NET architecture analysis
+
+# Write context summary for downstream agents
+context_summary = {
+    "agent": "dotnet-architect",
+    "timestamp": datetime.now().isoformat(),
+    "token_usage": get_token_usage(),  # Track actual token usage
+    "summary": {
+        "key_findings": key_findings,  # Add your findings
+        "priority_items": priority_items,  # Add priority items
+        "warnings": warnings,  # Add warnings
+        "recommendations_for_next": {
+            "business-logic-analyst": business_recommendations,
+            "performance-analyst": performance_recommendations,
+            "security-analyst": security_recommendations,
+            "diagram-architect": diagram_recommendations
+        }
+    },
+    "data": {
+        "technology_stack": technology_stack,
+        "critical_files": critical_files,
+        "metrics": metrics
+    }
+}
+
+# Write to both locations for compatibility
+Write("output/context/dotnet-architect-summary.json", json.dumps(context_summary, indent=2))
+Write("output/context/architecture-analysis-summary.json", json.dumps(context_summary, indent=2))
+
 Write("output/docs/01-dotnet-architecture-analysis.md", dotnet_analysis)
 ```
 

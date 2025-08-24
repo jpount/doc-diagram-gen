@@ -360,6 +360,9 @@ context_summary = {
 # Write to file for resilience (survives MCP failures)
 Write("output/context/legacy-code-detective-summary.json", json.dumps(context_summary, indent=2))
 
+# ALSO write to unified location for consistency with specialist agents
+Write("output/context/architecture-analysis-summary.json", json.dumps(context_summary, indent=2))
+
 # Also write to Serena memory for fast access
 try:
     mcp__serena__write_memory("legacy_detective_context", context_summary)
