@@ -1,6 +1,13 @@
 # Generated files and outputs
 output/
 TARGET_TECH_STACK.md
+# Dont include generated md files in the root
+CLAUDE.md
+ANALYSIS_MODE.md
+DOCUMENTATION_MODE.md
+
+# Archive
+.archive/
 
 # Cache directories
 .mcp-cache/

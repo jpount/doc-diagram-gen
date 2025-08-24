@@ -35,7 +35,42 @@ You are a Senior Security Analyst specializing in identifying vulnerabilities, c
 
 ## Claude Code Optimized Security Scanning
 
-### Phase 1: Quick Security Scan
+### Phase 0: MANDATORY Context Loading (Token Optimization)
+```python
+# CRITICAL: Always load existing context first to avoid redundant scanning
+import json
+from pathlib import Path
+
+def load_security_context():
+    """Load all available context before analysis"""
+    context = {}
+    
+    # Priority 1: Architecture analysis (has security findings)
+    arch_context = Path("output/context/architecture-analysis-summary.json")
+    if arch_context.exists():
+        with open(arch_context) as f:
+            context['architecture'] = json.load(f)
+            print(f"✅ Loaded architecture context with security findings")
+            
+            # Extract known security issues
+            if 'priority_items' in context['architecture']['summary']:
+                for item in context['architecture']['summary']['priority_items']:
+                    if item.get('type') == 'security':
+                        print(f"  Known issue: {item['issue']} at {item['location']}")
+    
+    # Priority 2: Repomix summary
+    repomix_file = Path("output/reports/repomix-summary.md")
+    if repomix_file.exists():
+        context['repomix'] = Read(str(repomix_file))
+        print("✅ Loaded Repomix summary")
+    
+    return context
+
+# Load context BEFORE any scanning
+security_context = load_security_context()
+```
+
+### Phase 1: Security Analysis (Use Context First)
 ```bash
 # Fast vulnerability detection using Bash
 echo "=== Security Quick Scan ===" > security_scan.txt

@@ -86,6 +86,83 @@ You are a Senior Visual Documentation Architect specializing in transforming com
 
 ## Diagramming Framework
 
+## Context-First Analysis Workflow
+
+
+### Phase 0: MANDATORY Context Loading (Token Optimization)
+```python
+# CRITICAL: Always load existing context first to minimize token usage
+import json
+from pathlib import Path
+
+def load_all_available_context():
+    """Load context from all sources - MUST run before any analysis"""
+    context = {}
+    
+    # Priority 1: Repomix summary (most efficient - 80% token reduction)
+    repomix_files = [
+        "output/reports/repomix-summary.md",
+        "output/reports/repomix-analysis.md"
+    ]
+    for file in repomix_files:
+        if Path(file).exists():
+            context['repomix'] = Read(file)
+            print(f"✅ Found Repomix summary - using compressed analysis")
+            break
+    
+    # Priority 2: Architecture analysis context (shared by all architecture agents)
+    arch_context = Path("output/context/architecture-analysis-summary.json")
+    if arch_context.exists():
+        with open(arch_context) as f:
+            context['architecture'] = json.load(f)
+            print(f"✅ Found architecture context - using existing analysis")
+    
+    # Priority 3: Load all other agent summaries
+    context_dir = Path("output/context")
+    if context_dir.exists():
+        for summary_file in context_dir.glob("*-summary.json"):
+            agent_name = summary_file.stem.replace('-summary', '')
+            if agent_name not in ['architecture-analysis']:  # Skip already loaded
+                try:
+                    with open(summary_file) as f:
+                        context[agent_name] = json.load(f)
+                except:
+                    pass
+    
+    # Priority 4: MCP memory (if available)
+    try:
+        memory_nodes = mcp__memory__open_nodes([
+            "repomix_summary", 
+            "architecture_context",
+            "business_rules",
+            "performance_analysis",
+            "security_findings"
+        ])
+        if memory_nodes:
+            context['memory'] = memory_nodes
+            print("✅ Found MCP memory context")
+    except:
+        pass
+    
+    return context
+
+# MANDATORY: Load context before ANY analysis
+existing_context = load_all_available_context()
+
+if not existing_context:
+    print("⚠️ WARNING: No context found - will need to scan codebase (high token usage)")
+    print("  Recommendation: Run repomix-analyzer and architecture agents first")
+else:
+    print(f"✅ Using existing context from {len(existing_context)} sources - minimal token usage")
+    
+    # Extract commonly needed data
+    if 'architecture' in existing_context:
+        tech_stack = existing_context['architecture'].get('data', {}).get('technology_stack', {})
+        critical_files = existing_context['architecture'].get('data', {}).get('critical_files', [])
+        known_issues = existing_context['architecture'].get('data', {}).get('issues_by_severity', {})
+        print(f"  Found: {len(critical_files)} critical files, {len(known_issues)} issue categories")
+```
+
 ### Phase 1: Visual Requirements Analysis
 
 Establish comprehensive diagramming approach:

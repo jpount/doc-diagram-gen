@@ -37,26 +37,98 @@ You are a Senior Performance Analyst specializing in identifying and documenting
 
 ## Claude Code Optimized Analysis Workflow
 
-### Phase 1: Quick Performance Scan
-```bash
-# Use Bash tool for quick metrics gathering
-echo "=== Performance Quick Scan ===" > performance_scan.txt
+### Phase 0: MANDATORY Context Loading (Token Optimization)
+```python
+# ALWAYS check for existing analysis first to minimize token usage
+import json
+from pathlib import Path
 
-# Find large files that might indicate performance issues
-find codebase -type f -size +1M -exec ls -lh {} \; >> performance_scan.txt
+def load_all_context():
+    """Load context from multiple sources - MUST run first"""
+    context = {}
+    
+    # Priority 1: Check for Repomix summary (most efficient)
+    repomix_files = [
+        "output/reports/repomix-summary.md",
+        "output/reports/repomix-analysis.md"
+    ]
+    for file in repomix_files:
+        if Path(file).exists():
+            context['repomix'] = Read(file)
+            print(f"✅ Loaded Repomix summary - using compressed analysis")
+            break
+    
+    # Priority 2: Load architecture analysis context
+    arch_context = Path("output/context/architecture-analysis-summary.json")
+    if arch_context.exists():
+        with open(arch_context) as f:
+            context['architecture'] = json.load(f)
+            print(f"✅ Loaded architecture context - found {len(context['architecture']['data']['critical_files'])} critical files")
+    
+    # Priority 3: Check MCP memory
+    try:
+        context['memory'] = mcp__memory__open_nodes([
+            "repomix_summary", 
+            "JavaArchitectAnalysis",
+            "architecture_context"
+        ])
+        print("✅ Loaded MCP memory context")
+    except:
+        pass
+    
+    # Priority 4: Load any other agent summaries
+    for summary_file in Path("output/context").glob("*-summary.json"):
+        with open(summary_file) as f:
+            agent_name = summary_file.stem.replace('-summary', '')
+            context[agent_name] = json.load(f)
+    
+    return context
 
-# Count database queries patterns
-grep -r "SELECT\|INSERT\|UPDATE\|DELETE" codebase --include="*.java" --include="*.cs" | wc -l >> performance_scan.txt
+# MANDATORY: Load context before ANY analysis
+existing_context = load_all_context()
 
-# Identify potential N+1 queries
-grep -r "for.*{.*SELECT" codebase --include="*.java" --include="*.cs" >> performance_scan.txt
+if not existing_context:
+    print("⚠️ WARNING: No context found - will need to scan codebase (high token usage)")
+else:
+    print(f"✅ Using existing context from {len(existing_context)} sources")
+    # Extract key information
+    if 'architecture' in existing_context:
+        critical_files = existing_context['architecture']['data'].get('critical_files', [])
+        tech_stack = existing_context['architecture']['data'].get('technology_stack', {})
+        known_issues = existing_context['architecture']['data'].get('issues_by_severity', {})
 ```
 
-### Phase 2: Targeted Performance Analysis with Serena
+### Phase 1: Performance Analysis (Use Context First)
 ```python
-# Load previous findings
-tech_stack = mcp__serena__read_memory("technology_stack")
-business_processes = mcp__serena__read_memory("business_processes")
+# Only scan codebase if no context available
+if existing_context and 'architecture' in existing_context:
+    # Use existing findings
+    print("Using architecture context for performance analysis")
+    
+    # Extract performance-relevant findings
+    if 'high' in known_issues:
+        for issue in known_issues['high']:
+            if 'N+1' in issue or 'performance' in issue.lower():
+                print(f"Known performance issue: {issue}")
+    
+    # Focus on critical files identified by previous agents
+    files_to_analyze = critical_files
+else:
+    # Fallback: Quick scan only if no context
+    print("No context found - performing minimal scan")
+    # Minimal scanning code here
+```
+
+### Phase 2: Targeted Performance Analysis
+```python
+# Load previous findings from context first
+if existing_context:
+    tech_stack = existing_context.get('architecture', {}).get('data', {}).get('technology_stack', {})
+    business_processes = existing_context.get('business-logic-analyst', {}).get('data', {})
+else:
+    # Try MCP memory as fallback
+    tech_stack = mcp__serena__read_memory("technology_stack")
+    business_processes = mcp__serena__read_memory("business_processes")
 
 # Search for performance anti-patterns
 performance_patterns = [
