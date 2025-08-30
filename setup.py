@@ -953,6 +953,32 @@ class FrameworkSetup:
         print("  - framework/docs/CLAUDE_FRAMEWORK.md")
         print("  - framework/templates/AGENT_DATA_ACCESS_PATTERN.md")
     
+    def test_serena_integration(self):
+        """Test Serena MCP integration if enabled"""
+        if self.serena_enabled:
+            print(f"\n{Colors.CYAN}Testing Serena Integration...{Colors.RESET}")
+            try:
+                # Run the Serena validation script
+                result = subprocess.run(
+                    [sys.executable, "framework/scripts/test_serena_integration.py"],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                )
+                
+                if result.returncode == 0:
+                    # Parse the output to show key results
+                    output_lines = result.stdout.split('\n')
+                    for line in output_lines:
+                        if '✓' in line or '✗' in line or '⚠' in line:
+                            print(line)
+                    print(f"{Colors.GREEN}✓ Serena validation completed{Colors.RESET}")
+                else:
+                    print(f"{Colors.YELLOW}⚠ Serena validation had some issues{Colors.RESET}")
+                    print(f"   Run 'python3 framework/scripts/test_serena_integration.py' for details")
+            except Exception as e:
+                print(f"{Colors.YELLOW}⚠ Could not test Serena: {e}{Colors.RESET}")
+    
     def run(self):
         """Main setup execution"""
         try:
@@ -969,6 +995,7 @@ class FrameworkSetup:
             self.configure_analysis_mode()
             self.run_mcp_setup()  # Update configs based on choices
             self.generate_claude_md()  # Generate CLAUDE.md from template
+            self.test_serena_integration()  # Test Serena if enabled
             self.show_repomix_instructions()  # Show how to generate Repomix
             self.show_next_steps()
             

@@ -336,6 +336,121 @@ Before completing analysis:
 - [ ] Cache files created
 - [ ] Output written to docs/00-mcp-analysis-summary.md
 
+## Final Output Generation
+
+### Write Context Summary for Other Agents
+```python
+import json
+from datetime import datetime
+
+# Generate context summary with all findings
+context_summary = {
+    "timestamp": datetime.now().isoformat(),
+    "agent": "repomix-analyzer",
+    "repomix_status": "analyzed",
+    "technology_stack": {
+        "languages": detected_languages,
+        "frameworks": detected_frameworks,
+        "databases": detected_databases,
+        "build_tools": detected_build_tools,
+        "versions": version_info
+    },
+    "security_findings": {
+        "secretlint_issues": secretlint_count,
+        "critical_findings": critical_issues,
+        "high_risk_files": high_risk_files
+    },
+    "complexity_analysis": {
+        "total_files": total_files,
+        "total_lines": total_lines,
+        "token_count": token_count,
+        "complexity_hotspots": top_complex_files,
+        "largest_files": largest_files
+    },
+    "priority_components": {
+        "business_logic_files": business_files,
+        "configuration_files": config_files,
+        "entry_points": entry_points,
+        "critical_services": critical_services
+    },
+    "recommendations": {
+        "specialist_architects": recommended_specialists,
+        "focus_areas": priority_areas,
+        "next_agents": next_agent_sequence
+    }
+}
+
+# Write context for other agents
+Write("output/context/repomix-analyzer-summary.json", json.dumps(context_summary, indent=2))
+```
+
+### Write Repomix Analysis Report
+```python
+# Generate the detailed analysis report
+analysis_report = f"""# Repomix Analysis Summary
+
+## Technology Stack Detected
+### Primary Languages
+{format_languages(detected_languages)}
+
+### Frameworks & Libraries
+{format_frameworks(detected_frameworks)}
+
+### Databases
+{format_databases(detected_databases)}
+
+### Build Tools
+{format_build_tools(detected_build_tools)}
+
+## Security Pre-Scan Results
+- **Secretlint Issues Found**: {secretlint_count}
+- **Critical Security Issues**: {critical_count}
+- **High Risk Files**: {len(high_risk_files)}
+
+### Top Security Concerns
+{format_security_issues(top_security_issues)}
+
+## Complexity Analysis
+- **Total Files**: {total_files:,}
+- **Total Lines**: {total_lines:,}
+- **Token Count**: {token_count:,}
+- **Average Complexity**: {avg_complexity}
+
+### Complexity Hotspots
+{format_complexity_hotspots(top_complex_files)}
+
+## Priority Components Identified
+### Business Logic Locations
+{format_business_logic(business_files)}
+
+### Critical Services
+{format_critical_services(critical_services)}
+
+### Entry Points
+{format_entry_points(entry_points)}
+
+## Token Optimization Achieved
+- **Original Size**: ~{original_estimate:,} tokens
+- **Compressed Size**: {token_count:,} tokens
+- **Reduction**: {reduction_percentage}%
+
+## Recommendations for Next Agents
+### Specialist Architects to Run
+{format_specialist_recommendations(recommended_specialists)}
+
+### Focus Areas for Analysis
+{format_focus_areas(priority_areas)}
+
+### Suggested Agent Sequence
+{format_agent_sequence(next_agent_sequence)}
+
+Generated: {datetime.now().isoformat()}
+"""
+
+# Write the analysis report
+Write("output/docs/00-repomix-analysis-summary.md", analysis_report)
+```
+
 ## Integration with Other Agents
 
 ### Output for All Agents
@@ -359,6 +474,10 @@ Before completing analysis:
 Upon successful completion, output:
 ```
 ✅ Repomix analysis complete! Technology stack detected and complexity analyzed.
+
+📊 Outputs generated:
+- output/context/repomix-analyzer-summary.json (for other agents)
+- output/docs/00-repomix-analysis-summary.md (detailed report)
 
 🎯 NEXT STEP: Run @architecture-selector to determine which specialist architects to use.
 

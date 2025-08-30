@@ -65,21 +65,49 @@ fi
 
 ### Step 2: Project Size Analysis
 ```python
-# Analyze codebase characteristics
+# CRITICAL: Use data access hierarchy - Repomix first!
+from framework.scripts.data_access_utils import get_codebase_data, check_repomix_available
+
 def analyze_project():
     metrics = {
         "total_files": 0,
         "total_lines": 0,
         "languages": set(),
-        "complexity": "unknown"
+        "complexity": "unknown",
+        "data_source": "unknown"
     }
     
-    # Count files and lines
-    for file in Glob("codebase/**/*"):
-        if is_source_file(file):
-            metrics["total_files"] += 1
-            metrics["total_lines"] += count_lines(file)
-            metrics["languages"].add(get_language(file))
+    # First check if Repomix summary exists
+    if check_repomix_available():
+        print("✅ Using Repomix summary for project analysis")
+        metrics["data_source"] = "repomix"
+        
+        # Get Repomix summary (80% token reduction)
+        repomix_data = get_codebase_data()  # Gets full Repomix summary
+        
+        # Extract metrics from Repomix summary
+        if "Total files:" in repomix_data:
+            metrics["total_files"] = extract_file_count(repomix_data)
+        if "Total lines:" in repomix_data or "tokens:" in repomix_data:
+            metrics["total_lines"] = extract_line_count(repomix_data)
+        
+        # Extract languages from file extensions in Repomix
+        metrics["languages"] = extract_languages_from_repomix(repomix_data)
+    else:
+        print("⚠️ Repomix not available, falling back to data access utils")
+        metrics["data_source"] = "fallback"
+        
+        # This will try Serena, then raw as last resort
+        file_list = get_codebase_data(pattern="*")
+        if file_list:
+            for file in file_list[:1000]:  # Limit to prevent token explosion
+                if is_source_file(file):
+                    metrics["total_files"] += 1
+                    # Don't read files directly - estimate from list
+                    metrics["languages"].add(get_language_from_path(file))
+            
+            # Estimate lines based on file count
+            metrics["total_lines"] = metrics["total_files"] * 150  # Average estimate
     
     # Determine complexity
     if metrics["total_lines"] < 10000:
@@ -91,6 +119,7 @@ def analyze_project():
     else:
         metrics["complexity"] = "enterprise"
     
+    print(f"Project analysis complete using {metrics['data_source']}")
     return metrics
 ```
 
@@ -331,5 +360,90 @@ def should_invalidate_cache(cache_file):
 - Provide cache paths to all agents
 - Monitor token usage across phases
 - Update strategies based on results
+
+## Final Output Generation
+
+### Write Context Summary for Other Agents
+```python
+import json
+from datetime import datetime
+
+# Generate context summary for other agents
+context_summary = {
+    "timestamp": datetime.now().isoformat(),
+    "agent": "mcp-orchestrator",
+    "mcp_status": {
+        "repomix": repomix_available,
+        "serena": serena_available,
+        "sourcegraph": sourcegraph_available,
+        "ast_explorer": ast_available
+    },
+    "project_metrics": {
+        "size": project_size,
+        "complexity": complexity,
+        "total_files": total_files,
+        "total_lines": total_lines,
+        "languages": list(languages)
+    },
+    "optimization_strategy": selected_strategy,
+    "token_savings": {
+        "baseline_tokens": baseline_tokens,
+        "optimized_tokens": optimized_tokens,
+        "reduction_percentage": reduction_percentage
+    },
+    "cache_locations": {
+        "repomix_summary": "output/reports/repomix-summary.md",
+        "serena_index": ".mcp-cache/serena/index.db",
+        "pattern_cache": ".mcp-cache/patterns.json"
+    },
+    "recommendations": recommendations
+}
+
+# Write context for other agents
+Write("output/context/mcp-orchestrator-summary.json", json.dumps(context_summary, indent=2))
+```
+
+### Write MCP Strategy Report
+```python
+# Generate the MCP strategy report
+mcp_report = f"""# MCP Pre-Analysis Summary
+
+## MCP Configuration
+| MCP | Status | Configuration | Token Savings |
+|-----|--------|---------------|---------------|
+| Repomix | {repomix_status} | {repomix_config} | 80% |
+| Serena | {serena_status} | {serena_config} | 60% |
+| Sourcegraph | {sourcegraph_status} | {sourcegraph_config} | 40% |
+| AST Explorer | {ast_status} | {ast_config} | 30% |
+
+## Project Metrics
+- **Total Files**: {total_files}
+- **Total Lines**: {total_lines}
+- **Primary Languages**: {', '.join(languages)}
+- **Estimated Tokens**: {baseline_tokens} → {optimized_tokens}
+- **Token Reduction**: {reduction_percentage}%
+
+## Optimization Strategy
+{selected_strategy_description}
+
+## Cache Status
+- Repomix summary: {repomix_cache_status}
+- Serena index: {serena_cache_status}
+- Pattern cache: {pattern_cache_status}
+
+## Recommendations
+{formatted_recommendations}
+
+## Next Steps
+- Run `@repomix-analyzer` for detailed summary analysis
+- Proceed with technology-specific agents using cached data
+- Monitor token usage against budgets
+
+Generated: {datetime.now().isoformat()}
+"""
+
+# Write the report
+Write("output/reports/mcp-strategy.md", mcp_report)
+```
 
 Always prioritize token efficiency while maintaining analysis quality. Coordinate MCP usage to achieve maximum reduction in token consumption while ensuring comprehensive codebase understanding.

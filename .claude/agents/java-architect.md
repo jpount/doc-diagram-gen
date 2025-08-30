@@ -31,6 +31,42 @@ Always use these indicators to highlight issues:
 
 ## Core Analysis Areas
 
+### 0. Authentication & Security Architecture Analysis
+**REQUIRED**: Always analyze and document the authentication solution:
+```markdown
+## Authentication & Security Architecture
+
+### Authentication Mechanism
+{analyze_actual_authentication_implementation()}
+- Login/logout flows and session management
+- Password storage and validation methods
+- Session security and timeout handling
+- Multi-factor authentication (if present)
+- Single Sign-On integration (if present)
+
+### Authorization Model
+{analyze_actual_authorization_patterns()}
+- Role-based access control (RBAC) implementation
+- Permission management and enforcement
+- Resource-level security controls
+- Method-level security annotations
+
+### Security Architecture
+{document_security_patterns_found()}
+- Security filters and interceptors
+- CSRF protection mechanisms
+- XSS prevention measures
+- Input validation and sanitization
+- Encryption and data protection
+
+### Authentication Flow Diagrams
+{create_authentication_sequence_diagrams()}
+- Login process flow
+- Session management lifecycle
+- Authorization decision points
+- Security event handling
+```
+
 ### 1. Java Version & JVM Analysis
 ```markdown
 ## Java Environment Assessment
@@ -250,14 +286,28 @@ except:
     pass  # MCP memory not available, file-based context is sufficient
 ```
 
-## Integration with Repomix
+## Dynamic Analysis Limits Integration
 
 ```python
-# Use Repomix for initial scan, then deep dive into critical files
-def analyze_with_repomix():
+# Use dynamic limits based on available MCPs and project size
+def analyze_with_dynamic_limits():
+    # Import the dynamic limits calculator
+    sys.path.append('framework/scripts')
+    from dynamic_limits import get_analysis_limits
+    
+    # Get calculated limits for Java analysis
+    limits_result = get_analysis_limits("java-architect")
+    limits = limits_result["limits"]
+    metadata = limits_result["metadata"]
+    
+    # Log the strategy being used
+    print(f"🎯 Using {metadata['mcp_strategy']} strategy")
+    print(f"📊 Critical files limit: {limits['critical_files_max']}")
+    print(f"💰 Token budget: {limits['token_budget']:,}")
+    
     repomix_path = Path("output/reports/repomix-summary.md")
     
-    if repomix_path.exists():
+    if repomix_path.exists() and metadata['mcps_available']['repomix']:
         # Use Repomix for overview
         repomix_content = Read(str(repomix_path))
         
@@ -267,17 +317,108 @@ def analyze_with_repomix():
         
         print(f"📊 Using Repomix summary - found {len(java_files)} Java files")
         
-        # Only deep dive into critical files
-        critical_files = identify_critical_files(java_files)[:20]  # Limit to top 20
+        # Apply dynamic limit instead of hardcoded 20
+        critical_files = identify_critical_files(java_files)[:limits['critical_files_max']]
+        
+        print(f"🔍 Deep diving into {len(critical_files)} critical files (limit: {limits['critical_files_max']})")
+        
+        # Warn user if we're hitting the limit
+        total_critical = len(identify_critical_files(java_files))
+        if total_critical > limits['critical_files_max']:
+            print(f"⚠️  Found {total_critical} critical files, analyzing top {limits['critical_files_max']}")
+            print(f"💡 To analyze more files, set ANALYSIS_MAX_CRITICAL_FILES={total_critical}")
+            print(f"💡 Or create ANALYSIS_LIMITS_OVERRIDE.json with higher limits")
         
         for file in critical_files:
             # Read actual file for detailed analysis
             content = Read(file)
             analyze_java_file(content)
+            
+    elif metadata['mcps_available']['serena']:
+        # Use Serena for semantic search with higher limits
+        print("🔍 Using Serena semantic search")
+        # Serena-based analysis with limits['critical_files_max'] limit
+        analyze_with_serena(limits)
+        
     else:
-        # Fallback to traditional analysis
-        print("⚠️ No Repomix summary found, using traditional analysis")
-        java_files = Glob("**/*.java")
+        # Fallback to traditional analysis with conservative limits
+        print("⚠️ No MCPs available, using conservative traditional analysis")
+        print(f"📉 Limited to {limits['critical_files_max']} files due to token constraints")
+        java_files = Glob("**/*.java")[:limits['total_files_scan']]
+        
+        # Apply the calculated conservative limits
+        critical_files = identify_critical_files(java_files)[:limits['critical_files_max']]
+        
+        for file in critical_files:
+            content = Read(file)
+            analyze_java_file(content)
+
+def identify_critical_files(java_files, priority_patterns=None):
+    """
+    Identify critical Java files for analysis
+    Uses agent-specific patterns from the config
+    """
+    if not priority_patterns:
+        # Default Java critical file patterns
+        priority_patterns = [
+            "**/*Application.java",
+            "**/*Config.java", 
+            "**/*Controller.java",
+            "**/*Service.java",
+            "**/*Repository.java",
+            "**/pom.xml",
+            "**/build.gradle"
+        ]
+    
+    critical_files = []
+    
+    # First pass: exact pattern matches
+    for pattern in priority_patterns:
+        matches = [f for f in java_files if matches_pattern(f, pattern)]
+        critical_files.extend(matches)
+    
+    # Second pass: complexity-based scoring for remaining files
+    remaining_files = [f for f in java_files if f not in critical_files]
+    
+    # Score by complexity indicators
+    scored_files = []
+    for file_path in remaining_files:
+        score = calculate_file_complexity_score(file_path)
+        scored_files.append((file_path, score))
+    
+    # Sort by score and add to critical files
+    scored_files.sort(key=lambda x: x[1], reverse=True)
+    critical_files.extend([f[0] for f in scored_files])
+    
+    return critical_files
+
+def calculate_file_complexity_score(file_path):
+    """Calculate complexity score for a file based on various indicators"""
+    score = 0
+    file_path_lower = file_path.lower()
+    
+    # Framework-specific scoring
+    if 'spring' in file_path_lower or '@' in file_path_lower:
+        score += 10  # Spring annotations likely
+    if 'ejb' in file_path_lower or 'bean' in file_path_lower:
+        score += 15  # Enterprise JavaBeans
+    if 'controller' in file_path_lower:
+        score += 12
+    if 'service' in file_path_lower:
+        score += 10
+    if 'repository' in file_path_lower or 'dao' in file_path_lower:
+        score += 8
+    if 'config' in file_path_lower:
+        score += 15
+    if 'security' in file_path_lower:
+        score += 20  # Security is critical
+    
+    return score
+
+def matches_pattern(file_path, pattern):
+    """Simple pattern matching for critical file identification"""
+    import fnmatch
+    return fnmatch.fnmatch(file_path, pattern)
 ```
 
 Always provide actionable recommendations with clear visual indicators showing severity and type of issue.

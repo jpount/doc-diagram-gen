@@ -1,0 +1,236 @@
+# Agent Model Configuration
+# Specify which model each agent should use
+# This allows optimization of cost vs capability per agent
+
+# Global Settings
+global:
+  default_model: "default"  # Sonnet 4 with 1M context (recommended)
+  fallback_model: "sonnet"  # Sonnet 4 standard if default unavailable
+  allow_override: true      # User can override at runtime
+
+# Model Capabilities and Costs
+models:
+  opus:  # Opus 4.1
+    description: "Most capable for complex tasks, reaches usage limits faster"
+    cost_relative: "highest"
+    max_context: 200000
+    best_for: ["complex_analysis", "architecture", "security", "deep_code_archaeology"]
+    usage_warning: "Reaches usage limits faster"
+    
+  sonnet:  # Sonnet 4
+    description: "Balanced capability for daily use"
+    cost_relative: "medium"
+    max_context: 200000
+    best_for: ["general_analysis", "documentation", "business_logic", "daily_tasks"]
+    usage_warning: "Standard rate limits"
+    
+  default:  # Sonnet 4 with 1M context
+    description: "Recommended - Sonnet with extended context"
+    cost_relative: "medium-high"
+    max_context: 1000000
+    best_for: ["large_codebases", "extensive_analysis", "full_documentation"]
+    usage_warning: "Uses rate limits faster due to larger context"
+
+# Agent-Specific Model Assignments
+agent_models:
+  
+  # Orchestration & Setup Agents
+  mcp-orchestrator:
+    preferred_model: "sonnet"  # Simple coordination task
+    fallback_model: "default"
+    rationale: "MCP coordination is straightforward, standard Sonnet is sufficient"
+    
+  repomix-analyzer:
+    preferred_model: "sonnet"  # Processing pre-compressed data
+    fallback_model: "default"
+    rationale: "Analyzing already-compressed Repomix output is pattern matching"
+    
+  architecture-selector:
+    preferred_model: "default"  # Needs good pattern recognition with large context
+    fallback_model: "opus"
+    rationale: "Technology detection benefits from large context window"
+  
+  # Core Analysis Agents (Need Higher Capability)
+  legacy-code-detective:
+    preferred_model: "opus"  # Complex archaeological analysis
+    fallback_model: "default"
+    rationale: "Deep code archaeology needs maximum capability"
+    
+  business-logic-analyst:
+    preferred_model: "default"  # Good balance with large context
+    fallback_model: "opus"
+    rationale: "Business rule extraction benefits from 1M context"
+    
+  security-analyst:
+    preferred_model: "opus"  # Critical security analysis
+    fallback_model: "default"
+    rationale: "Security vulnerability detection needs highest capability"
+    
+  performance-analyst:
+    preferred_model: "default"  # Pattern detection with large context
+    fallback_model: "opus"
+    rationale: "Performance analysis benefits from seeing full codebase context"
+  
+  # Specialist Architects
+  java-architect:
+    preferred_model: "opus"  # Complex Java/Spring analysis
+    fallback_model: "default"
+    rationale: "Java enterprise systems need deep analysis"
+    
+  dotnet-architect:
+    preferred_model: "opus"  # Complex .NET analysis
+    fallback_model: "default"
+    rationale: ".NET ecosystem complexity needs high capability"
+    
+  angular-architect:
+    preferred_model: "default"  # Frontend analysis with large context
+    fallback_model: "sonnet"
+    rationale: "Angular analysis benefits from seeing all components"
+  
+  # Documentation & Visualization Agents
+  diagram-architect:
+    preferred_model: "sonnet"  # Mermaid generation
+    fallback_model: "default"
+    rationale: "Diagram generation is template-based, standard Sonnet works"
+    
+  documentation-specialist:
+    preferred_model: "default"  # Documentation synthesis with full context
+    fallback_model: "opus"
+    rationale: "Documentation benefits from 1M context to see everything"
+    
+  executive-summary:
+    preferred_model: "sonnet"  # Simple summarization
+    fallback_model: "default"
+    rationale: "Executive summary is high-level aggregation"
+    
+  modernization-architect:
+    preferred_model: "opus"  # Complex strategy formulation
+    fallback_model: "default"
+    rationale: "Modernization strategy needs deep reasoning"
+
+# Model Selection Strategy
+selection_strategy:
+  
+  # Conditions that upgrade model automatically
+  auto_upgrade_conditions:
+    - condition: "codebase_size > 100000 lines"
+      upgrade_to: "opus"
+      agents: ["legacy-code-detective", "business-logic-analyst"]
+      
+    - condition: "security_critical = true"
+      upgrade_to: "opus"
+      agents: ["security-analyst", "modernization-architect"]
+      
+    - condition: "complexity = enterprise"
+      upgrade_to: "opus"
+      agents: ["all"]
+      
+    - condition: "user_request = thorough"
+      upgrade_to: "opus"
+      agents: ["all"]
+  
+  # Conditions that allow downgrade for efficiency
+  auto_downgrade_conditions:
+    - condition: "codebase_size < 10000 lines"
+      downgrade_to: "sonnet"
+      agents: ["mcp-orchestrator", "repomix-analyzer", "diagram-architect"]
+      
+    - condition: "rate_limit_warning = true"
+      downgrade_to: "sonnet"
+      agents: ["executive-summary", "documentation-specialist"]
+
+# Cost Optimization Settings
+cost_optimization:
+  
+  # Total budget allocation by model
+  budget_distribution:
+    opus: 40%      # Use for critical analysis
+    default: 40%   # Use for large context needs
+    sonnet: 20%    # Use for simple tasks
+  
+  # Estimated cost by project size
+  estimated_costs:
+    small:
+      total_tokens: 250000
+      estimated_cost: "$2-5"
+      recommended_mix: { opus: 20%, default: 40%, sonnet: 40% }
+      
+    medium:
+      total_tokens: 500000
+      estimated_cost: "$5-15"
+      recommended_mix: { opus: 30%, default: 50%, sonnet: 20% }
+      
+    large:
+      total_tokens: 1000000
+      estimated_cost: "$15-40"
+      recommended_mix: { opus: 40%, default: 40%, sonnet: 20% }
+      
+    enterprise:
+      total_tokens: 2000000
+      estimated_cost: "$40-100"
+      recommended_mix: { opus: 50%, default: 35%, sonnet: 15% }
+
+# Usage Tracking
+tracking:
+  track_model_usage: true
+  track_cost_per_agent: true
+  track_quality_vs_model: true
+  
+  output_report: "output/reports/model-usage-report.json"
+  
+  metrics:
+    - model_switches  # How often fallback was needed
+    - cost_per_agent  # Actual cost breakdown
+    - quality_scores  # Quality achieved per model
+    - time_to_complete  # Speed comparison
+
+# User Preferences
+user_preferences:
+  
+  # Can be overridden in CLAUDE.md
+  optimization_priority: "balanced"  # Options: cost, quality, speed, balanced
+  
+  # Model preferences by priority
+  quality_priority:
+    all_agents: "opus"
+    
+  cost_priority:
+    critical_agents: "default"  # Detective, security, business
+    other_agents: "sonnet"
+    
+  speed_priority:
+    all_agents: "sonnet"
+    upgrade_for: ["security-analyst", "business-logic-analyst"]
+    
+  balanced_priority:
+    # Use the configured defaults above
+    use_configured: true
+
+# Implementation Notes
+implementation:
+  
+  # How to use in agents
+  usage_example: |
+    # At the start of each agent, check preferred model:
+    import yaml
+    
+    with open('framework/templates/AGENT_MODEL_CONFIG.yaml', 'r') as f:
+        config = yaml.safe_load(f)
+    
+    agent_name = "legacy-code-detective"
+    preferred_model = config['agent_models'][agent_name]['preferred_model']
+    
+    # Set model for this agent session
+    set_model(preferred_model)
+  
+  # How to override at runtime
+  override_example: |
+    # User can specify in CLAUDE.md:
+    agent_model_overrides:
+      legacy-code-detective: "sonnet"  # Save on rate limits
+      security-analyst: "opus"         # Ensure quality
+
+# Configuration Version
+version: "1.0"
+created: "2024-01-30"
+purpose: "Optimize model selection per agent for cost/quality balance"

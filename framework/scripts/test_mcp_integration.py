@@ -63,6 +63,8 @@ class MCPIntegrationTest:
         # Run tests
         self.test_mcp_json()
         print()
+        self.test_serena_functionality()
+        print()
         self.test_claude_settings()
         print()
         self.test_repomix()
@@ -126,9 +128,48 @@ class MCPIntegrationTest:
                 if mcp in mcp_config['mcpServers']:
                     print(f"   ✓ {mcp} MCP configured")
     
+    def test_serena_functionality(self):
+        """Test Serena MCP functionality"""
+        print(f"{Colors.YELLOW}Test 2: Testing Serena MCP functionality...{Colors.RESET}")
+        
+        # Check if Serena is configured
+        mcp_file = self.project_root / ".mcp.json"
+        if mcp_file.exists():
+            with open(mcp_file, 'r') as f:
+                mcp_config = json.load(f)
+            
+            if 'mcpServers' in mcp_config and 'serena' in mcp_config['mcpServers']:
+                serena_config = mcp_config['mcpServers']['serena']
+                
+                if not serena_config.get('disabled', False):
+                    # Run detailed Serena tests
+                    try:
+                        result = subprocess.run(
+                            [sys.executable, "framework/scripts/test_serena_integration.py"],
+                            capture_output=True,
+                            text=True,
+                            timeout=10
+                        )
+                        
+                        if "properly configured" in result.stdout:
+                            self.successes.append("Serena integration validated")
+                            print(f"{Colors.GREEN}✅ Serena integration validated{Colors.RESET}")
+                        elif "needs fixing" in result.stdout:
+                            self.warnings.append("Serena needs configuration fixes")
+                            print(f"{Colors.YELLOW}⚠️  Serena needs configuration fixes{Colors.RESET}")
+                            print(f"   Run: python3 framework/scripts/test_serena_integration.py")
+                        
+                    except Exception as e:
+                        self.warnings.append(f"Could not test Serena: {e}")
+                        print(f"{Colors.YELLOW}⚠️  Could not test Serena functionality{Colors.RESET}")
+                else:
+                    print(f"{Colors.BLUE}ℹ️  Serena is disabled - skipping tests{Colors.RESET}")
+            else:
+                print(f"{Colors.BLUE}ℹ️  Serena not configured - skipping tests{Colors.RESET}")
+    
     def test_claude_settings(self):
         """Test Claude Code settings"""
-        print(f"{Colors.YELLOW}Test 2: Checking Claude Code settings...{Colors.RESET}")
+        print(f"{Colors.YELLOW}Test 3: Checking Claude Code settings...{Colors.RESET}")
         
         settings_file = self.project_root / ".claude" / "settings.local.json"
         

@@ -15,23 +15,29 @@
         "category": "technical",
         "priority": 2
       },
-      "DEVELOPER-GUIDE.md": {
-        "enabled": true,
-        "description": "Development setup, build processes, and coding standards",
-        "category": "technical",
-        "priority": 3
-      },
-      "CONFIGURATION-GUIDE.md": {
-        "enabled": true,
-        "description": "Environment configuration, deployment settings, and system parameters",
-        "category": "operational",
-        "priority": 4
-      },
       "API-DOCUMENTATION.md": {
         "enabled": true,
         "description": "REST API endpoints, request/response formats, and authentication",
         "category": "technical",
+        "priority": 3
+      },
+      "BUSINESS-RULES-CATALOG.md": {
+        "enabled": true,
+        "description": "Business logic documentation, domain rules, and process flows",
+        "category": "business",
+        "priority": 4
+      },
+      "SECURITY-ANALYSIS.md": {
+        "enabled": true,
+        "description": "Security vulnerabilities, compliance requirements, and remediation",
+        "category": "security",
         "priority": 5
+      },
+      "PERFORMANCE-ANALYSIS.md": {
+        "enabled": true,
+        "description": "Performance bottlenecks, optimization opportunities, and benchmarks",
+        "category": "technical",
+        "priority": 6
       }
     },
     "optional_documents": {
@@ -39,42 +45,36 @@
         "enabled": false,
         "description": "Database tables, relationships, and data dictionary",
         "category": "technical",
-        "priority": 6
+        "priority": 7
+      },
+      "DEVELOPER-GUIDE.md": {
+        "enabled": false,
+        "description": "Development setup, build processes, and coding standards",
+        "category": "technical",
+        "priority": 8
+      },
+      "CONFIGURATION-GUIDE.md": {
+        "enabled": false,
+        "description": "Environment configuration, deployment settings, and system parameters",
+        "category": "operational",
+        "priority": 9
       },
       "DEPLOYMENT-GUIDE.md": {
         "enabled": false,
         "description": "Deployment procedures, infrastructure requirements, and rollback strategies",
         "category": "operational",
-        "priority": 7
+        "priority": 10
       },
       "TESTING-GUIDE.md": {
         "enabled": false,
         "description": "Testing strategies, test execution, and quality assurance processes",
         "category": "technical",
-        "priority": 8
+        "priority": 11
       },
       "TROUBLESHOOTING-GUIDE.md": {
         "enabled": false,
         "description": "Common issues, debugging procedures, and resolution steps",
         "category": "operational",
-        "priority": 9
-      },
-      "BUSINESS-RULES-CATALOG.md": {
-        "enabled": true,
-        "description": "Business logic documentation, domain rules, and process flows",
-        "category": "business",
-        "priority": 10
-      },
-      "SECURITY-ANALYSIS.md": {
-        "enabled": true,
-        "description": "Security vulnerabilities, compliance requirements, and remediation",
-        "category": "security",
-        "priority": 11
-      },
-      "PERFORMANCE-ANALYSIS.md": {
-        "enabled": true,
-        "description": "Performance bottlenecks, optimization opportunities, and benchmarks",
-        "category": "technical",
         "priority": 12
       }
     },

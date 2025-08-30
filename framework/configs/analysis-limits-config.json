@@ -1,0 +1,162 @@
+{
+  "analysis_limits": {
+    "description": "Dynamic file analysis limits based on MCP availability and token budget",
+    "version": "1.0",
+    "default_limits": {
+      "description": "Base limits when no MCPs are available (raw file reading)",
+      "critical_files_max": 20,
+      "total_files_scan": 100,
+      "lines_per_file_max": 2000,
+      "token_budget": 200000,
+      "reasoning": "Conservative limits to prevent token explosion with raw file reading"
+    },
+    "mcp_optimized_limits": {
+      "repomix_only": {
+        "description": "Using Repomix compression (80% token reduction)",
+        "critical_files_max": 50,
+        "total_files_scan": 500,
+        "lines_per_file_max": 5000,
+        "token_budget": 80000,
+        "token_savings_percent": 80,
+        "reasoning": "Higher limits possible due to Repomix compression"
+      },
+      "serena_only": {
+        "description": "Using Serena semantic search (60% token reduction)",
+        "critical_files_max": 30,
+        "total_files_scan": 300,
+        "lines_per_file_max": 3000,
+        "token_budget": 120000,
+        "token_savings_percent": 60,
+        "reasoning": "Moderate limits with semantic search efficiency"
+      },
+      "repomix_plus_serena": {
+        "description": "Using both Repomix and Serena (85-90% token reduction)",
+        "critical_files_max": 100,
+        "total_files_scan": 1000,
+        "lines_per_file_max": 10000,
+        "token_budget": 50000,
+        "token_savings_percent": 90,
+        "reasoning": "Maximum limits possible with combined MCP optimization"
+      },
+      "all_mcps": {
+        "description": "Using Repomix + Serena + Sourcegraph + AST (95% token reduction)",
+        "critical_files_max": 200,
+        "total_files_scan": 2000,
+        "lines_per_file_max": 20000,
+        "token_budget": 25000,
+        "token_savings_percent": 95,
+        "reasoning": "Enterprise-scale analysis with full MCP stack"
+      }
+    },
+    "project_size_multipliers": {
+      "description": "Adjust limits based on project complexity",
+      "small": {
+        "multiplier": 0.5,
+        "max_lines": 10000,
+        "description": "Small projects need fewer critical files analyzed"
+      },
+      "medium": {
+        "multiplier": 1.0,
+        "max_lines": 100000,
+        "description": "Medium projects use base limits"
+      },
+      "large": {
+        "multiplier": 1.5,
+        "max_lines": 1000000,
+        "description": "Large projects benefit from more thorough analysis"
+      },
+      "enterprise": {
+        "multiplier": 2.0,
+        "max_lines": 10000000,
+        "description": "Enterprise projects require extensive analysis"
+      }
+    },
+    "user_overrides": {
+      "description": "User-configurable overrides for all limits",
+      "enabled": true,
+      "override_file": "ANALYSIS_LIMITS_OVERRIDE.json",
+      "environment_variables": {
+        "ANALYSIS_MAX_CRITICAL_FILES": {
+          "description": "Override critical_files_max limit",
+          "type": "integer",
+          "min": 1,
+          "max": 1000
+        },
+        "ANALYSIS_TOKEN_BUDGET": {
+          "description": "Override token budget limit",
+          "type": "integer",
+          "min": 10000,
+          "max": 1000000
+        },
+        "ANALYSIS_FORCE_DEEP_SCAN": {
+          "description": "Force deep scanning even with high token cost",
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "limit_calculation": {
+      "description": "Algorithm for calculating final limits",
+      "steps": [
+        "1. Detect available MCPs (repomix, serena, sourcegraph, ast)",
+        "2. Determine project size (small/medium/large/enterprise)",
+        "3. Select base limits from mcp_optimized_limits based on MCP availability",
+        "4. Apply project size multiplier",
+        "5. Check for user overrides (file or environment variables)",
+        "6. Apply safety caps to prevent token explosion",
+        "7. Log final limits and reasoning to user"
+      ],
+      "safety_caps": {
+        "max_critical_files_absolute": 500,
+        "max_token_budget_absolute": 500000,
+        "warn_threshold_tokens": 100000
+      }
+    },
+    "agent_specific_overrides": {
+      "java-architect": {
+        "description": "Java-specific analysis priorities",
+        "priority_patterns": [
+          "**/*Application.java",
+          "**/*Config.java", 
+          "**/*Controller.java",
+          "**/*Service.java",
+          "**/*Repository.java",
+          "**/pom.xml",
+          "**/build.gradle"
+        ],
+        "complexity_factors": {
+          "spring_framework": 1.2,
+          "enterprise_java": 1.5,
+          "microservices": 1.3
+        }
+      },
+      "dotnet-architect": {
+        "description": ".NET-specific analysis priorities",
+        "priority_patterns": [
+          "**/*.csproj",
+          "**/Program.cs",
+          "**/Startup.cs",
+          "**/*Controller.cs",
+          "**/*Service.cs"
+        ]
+      },
+      "angular-architect": {
+        "description": "Angular-specific analysis priorities", 
+        "priority_patterns": [
+          "**/package.json",
+          "**/angular.json",
+          "**/*.module.ts",
+          "**/*.component.ts",
+          "**/*.service.ts"
+        ]
+      }
+    },
+    "notification_settings": {
+      "warn_on_limit_reached": true,
+      "show_token_usage": true,
+      "show_mcp_benefits": true,
+      "suggest_optimization": true,
+      "log_level": "INFO"
+    }
+  }
+}
