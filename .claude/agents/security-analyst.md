@@ -185,7 +185,7 @@ public User findUser(String username) {
 |----------|-----------|---------------|------|----------------|
 | AUTH-001 | Password Policy | No complexity requirements | High | Min 12 chars, complexity rules |
 | AUTH-002 | MFA | Not implemented | High | Implement TOTP/SMS |
-| AUTH-003 | Session Timeout | 24 hours | Medium | 30 min idle, 4 hour absolute |
+| AUTH-003 | Session Timeout | Extended duration | Medium | Recommend: Short idle timeout, bounded absolute timeout |
 | AUTH-004 | Password Storage | MD5 hashed | Critical | Migrate to bcrypt |
 
 ### Authorization Gaps

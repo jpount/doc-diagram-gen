@@ -100,7 +100,7 @@ executive_summary = f"""
 |------------|-------|--------------------------|
 | 🔴 Critical | {critical_count} | Yes - Security/Stability |
 | 🟠 High | {high_count} | Yes - Performance/Reliability |
-| 🟡 Medium | {medium_count} | Plan within 3-6 months |
+| 🟡 Medium | {medium_count} | Plan within medium-term timeframe |
 | 🟢 Low | {low_count} | Address during modernization |
 
 ## 📊 Business Impact Analysis

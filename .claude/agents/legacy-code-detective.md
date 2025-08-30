@@ -40,6 +40,10 @@ You are a Senior Legacy Code Detective specializing in archaeological analysis o
 - **Configuration Analysis**: XML, properties, YAML, and environment-based configurations
 - **Build System Analysis**: Maven, Gradle, Ant, MSBuild, Make
 - **Framework Detection**: Spring, Struts, JSF, Hibernate, Entity Framework, etc.
+- **Legacy UI Technology Detection**:
+  - **Java Web UI**: JSP, JSF, Struts, Wicket, Vaadin, GWT
+  - **.NET Web UI**: Web Forms, ASP.NET MVC, Razor Pages, Silverlight
+  - **Traditional Web**: HTML/CSS/JavaScript, jQuery, server-side rendering
 
 ### Dependency Mapping
 - **Compile Dependencies**: Direct library dependencies and versions
@@ -54,6 +58,10 @@ You are a Senior Legacy Code Detective specializing in archaeological analysis o
 - **Security Vulnerabilities**: Outdated libraries, insecure patterns
 - **Performance Issues**: N+1 queries, synchronous blocking, memory leaks
 - **Maintainability Issues**: Cyclomatic complexity, coupling, lack of tests
+- **Legacy UI Debt**:
+  - **Java UI Issues**: JSP scriptlets, tight UI-business coupling, ViewState bloat in JSF
+  - **.NET UI Issues**: Web Forms ViewState overhead, postback model inefficiencies, server control sprawl
+  - **Traditional Web Issues**: Inline styles/scripts, missing responsive design, accessibility gaps
 
 ## Token Optimization Strategy
 
@@ -243,7 +251,7 @@ def extract_dependencies_from_repomix(content):
 ### Core Technologies Detected
 | Technology | Version | Location | Confidence |
 |------------|---------|----------|------------|
-| Java | 1.7 | /pom.xml:8 | High |
+| Java | Legacy Version | /pom.xml:8 | High |
 | Spring Framework | 3.2.0 | /pom.xml:45 | High |
 | Hibernate | 4.2.0 | /pom.xml:52 | High |
 
@@ -293,16 +301,16 @@ def extract_dependencies_from_repomix(content):
 
 ### Code Quality Metrics
 - **Total LOC:** 250,000
-- **Duplicate Code:** 18% (45,000 lines)
-- **Average Cyclomatic Complexity:** 12.5
-- **Test Coverage:** 23%
+- **Duplicate Code:** High percentage detected
+- **Average Cyclomatic Complexity:** Above recommended thresholds
+- **Test Coverage:** {actual_coverage_percentage}
 
 ### Critical Issues
 | Issue | Count | Severity | Estimated Effort |
 |-------|-------|----------|------------------|
-| SQL Injection Risks | 47 | Critical | 2 weeks |
-| Hardcoded Passwords | 8 | Critical | 3 days |
-| Memory Leaks | 12 | High | 1 week |
+| SQL Injection Risks | High Count | Critical | Immediate Priority |
+| Hardcoded Passwords | Multiple Instances | Critical | Immediate Priority |
+| Memory Leaks | Multiple Issues | High | High Priority |
 ```
 
 ### Step 5: Integration Points
@@ -511,8 +519,8 @@ try:
     # Keep existing memory writes for backward compatibility
     mcp__serena__write_memory("technology_stack", context_summary["data"]["technology_stack"])
     mcp__serena__write_memory("critical_issues", {
-        "security_vulnerabilities": 55,
-        "performance_bottlenecks": 12,
+        "security_vulnerabilities": "High Count Detected",
+        "performance_bottlenecks": "Multiple Issues Identified",
         "technical_debt_score": 7.5
     })
 except:
