@@ -1,0 +1,94 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "mcp__memory__read_graph",
+      "Bash(grep:*)",
+      "Bash(echo \"Exit code: $?\")",
+      "Bash(chmod:*)",
+      "Bash(sed:*)",
+      "Bash(for file in output/diagrams/*.mmd)",
+      "Bash(do)",
+      "Bash(echo \"Processing: $file\")",
+      "Bash(done)",
+      "Bash(for:*)",
+      "Bash(do echo \"=== Checking $f ===\")",
+      "mcp__filesystem__read_multiple_files",
+      "mcp__memory__open_nodes",
+      "Bash(find:*)",
+      "Bash(mkdir:*)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(head:*)",
+      "Bash(wc:*)",
+      "Bash(mv:*)",
+      "Bash(repomix:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "enableAllProjectMcpServers": false,
+  "enabledMcpjsonServers": [
+    "filesystem",
+    "memory"
+  ],
+  "_comment": "Serena is disabled by default. Enable it by adding 'serena' to enabledMcpjsonServers",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/bash_command_logger.py"
+          }
+        ]
+      },
+      {
+        "matcher": "ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/notifications.py 'Claude is requesting your approval to proceed' --title 'User Input Required' --method all"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/simple_mermaid_validation.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/documentation_completeness_check.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/business_rule_validation.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/token_tracking_hook.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/notifications.py 'Task completed successfully!' --title 'Claude Code' --method all"
+          }
+        ]
+      }
+    ]
+  },
+  "agentDirectories": [
+    ".claude/agents"
+  ]
+}

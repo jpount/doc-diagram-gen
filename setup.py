@@ -54,6 +54,8 @@ class FrameworkSetup:
         self.cache_dir = self.script_dir / ".mcp-cache"
         self.project_name = None
         self.modernization_enabled = False
+        self.repomix_enabled = True  # Default to enabled
+        self.serena_enabled = False  # Default to disabled
         
         # Enable colors on Windows
         Colors.enable_windows_colors()
@@ -175,6 +177,18 @@ class FrameworkSetup:
             print(f"{Colors.GREEN}✓ Created .repomix.config.json from template{Colors.RESET}")
         elif repomix_file.exists():
             print(f"{Colors.BLUE}ℹ .repomix.config.json already exists{Colors.RESET}")
+        
+        # Copy settings.local.json template if needed
+        settings_dir = self.script_dir / ".claude"
+        settings_file = settings_dir / "settings.local.json"
+        settings_template = self.framework_dir / "mcp-configs" / "settings.template.json"
+        
+        if not settings_file.exists() and settings_template.exists():
+            settings_dir.mkdir(exist_ok=True)
+            shutil.copy2(settings_template, settings_file)
+            print(f"{Colors.GREEN}✓ Created .claude/settings.local.json from template{Colors.RESET}")
+        elif settings_file.exists():
+            print(f"{Colors.BLUE}ℹ .claude/settings.local.json already exists{Colors.RESET}")
         
         print()
     
@@ -597,8 +611,10 @@ class FrameworkSetup:
             "{{MODERNIZATION_ENABLED}}": "No" if "DOCUMENTATION_ONLY" in analysis_mode else "Yes",
             "{{USER_INTERACTION}}": "None" if documentation_mode == "QUICK" else ("Interactive" if documentation_mode == "GUIDED" else "Template-based"),
             "{{PROJECT_SIZE}}": project_size.capitalize(),
-            "{{TOKEN_BUDGET}}": "500,000 tokens (flexible)" if project_size == "medium" else "250,000 tokens (flexible)",
+            "{{TOKEN_BUDGET}}": "50,000 tokens (with Repomix)" if self.repomix_enabled else "250,000+ tokens (without Repomix)",
             "{{SETUP_DATE}}": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "{{REPOMIX_STATUS}}": "✅ ENABLED (80% token reduction)" if self.repomix_enabled else "⚠️ DISABLED (5x higher token usage!)",
+            "{{SERENA_STATUS}}": "ENABLED (60% token reduction)" if self.serena_enabled else "DISABLED (using Repomix only)",
         }
         
         # Add modernization agents section if needed
@@ -631,25 +647,42 @@ class FrameworkSetup:
 3. Fill in domain knowledge and business context
 4. Validate completeness with checklist"""
         
-        # Add MCP tools section
-        replacements["{{MCP_TOOLS}}"] = """- `@serena` - Semantic code analysis (if configured)
-- `repomix` - Codebase compression (if installed)
-- File system access via MCP
-- Memory for cross-agent communication"""
+        # Add MCP tools section based on configuration
+        mcp_tools = ["- File system access via MCP", "- Memory for cross-agent communication"]
+        if self.repomix_enabled:
+            mcp_tools.insert(0, "- `repomix` - Codebase compression (✅ ENABLED - PRIMARY)")
+        else:
+            mcp_tools.insert(0, "- `repomix` - Codebase compression (⚠️ DISABLED - HIGH TOKEN USAGE!)")
         
-        # Add project notes
+        if self.serena_enabled:
+            mcp_tools.insert(1, "- `@serena` - Semantic code analysis (ENABLED as fallback)")
+        else:
+            mcp_tools.insert(1, "- `@serena` - Semantic code analysis (DISABLED)")
+        
+        replacements["{{MCP_TOOLS}}"] = "\n".join(mcp_tools)
+        
+        # Add project notes with Repomix emphasis
         if self.project_name:
-            replacements["{{PROJECT_NOTES}}"] = f"- Project '{self.project_name}' configured in codebase directory\n- Run repomix before starting analysis"
+            if self.repomix_enabled:
+                replacements["{{PROJECT_NOTES}}"] = f"- Project '{self.project_name}' configured\n- 🔴 **CRITICAL**: Run repomix BEFORE starting analysis\n- Token efficiency depends on Repomix being generated"
+            else:
+                replacements["{{PROJECT_NOTES}}"] = f"- Project '{self.project_name}' configured\n- ⚠️ WARNING: Repomix disabled - expect 5x higher token usage"
         else:
-            replacements["{{PROJECT_NOTES}}"] = "- No specific project configured yet\n- Place code in codebase/[project-name]/"
+            replacements["{{PROJECT_NOTES}}"] = "- No specific project configured yet\n- Place code in codebase/[project-name]/\n- Generate Repomix before analysis"
         
-        # Add next steps
-        if documentation_mode == "QUICK":
-            replacements["{{NEXT_STEPS}}"] = "1. Run repomix summary\n2. Start with @mcp-orchestrator\n3. Review generated documentation"
-        elif documentation_mode == "GUIDED":
-            replacements["{{NEXT_STEPS}}"] = "1. Run repomix summary\n2. Start with @mcp-orchestrator\n3. Provide input at checkpoints\n4. Review and refine output"
+        # Add next steps with Repomix priority
+        if self.repomix_enabled:
+            repomix_cmd = f"repomix --config .repomix.config.json codebase/{self.project_name or '[project]'}/"
+            repomix_step = f"🔴 **CRITICAL FIRST STEP**:\n   {repomix_cmd}\n   Verify: ls -la output/reports/repomix-summary.md\n\n"
         else:
-            replacements["{{NEXT_STEPS}}"] = "1. Run repomix summary\n2. Generate templates with @mcp-orchestrator\n3. Complete templates with domain knowledge"
+            repomix_step = "⚠️ **WARNING**: Repomix disabled - expect 5x higher token usage!\n\n"
+        
+        if documentation_mode == "QUICK":
+            replacements["{{NEXT_STEPS}}"] = f"{repomix_step}1. Start with @mcp-orchestrator\n2. Review generated documentation"
+        elif documentation_mode == "GUIDED":
+            replacements["{{NEXT_STEPS}}"] = f"{repomix_step}1. Start with @mcp-orchestrator\n2. Provide input at checkpoints\n3. Review and refine output"
+        else:
+            replacements["{{NEXT_STEPS}}"] = f"{repomix_step}1. Generate templates with @mcp-orchestrator\n2. Complete templates with domain knowledge"
         
         # Apply replacements
         for key, value in replacements.items():
@@ -662,27 +695,181 @@ class FrameworkSetup:
         print(f"{Colors.GREEN}✓ Generated CLAUDE.md with project configuration{Colors.RESET}")
         print()
     
-    def run_mcp_setup(self):
-        """Run MCP configuration"""
-        print(f"{Colors.MAGENTA}Step 2: Configure MCP Integration{Colors.RESET}")
+    def configure_repomix(self):
+        """Configure Repomix for token optimization"""
+        print(f"{Colors.MAGENTA}Step 2: Configure Repomix (STRONGLY RECOMMENDED){Colors.RESET}")
         print("-" * 40)
+        print()
+        print(f"{Colors.RED}⚠️  IMPORTANT: Repomix is CRITICAL for token efficiency!{Colors.RESET}")
+        print(f"{Colors.YELLOW}Without Repomix, the framework will use 5-10x more tokens.{Colors.RESET}")
+        print()
+        print(f"{Colors.GREEN}Repomix provides:{Colors.RESET}")
+        print("  • 80% token reduction through code compression")
+        print("  • Security scanning with Secretlint")
+        print("  • Automatic file metrics and complexity analysis")
+        print("  • Single compressed file for entire codebase")
+        print()
         
-        # Check for Python script first
-        mcp_script_py = self.framework_dir / "scripts" / "setup_mcp.py"
-        mcp_script_sh = self.framework_dir / "scripts" / "setup-mcp.sh"
-        mcp_script_ps1 = self.framework_dir / "scripts" / "setup-mcp.ps1"
+        # Check if Repomix is installed
+        repomix_installed = self.check_command("repomix --version")
         
-        if mcp_script_py.exists():
-            subprocess.run([sys.executable, str(mcp_script_py)])
-        elif platform.system() == 'Windows' and mcp_script_ps1.exists():
-            subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(mcp_script_ps1)])
-        elif mcp_script_sh.exists() and platform.system() != 'Windows':
-            subprocess.run(["bash", str(mcp_script_sh)])
+        if repomix_installed:
+            print(f"{Colors.GREEN}✓ Repomix is installed{Colors.RESET}")
         else:
-            print(f"{Colors.YELLOW}⚠ MCP setup script not found{Colors.RESET}")
-            print(f"{Colors.BLUE}ℹ MCP configuration files have been created{Colors.RESET}")
+            print(f"{Colors.RED}✗ Repomix is not installed{Colors.RESET}")
+            print()
+            print(f"{Colors.CYAN}To install Repomix:{Colors.RESET}")
+            print("  npm install -g repomix")
+            print()
+            print(f"{Colors.YELLOW}Would you like to install Repomix now? (STRONGLY RECOMMENDED){Colors.RESET}")
+            
+            install = input(f"Install Repomix? (Y/n) [{Colors.GREEN}Y{Colors.RESET}]: ").strip().lower()
+            if install != 'n':
+                print("Installing Repomix...")
+                try:
+                    subprocess.run(["npm", "install", "-g", "repomix"], check=True)
+                    print(f"{Colors.GREEN}✓ Repomix installed successfully{Colors.RESET}")
+                    repomix_installed = True
+                except:
+                    print(f"{Colors.RED}Failed to install Repomix. Please install manually.{Colors.RESET}")
+        
+        # Confirm Repomix usage
+        print()
+        print(f"{Colors.CYAN}Enable Repomix for this project?{Colors.RESET}")
+        print(f"{Colors.YELLOW}Note: Disabling Repomix will significantly increase token usage!{Colors.RESET}")
+        
+        use_repomix = input(f"Use Repomix? (Y/n) [{Colors.GREEN}Y{Colors.RESET}]: ").strip().lower()
+        self.repomix_enabled = use_repomix != 'n'
+        
+        if self.repomix_enabled:
+            print(f"{Colors.GREEN}✓ Repomix enabled - token usage will be optimized{Colors.RESET}")
+            
+            # Copy Repomix config
+            repomix_file = self.script_dir / ".repomix.config.json"
+            repomix_template = self.framework_dir / "mcp-configs" / "repomix.config.template.json"
+            
+            if not repomix_file.exists() and repomix_template.exists():
+                shutil.copy2(repomix_template, repomix_file)
+                print(f"{Colors.GREEN}✓ Created .repomix.config.json{Colors.RESET}")
+        else:
+            print(f"{Colors.RED}⚠️  WARNING: Repomix disabled - expect 5-10x higher token usage!{Colors.RESET}")
         
         print()
+    
+    def configure_serena_mcp(self):
+        """Configure Serena MCP (optional)"""
+        print(f"{Colors.MAGENTA}Step 3: Configure Serena MCP (Optional){Colors.RESET}")
+        print("-" * 40)
+        print()
+        print(f"{Colors.BLUE}Serena provides semantic code analysis as a fallback when Repomix data is insufficient.{Colors.RESET}")
+        print()
+        print("Serena features:")
+        print("  • 60% token reduction (less than Repomix)")
+        print("  • Semantic code understanding")
+        print("  • Symbol-level analysis")
+        print("  • Memory management for agents")
+        print()
+        print(f"{Colors.YELLOW}Note: Serena is optional. The framework works well with just Repomix.{Colors.RESET}")
+        print()
+        
+        enable_serena = input(f"Enable Serena MCP? (y/N) [{Colors.BLUE}N{Colors.RESET}]: ").strip().lower()
+        self.serena_enabled = enable_serena == 'y'
+        
+        if self.serena_enabled:
+            print(f"{Colors.GREEN}✓ Serena will be enabled in MCP configuration{Colors.RESET}")
+        else:
+            print(f"{Colors.BLUE}ℹ Serena disabled - using Repomix as primary data source{Colors.RESET}")
+        
+        print()
+    
+    def update_mcp_config(self):
+        """Update MCP configuration based on user choices"""
+        mcp_file = self.script_dir / ".mcp.json"
+        
+        if mcp_file.exists():
+            try:
+                with open(mcp_file, 'r') as f:
+                    config = json.load(f)
+                
+                # Update Serena status
+                if 'serena' in config.get('mcpServers', {}):
+                    config['mcpServers']['serena']['disabled'] = not self.serena_enabled
+                    if self.serena_enabled and self.project_name:
+                        # Update project path
+                        args = config['mcpServers']['serena']['args']
+                        for i, arg in enumerate(args):
+                            if arg == '${PWD}/codebase':
+                                args[i] = f'${{PWD}}/codebase/{self.project_name}'
+                                break
+                
+                with open(mcp_file, 'w') as f:
+                    json.dump(config, f, indent=2)
+                
+                print(f"{Colors.GREEN}✓ Updated .mcp.json configuration{Colors.RESET}")
+            except Exception as e:
+                print(f"{Colors.YELLOW}⚠ Could not update .mcp.json: {e}{Colors.RESET}")
+        
+        # Update settings.local.json
+        settings_file = self.script_dir / ".claude" / "settings.local.json"
+        if settings_file.exists():
+            try:
+                with open(settings_file, 'r') as f:
+                    settings = json.load(f)
+                
+                # Update enabled servers
+                enabled_servers = ["filesystem", "memory"]
+                if self.serena_enabled:
+                    enabled_servers.append("serena")
+                
+                settings['enabledMcpjsonServers'] = enabled_servers
+                settings['enableAllProjectMcpServers'] = False
+                
+                with open(settings_file, 'w') as f:
+                    json.dump(settings, f, indent=2)
+                
+                print(f"{Colors.GREEN}✓ Updated Claude settings{Colors.RESET}")
+            except Exception as e:
+                print(f"{Colors.YELLOW}⚠ Could not update settings: {e}{Colors.RESET}")
+    
+    def run_mcp_setup(self):
+        """Run MCP configuration"""
+        # This now just updates the configuration
+        self.update_mcp_config()
+    
+    def show_repomix_instructions(self):
+        """Show instructions for generating Repomix summary"""
+        if self.repomix_enabled:
+            print(f"{Colors.CYAN}╔══════════════════════════════════════════════════════════════╗{Colors.RESET}")
+            print(f"{Colors.CYAN}║           🔴 CRITICAL: Generate Repomix Summary First!           ║{Colors.RESET}")
+            print(f"{Colors.CYAN}╚══════════════════════════════════════════════════════════════╝{Colors.RESET}")
+            print()
+            print(f"{Colors.RED}BEFORE starting analysis in Claude Code:{Colors.RESET}")
+            print()
+            print(f"{Colors.YELLOW}1. Place your code in the codebase directory:{Colors.RESET}")
+            if self.project_name:
+                print(f"   cp -r /path/to/your/code codebase/{self.project_name}/")
+            else:
+                print(f"   cp -r /path/to/your/code codebase/[project-name]/")
+            print()
+            print(f"{Colors.YELLOW}2. Generate Repomix summary (REQUIRED):{Colors.RESET}")
+            if self.project_name:
+                print(f"   {Colors.GREEN}repomix --config .repomix.config.json codebase/{self.project_name}/{Colors.RESET}")
+            else:
+                print(f"   {Colors.GREEN}repomix --config .repomix.config.json codebase/{Colors.RESET}")
+            print()
+            print(f"{Colors.YELLOW}3. Verify Repomix output:{Colors.RESET}")
+            print(f"   Check that output/reports/repomix-summary.md was created")
+            print()
+            print(f"{Colors.MAGENTA}Why Repomix is critical:{Colors.RESET}")
+            print(f"  • {Colors.GREEN}WITH Repomix: ~50,000 tokens for medium project{Colors.RESET}")
+            print(f"  • {Colors.RED}WITHOUT Repomix: ~250,000+ tokens (5x more!){Colors.RESET}")
+            print(f"  • Faster analysis, lower costs, better efficiency")
+            print()
+        else:
+            print(f"{Colors.RED}⚠️  WARNING: Repomix is disabled!{Colors.RESET}")
+            print(f"{Colors.YELLOW}Expect 5-10x higher token usage without Repomix.{Colors.RESET}")
+            print(f"To enable Repomix, re-run setup and choose to enable it.")
+            print()
     
     def show_next_steps(self):
         """Display next steps for the user"""
@@ -708,29 +895,37 @@ class FrameworkSetup:
                     analysis_mode = "DOCUMENTATION_ONLY"
         
         print(f"{Colors.MAGENTA}Analysis Mode: {analysis_mode}{Colors.RESET}")
+        print(f"{Colors.MAGENTA}Repomix: {'ENABLED ✓' if self.repomix_enabled else 'DISABLED ⚠️'}{Colors.RESET}")
+        print(f"{Colors.MAGENTA}Serena MCP: {'ENABLED' if self.serena_enabled else 'DISABLED (using Repomix only)'}{Colors.RESET}")
         print()
-        print(f"{Colors.BLUE}Next Steps:{Colors.RESET}")
+        
+        if self.repomix_enabled:
+            print(f"{Colors.RED}🔴 CRITICAL FIRST STEP:{Colors.RESET}")
+            print(f"{Colors.YELLOW}You MUST generate the Repomix summary before starting analysis!{Colors.RESET}")
+            print()
+        
+        print(f"{Colors.BLUE}Steps to start analysis:{Colors.RESET}")
         
         if self.project_name:
             print(f"1. Place your codebase in: codebase/{self.project_name}/")
         else:
             print("1. Place your codebase in: codebase/[project-name]/")
         
-        print("2. Test MCP integration:")
-        if platform.system() == 'Windows':
-            print("   python framework/scripts/test_mcp_integration.py")
+        if self.repomix_enabled:
+            print(f"{Colors.RED}2. Generate Repomix summary (REQUIRED):{Colors.RESET}")
+            if self.project_name:
+                print(f"   {Colors.GREEN}repomix --config .repomix.config.json codebase/{self.project_name}/{Colors.RESET}")
+            else:
+                print(f"   {Colors.GREEN}repomix --config .repomix.config.json codebase/{Colors.RESET}")
+            print("   Verify: output/reports/repomix-summary.md exists")
         else:
-            print("   python3 framework/scripts/test_mcp_integration.py")
+            print(f"{Colors.RED}2. WARNING: Repomix disabled - expect high token usage!{Colors.RESET}")
         
-        print("3. Generate Repomix summary (optional but recommended):")
-        if self.project_name:
-            print(f"   repomix --config .repomix.config.json codebase/{self.project_name}/")
-        else:
-            print("   repomix --config .repomix.config.json codebase/")
-        
-        print("4. Start analysis in Claude Code:")
-        print("   - Use @serena to activate the project")
+        print("3. Start analysis in Claude Code:")
+        if self.serena_enabled:
+            print("   - Use @serena to activate the project (optional)")
         print("   - Use @mcp-orchestrator to begin analysis")
+        print("   - Or use specific agents like @legacy-code-detective")
         
         if analysis_mode == "DOCUMENTATION_ONLY":
             print("   - Focus agents: @legacy-code-detective, @business-logic-analyst")
@@ -747,10 +942,16 @@ class FrameworkSetup:
         print("  - Reports: output/reports/")
         print()
         
+        print(f"{Colors.MAGENTA}Token Usage Expectations:{Colors.RESET}")
+        if self.repomix_enabled:
+            print(f"  {Colors.GREEN}WITH Repomix: ~50,000 tokens (medium project){Colors.RESET}")
+        else:
+            print(f"  {Colors.RED}WITHOUT Repomix: ~250,000+ tokens (5x more!){Colors.RESET}")
+        print()
         print(f"{Colors.MAGENTA}For detailed instructions, see:{Colors.RESET}")
         print("  - README.md")
-        print("  - framework/docs/MCP_USAGE_GUIDE.md")
-        print("  - framework/docs/MCP_CONFIGURATION_GUIDE.md")
+        print("  - framework/docs/CLAUDE_FRAMEWORK.md")
+        print("  - framework/templates/AGENT_DATA_ACCESS_PATTERN.md")
     
     def run(self):
         """Main setup execution"""
@@ -763,9 +964,12 @@ class FrameworkSetup:
             self.setup_project_structure()
             self.copy_mcp_templates()
             self.configure_codebase_path()
-            self.configure_analysis_mode()  # This replaces run_tech_stack_setup
-            self.run_mcp_setup()
+            self.configure_repomix()  # Configure Repomix first
+            self.configure_serena_mcp()  # Optional Serena configuration
+            self.configure_analysis_mode()
+            self.run_mcp_setup()  # Update configs based on choices
             self.generate_claude_md()  # Generate CLAUDE.md from template
+            self.show_repomix_instructions()  # Show how to generate Repomix
             self.show_next_steps()
             
             return 0

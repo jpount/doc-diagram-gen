@@ -40,45 +40,181 @@ You are a Senior Legacy Code Detective specializing in archaeological analysis o
 
 ## Token Optimization Strategy
 
-### Phase 1: Project Structure Analysis
-Use Serena MCP for efficient exploration:
-```python
-# Activate project and onboard
-mcp__serena__activate_project(project_path)
-mcp__serena__onboarding()
+### CRITICAL: Data Access Priority Order
+**MUST follow this hierarchy:**
+1. **Repomix Summary** (Primary - 80% token reduction)
+2. **Serena MCP** (Secondary - 60% token reduction)
+3. **Raw Codebase** (Last Resort - 0% token reduction)
 
-# Get high-level structure
-mcp__serena__list_dir(".", recursive=False)
+### Phase 1: Project Structure Analysis
+```python
+def analyze_project_structure():
+    """Analyze project structure with proper fallback hierarchy"""
+    from pathlib import Path
+    
+    # LEVEL 1: Try Repomix first
+    repomix_file = Path("output/reports/repomix-summary.md")
+    if not repomix_file.exists():
+        # Try alternative locations
+        for alt_path in ["codebase/repomix-output.md", "docs/repomix-summary.md"]:
+            if Path(alt_path).exists():
+                repomix_file = Path(alt_path)
+                break
+    
+    if repomix_file.exists():
+        print("✅ Using Repomix summary for structure analysis")
+        content = Read(str(repomix_file))
+        # Extract structure from Repomix
+        return extract_structure_from_repomix(content)
+    
+    # LEVEL 2: Fallback to Serena if Repomix not available
+    try:
+        print("⚠️ Repomix not found, using Serena MCP...")
+        mcp__serena__activate_project("codebase")
+        mcp__serena__onboarding()
+        return mcp__serena__list_dir(".", recursive=False)
+    except:
+        print("❌ Serena not available")
+    
+    # LEVEL 3: Last resort - raw codebase
+    print("⚠️ WARNING: Using raw codebase access (high token usage)")
+    print("Recommendation: Generate Repomix first with:")
+    print("  repomix --config .repomix.config.json codebase/")
+    return Glob("codebase/**/*")
 ```
 
 ### Phase 2: Technology Detection
-Pattern-based search for technology markers:
 ```python
-# Search for framework indicators
-patterns = [
-    "org.springframework",  # Spring
-    "javax.ejb",            # EJB
-    "org.apache.struts",    # Struts
-    "@Entity",              # JPA
-    "System.Web.Mvc",       # ASP.NET MVC
-]
-mcp__serena__search_for_pattern("|".join(patterns))
+def detect_technologies():
+    """Detect technologies with proper fallback hierarchy"""
+    from pathlib import Path
+    
+    patterns = [
+        "org.springframework",  # Spring
+        "javax.ejb",            # EJB
+        "org.apache.struts",    # Struts
+        "@Entity",              # JPA
+        "System.Web.Mvc",       # ASP.NET MVC
+    ]
+    
+    # LEVEL 1: Check Repomix first
+    repomix_file = Path("output/reports/repomix-summary.md")
+    if repomix_file.exists():
+        print("✅ Detecting technologies from Repomix")
+        content = Read(str(repomix_file))
+        found_techs = []
+        for pattern in patterns:
+            if pattern in content:
+                found_techs.append(pattern)
+        if found_techs:
+            return found_techs
+    
+    # LEVEL 2: Try Serena
+    try:
+        print("⚠️ Using Serena for technology detection")
+        return mcp__serena__search_for_pattern("|".join(patterns))
+    except:
+        pass
+    
+    # LEVEL 3: Raw search
+    print("⚠️ WARNING: Falling back to raw grep (high token usage)")
+    return Grep("|".join(patterns), path="codebase")
 ```
 
 ### Phase 3: Configuration Analysis
-Target configuration files specifically:
 ```python
-# Find all configuration files
-config_patterns = "*.xml|*.properties|*.yml|*.yaml|*.config|*.json"
-mcp__serena__find_file(config_patterns, ".")
+def analyze_configurations():
+    """Analyze configuration files with proper fallback hierarchy"""
+    from pathlib import Path
+    
+    config_patterns = ["*.xml", "*.properties", "*.yml", "*.yaml", "*.config", "*.json"]
+    
+    # LEVEL 1: Extract from Repomix
+    repomix_file = Path("output/reports/repomix-summary.md")
+    if repomix_file.exists():
+        print("✅ Extracting configurations from Repomix")
+        content = Read(str(repomix_file))
+        # Repomix includes config files, extract them
+        configs = extract_config_files_from_repomix(content)
+        if configs:
+            return configs
+    
+    # LEVEL 2: Use Serena
+    try:
+        print("⚠️ Using Serena for configuration search")
+        return mcp__serena__find_file("|".join(config_patterns), ".")
+    except:
+        pass
+    
+    # LEVEL 3: Raw file search
+    print("⚠️ WARNING: Using raw file search (high token usage)")
+    configs = []
+    for pattern in config_patterns:
+        configs.extend(Glob(f"codebase/**/{pattern}"))
+    return configs
 ```
 
 ### Phase 4: Dependency Analysis
-Extract from build files without reading entire content:
 ```python
-# Extract dependencies from build files
-mcp__serena__search_for_pattern("dependency|compile|implementation", 
-                                relative_path="pom.xml")
+def analyze_dependencies():
+    """Extract dependencies with proper fallback hierarchy"""
+    from pathlib import Path
+    
+    # LEVEL 1: Get from Repomix
+    repomix_file = Path("output/reports/repomix-summary.md")
+    if repomix_file.exists():
+        print("✅ Extracting dependencies from Repomix")
+        content = Read(str(repomix_file))
+        # Look for pom.xml or build.gradle content in Repomix
+        if "pom.xml" in content or "build.gradle" in content:
+            deps = extract_dependencies_from_repomix(content)
+            if deps:
+                return deps
+    
+    # LEVEL 2: Use Serena for targeted search
+    try:
+        print("⚠️ Using Serena for dependency extraction")
+        return mcp__serena__search_for_pattern(
+            "dependency|compile|implementation",
+            relative_path="pom.xml"
+        )
+    except:
+        pass
+    
+    # LEVEL 3: Direct file read (last resort)
+    print("⚠️ WARNING: Reading build files directly (high token usage)")
+    for build_file in ["pom.xml", "build.gradle", "package.json"]:
+        file_path = Path(f"codebase/{build_file}")
+        if file_path.exists():
+            return Read(str(file_path))
+    return None
+
+# Helper function to extract from Repomix
+def extract_dependencies_from_repomix(content):
+    """Extract dependency information from Repomix content"""
+    import re
+    dependencies = []
+    
+    # Look for Maven dependencies
+    maven_deps = re.findall(r'<dependency>.*?</dependency>', content, re.DOTALL)
+    for dep in maven_deps:
+        group = re.search(r'<groupId>(.*?)</groupId>', dep)
+        artifact = re.search(r'<artifactId>(.*?)</artifactId>', dep)
+        version = re.search(r'<version>(.*?)</version>', dep)
+        if group and artifact:
+            dependencies.append({
+                'type': 'maven',
+                'group': group.group(1),
+                'artifact': artifact.group(1),
+                'version': version.group(1) if version else 'unknown'
+            })
+    
+    # Look for Gradle dependencies
+    gradle_deps = re.findall(r"implementation\s+['\"]([^'\"]+)['\"]", content)
+    for dep in gradle_deps:
+        dependencies.append({'type': 'gradle', 'dependency': dep})
+    
+    return dependencies if dependencies else None
 ```
 
 ## Analysis Framework
@@ -303,68 +439,48 @@ import json
 from datetime import datetime
 
 # Prepare lightweight context summary for next agents
-context_summary = {
-    "agent": "legacy-code-detective",
-    "timestamp": datetime.now().isoformat(),
-    "token_usage": {
-        "input": 28500,  # Track actual usage
-        "output": 8200,
-        "total": 36700
-    },
-    "summary": {
-        "key_findings": [
-            "Java 1.7 with Spring 3.2 - significant technical debt",
-            "55 security vulnerabilities identified",
-            "Complex JNDI/reflection usage creating hidden dependencies"
-        ],
-        "priority_items": [
-            "Critical: Hardcoded passwords in ConnectionManager.java",
-            "High: SQL injection vulnerabilities in 3 modules",
-            "High: Outdated Log4j version with known CVEs"
-        ],
-        "warnings": [
-            "Configuration-driven behavior may have undocumented dependencies",
-            "23 deprecated APIs still in use"
-        ],
-        "recommendations_for_next": {
-            "business-logic-analyst": [
-                "Focus on OrderService.java - core business logic",
-                "Check ValidationUtils for business rules",
-                "Review workflow packages for process logic"
-            ],
-            "security-analyst": [
-                "Prioritize authentication/authorization modules",
-                "Review all cryptography implementations",
-                "Check for PII exposure in logs"
-            ],
-            "performance-analyst": [
-                "Investigate DatabaseConnectionPool sizing",
-                "Check for synchronous blocking in REST APIs",
-                "Review batch job performance"
-            ]
-        }
-    },
-    "data": {
-        "technology_stack": {
-            "primary_language": "Java 1.7",
-            "frameworks": ["Spring 3.2", "Hibernate 4.2", "JSF 2.1"],
-            "build_system": "Maven 3.0",
-            "app_server": "WebSphere 8.5"
+def build_context_summary(actual_analysis):
+    """Build context summary from actual analysis results"""
+    from pathlib import Path
+    import json
+    
+    # Try to get actual token usage
+    try:
+        from token_monitor import get_token_summary
+        token_stats = get_token_summary()
+        agent_tokens = token_stats.get('by_agent', {}).get('legacy-code-detective', {
+            'input': 0, 'output': 0, 'total': 0
+        })
+    except:
+        # Estimate if monitoring not available
+        agent_tokens = {'input': 0, 'output': 0, 'total': 0}
+    
+    # Build summary from actual findings
+    context_summary = {
+        "agent": "legacy-code-detective",
+        "timestamp": datetime.now().isoformat(),
+        "token_usage": {
+            "input": agent_tokens.get('input', 0),
+            "output": agent_tokens.get('output', 0),
+            "total": agent_tokens.get('total', 0)
         },
-        "critical_files": [
-            {"path": "src/main/java/com/app/OrderService.java", "reason": "Core business logic"},
-            {"path": "src/main/resources/application.properties", "reason": "Configuration"},
-            {"path": "pom.xml", "reason": "Dependencies and vulnerabilities"}
-        ],
-        "metrics": {
-            "total_files": 456,
-            "total_lines": 125000,
-            "test_coverage": "23%",
-            "cyclomatic_complexity_avg": 12.5,
-            "technical_debt_score": 7.5
+        "summary": {
+            "key_findings": actual_analysis.get('key_findings', []),
+            "priority_items": actual_analysis.get('priority_items', []),
+            "warnings": actual_analysis.get('warnings', []),
+            "recommendations_for_next": actual_analysis.get('recommendations', {})
+        },
+        "data": {
+            "technology_stack": actual_analysis.get('technology_stack', {}),
+            "critical_files": actual_analysis.get('critical_files', []),
+            "metrics": actual_analysis.get('metrics', {})
         }
     }
-}
+    
+    return context_summary
+
+# Use the function with actual data
+context_summary = build_context_summary(actual_analysis_results)
 
 # Write to file for resilience (survives MCP failures)
 Write("output/context/legacy-code-detective-summary.json", json.dumps(context_summary, indent=2))

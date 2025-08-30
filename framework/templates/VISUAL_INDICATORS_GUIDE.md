@@ -42,12 +42,21 @@ This guide defines standardized visual indicators for all architecture agents to
 ```markdown
 ## Code Quality Analysis
 
-### Critical Problems
-- 🔴 **God Classes**: OrderService.java (2500+ lines)
-- 🟠 **Cyclomatic Complexity**: PaymentProcessor.calculate() (complexity: 45)
-- 🚨 **SQL Injection**: UserDAO.findByName() uses string concatenation
-- ⚡ **N+1 Queries**: OrderRepository.findAllWithItems()
-- 🏗️ **Code Duplication**: 35% duplication in service layer
+### Critical Problems (Data-Driven Examples)
+```python
+# Generate from actual detected issues
+for issue in actual_analysis['critical_issues']:
+    if issue['type'] == 'god_class':
+        print(f"- 🔴 **God Classes**: {issue['file']} ({issue['lines']} lines)")
+    elif issue['type'] == 'complexity':
+        print(f"- 🟠 **Cyclomatic Complexity**: {issue['method']} (complexity: {issue['score']})")
+    elif issue['type'] == 'sql_injection':
+        print(f"- 🚨 **SQL Injection**: {issue['location']} {issue['detail']}")
+    elif issue['type'] == 'n_plus_one':
+        print(f"- ⚡ **N+1 Queries**: {issue['method']}")
+    elif issue['type'] == 'duplication':
+        print(f"- 🏗️ **Code Duplication**: {issue['percentage']}% in {issue['layer']}")
+```
 
 ### Positive Findings
 - ✅ Good test coverage in core modules (78%)
@@ -108,7 +117,7 @@ This guide defines standardized visual indicators for all architecture agents to
 
 ```python
 def format_with_indicators(findings):
-    """Format findings with appropriate visual indicators"""
+    """Format actual findings with appropriate visual indicators"""
     
     severity_icons = {
         "critical": "🔴",
@@ -122,9 +131,23 @@ def format_with_indicators(findings):
     }
     
     formatted_output = []
+    
+    # Format actual findings from analysis
     for finding in findings:
-        icon = severity_icons.get(finding.severity, "")
-        formatted_output.append(f"{icon} **{finding.title}**: {finding.description}")
+        # Get appropriate icon based on severity or type
+        icon = severity_icons.get(finding.get('severity', '').lower(), "")
+        if not icon and 'type' in finding:
+            icon = severity_icons.get(finding['type'].lower(), "")
+        
+        # Build description from actual data
+        title = finding.get('title', finding.get('issue', 'Issue'))
+        description = finding.get('description', '')
+        location = finding.get('location', '')
+        
+        if location:
+            formatted_output.append(f"{icon} **{title}**: {description} at {location}")
+        else:
+            formatted_output.append(f"{icon} **{title}**: {description}")
     
     return "\n".join(formatted_output)
 ```
@@ -135,10 +158,15 @@ def format_with_indicators(findings):
 # Architecture Analysis Report
 
 ## 🎯 Executive Summary
-- 🔴 3 Critical issues requiring immediate attention
-- 🟠 7 High priority issues
-- 🟡 15 Medium priority issues
-- ✅ 5 Positive findings
+```python
+# Generate from actual counts
+summary = f"""
+- 🔴 {counts['critical']} Critical issues requiring immediate attention
+- 🟠 {counts['high']} High priority issues
+- 🟡 {counts['medium']} Medium priority issues
+- ✅ {counts['positive']} Positive findings
+"""
+```
 
 ## 🔴 Critical Issues
 
@@ -185,17 +213,31 @@ def format_with_indicators(findings):
 
 ```markdown
 ## 📊 Analysis Metrics
-- **Files Analyzed**: 1,234
-- **Total Lines**: 156,789
+```python
+# Generate from actual metrics
+metrics = f"""
+- **Files Analyzed**: {actual_metrics['files_analyzed']}
+- **Total Lines**: {actual_metrics['total_lines']:,}
 - **Issues Found**: 
-  - 🔴 Critical: 5
-  - 🟠 High: 12
-  - 🟡 Medium: 28
-  - 🟢 Low: 45
-- **Test Coverage**: 67% ✅
-- **Technical Debt**: 3.5 months 🏗️
-- **Security Score**: C- 🚨
-- **Performance Score**: B ⚡
+  - 🔴 Critical: {actual_metrics['issues']['critical']}
+  - 🟠 High: {actual_metrics['issues']['high']}
+  - 🟡 Medium: {actual_metrics['issues']['medium']}
+  - 🟢 Low: {actual_metrics['issues']['low']}
+- **Test Coverage**: {actual_metrics['test_coverage']}% {get_coverage_indicator(actual_metrics['test_coverage'])}
+- **Technical Debt**: {actual_metrics['debt_estimate']} 🏗️
+- **Security Score**: {actual_metrics['security_score']} 🚨
+- **Performance Score**: {actual_metrics['performance_score']} ⚡
+"""
+
+def get_coverage_indicator(coverage):
+    """Return appropriate indicator based on coverage percentage"""
+    if coverage >= 80:
+        return "✅"
+    elif coverage >= 60:
+        return "🟡"
+    else:
+        return "🔴"
+```
 ```
 
 This visual system makes reports more scannable and actionable, helping stakeholders quickly identify what needs attention.

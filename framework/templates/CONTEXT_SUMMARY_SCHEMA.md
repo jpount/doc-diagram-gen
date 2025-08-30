@@ -28,19 +28,17 @@ Each agent should write a context summary file to `output/context/[agent-name]-s
 ## Agent-Specific Context Schemas
 
 ### legacy-code-detective
-```json
-{
-  "summary": {
-    "key_findings": [
-      "Java 1.7 with Spring 3.2",
-      "55 security vulnerabilities found",
-      "Heavy use of reflection and dynamic loading"
-    ],
-    "priority_items": [
-      "Critical: Hardcoded passwords in ConnectionManager.java",
-      "High: SQL injection in UserDAO.java",
-      "High: Outdated Log4j version"
-    ],
+```python
+# EXAMPLE: Building from actual analysis
+def generate_detective_context(analysis_results):
+    return {
+        "summary": {
+            "key_findings": [
+                f"{analysis_results['primary_language']} with {analysis_results['primary_framework']}",
+                f"{analysis_results['security_count']} security vulnerabilities found",
+                analysis_results.get('top_issue', 'Multiple technical debt items')
+            ],
+            "priority_items": analysis_results.get('critical_issues', []),
     "warnings": [
       "Complex JNDI configurations may have hidden dependencies",
       "Found 23 deprecated API usages"

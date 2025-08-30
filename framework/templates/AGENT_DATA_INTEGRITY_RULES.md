@@ -51,21 +51,67 @@ Before outputting any finding, ask yourself:
 - [ ] Am I using placeholder data from examples?
 - [ ] Is this from the repomix summary or previous agent?
 
-### 6. Data Flow Pattern
-```
-1. Check repomix summary first (most efficient)
-2. Check previous agent context files
-3. Use Grep/Glob to find patterns
-4. Use Read to examine specific files
-5. If not found, report "Not detected"
+### 6. Enforced Data Access Hierarchy
+```python
+# MANDATORY: Use this pattern for ALL data access
+from data_access_utils import get_codebase_data
+
+# This automatically follows:
+# 1. Repomix (80% token reduction)
+# 2. Serena MCP (60% token reduction)  
+# 3. Raw codebase (last resort)
+data = get_codebase_data(search_term="pattern")
+
+# Track token usage
+from token_monitor import track_tokens
+track_tokens(agent_name, len(str(data))//4, 0, "Search", "repomix")
 ```
 
-### 7. Common Anti-Patterns to Avoid
+### 7. Required Data-Driven Implementation
+
+**All agents MUST use the Data-Driven Template:**
+- See `framework/templates/AGENT_DATA_DRIVEN_TEMPLATE.md`
+- Import utilities: `data_access_utils.py` and `token_monitor.py`
+- Never access `codebase/` directly without trying Repomix first
+- Track all token usage with actual counts
+- Report efficiency scores in context summaries
+
+**Common Anti-Patterns to Avoid:**
 - Using example class names from documentation
-- Assuming version numbers without checking
+- Assuming version numbers without checking  
 - Estimating metrics without measurement
 - Using vulnerability databases without scanning
 - Guessing performance numbers
+- Skipping Repomix and going straight to raw files
 
-## Enforcement
-This is CRITICAL for accuracy. Agents that use hardcoded data will produce incorrect analysis and misleading recommendations. Every finding must be traceable to actual data sources.
+## Enforcement & Monitoring
+
+### Automatic Tracking
+- All data access is logged to `output/reports/data-access-log.json`
+- Token usage tracked in `output/reports/token-usage-log.json`
+- Efficiency scores calculated automatically
+- Alerts when >20% raw codebase access (inefficient)
+
+### Validation
+```python
+def validate_data_driven_output(output):
+    """Check if output uses actual data"""
+    
+    # Check for hardcoded examples
+    forbidden_terms = [
+        "OrderService.java", "CustomerDAO", "Java 1.7",
+        "Spring 3.2", "2847 lines", "55 vulnerabilities"
+    ]
+    
+    for term in forbidden_terms:
+        if term in output:
+            raise ValueError(f"Hardcoded example found: {term}")
+    
+    # Ensure data sources are documented
+    if "Not detected" not in output and "actual" not in output.lower():
+        print("Warning: Output may not be using actual data")
+    
+    return True
+```
+
+This is CRITICAL for accuracy. Every finding must be traceable to actual data sources with documented token efficiency.

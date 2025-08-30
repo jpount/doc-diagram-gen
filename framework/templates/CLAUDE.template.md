@@ -13,22 +13,26 @@
 - **Analysis Focus:** {{ANALYSIS_FOCUS}}
 - **Modernization:** {{MODERNIZATION_ENABLED}}
 - **User Interaction:** {{USER_INTERACTION}}
-- **Token Strategy:** Quality-first with smart optimization
+- **Repomix:** {{REPOMIX_STATUS}}
+- **Serena MCP:** {{SERENA_STATUS}}
+- **Token Strategy:** Repomix-first (80% reduction)
 
 {{MODERNIZATION_CONSTRAINTS}}
 
 ## Quick Commands
 
-### Start Analysis
+### 🔴 CRITICAL: Start Analysis
 ```bash
-# 1. Generate Repomix summary (if not done)
+# 1. Generate Repomix summary (REQUIRED FOR EFFICIENCY)
 repomix --config .repomix.config.json codebase/{{PROJECT_PATH}}/
 
-# 2. Test MCP integration
-python3 framework/scripts/test_mcp_integration.py
+# 2. Verify Repomix output exists
+ls -la output/reports/repomix-summary.md
 
-# 3. Start analysis in Claude Code
-# Use the agents below based on your analysis mode
+# 3. Check token monitor
+python3 framework/scripts/token_monitor.py report
+
+# 4. Start analysis in Claude Code with agents below
 ```
 
 ## Available Agents
@@ -61,7 +65,9 @@ python3 framework/scripts/test_mcp_integration.py
 ## Token Budget Guidelines
 - **Project Size:** {{PROJECT_SIZE}}
 - **Total Budget:** {{TOKEN_BUDGET}}
-- **Strategy:** Quality-first, exceed budget if needed for completeness
+- **With Repomix:** ~50,000 tokens (80% reduction)
+- **Without Repomix:** ~250,000+ tokens (5x more!)
+- **Strategy:** Repomix → Serena → Raw (enforced hierarchy)
 
 ## Key Files to Review
 - `ANALYSIS_MODE.md` - Current analysis configuration
@@ -83,9 +89,13 @@ python3 framework/scripts/test_mcp_integration.py
 4. Verify MCP servers are installed (npm/uvx)
 
 ### Analysis Issues
-1. Run `python3 framework/scripts/test_mcp_integration.py`
-2. Ensure codebase is in `codebase/{{PROJECT_PATH}}/`
-3. Generate Repomix summary first
+1. **FIRST**: Ensure Repomix summary exists
+   - `ls -la output/reports/repomix-summary.md`
+   - If missing: `repomix --config .repomix.config.json codebase/{{PROJECT_PATH}}/`
+2. Check token usage efficiency
+   - `python3 framework/scripts/token_monitor.py report`
+   - Should show >80% Repomix usage
+3. Ensure codebase is in `codebase/{{PROJECT_PATH}}/`
 4. Check agent output in `output/docs/`
 
 ## Next Steps

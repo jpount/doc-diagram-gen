@@ -12,6 +12,17 @@ This framework provides a comprehensive, reusable approach for analyzing any cod
 - **See `framework/templates/AGENT_DATA_INTEGRITY_RULES.md` for mandatory rules**
 - **Violations will produce incorrect analysis**
 
+### 0.5. Data Access Hierarchy (ENFORCED)
+**All agents MUST follow this strict priority order:**
+1. **Repomix Summary** (Primary - 80% token reduction)
+2. **Serena MCP** (Fallback - 60% token reduction) 
+3. **Raw Codebase** (Last Resort - 0% token reduction)
+
+**Implementation:**
+- Use `framework/scripts/data_access_utils.py` for consistent access
+- See `framework/templates/AGENT_DATA_ACCESS_PATTERN.md` for patterns
+- Monitor fallback usage in `output/reports/data-access-log.json`
+
 ### 1. Token Optimization
 - **Use Serena MCP** for semantic code analysis instead of full file reads
 - **Agent Memory** for cross-agent knowledge sharing
@@ -399,37 +410,94 @@ quadrantChart
 
 ### MCP Usage Priority
 
-1. **Always Start with Repomix**
+1. **Always Start with Repomix** (MANDATORY)
    - Generate compressed summary first
-   - Use for initial technology detection
+   - Use for ALL initial data access
    - Security pre-scan with Secretlint
+   - Only fallback if Repomix data insufficient
 
-2. **Use Serena for Targeted Search**
+2. **Use Serena as Secondary Fallback**
+   - ONLY when Repomix doesn't have needed data
    - Symbol-specific analysis
    - Semantic understanding
    - Memory management
 
-3. **Sourcegraph for Patterns** (if available)
-   - Cross-file dependencies
-   - Complex pattern matching
-   - Code intelligence
+3. **Raw Codebase Access** (LAST RESORT)
+   - Only when both Repomix and Serena fail
+   - Log all raw accesses for monitoring
+   - Alert user to regenerate Repomix if >10 raw accesses
 
-4. **AST Explorer for Deep Analysis** (if available)
-   - Refactoring opportunities
-   - Complexity metrics
-   - Pattern detection
+4. **Sourcegraph/AST Explorer** (Optional Enhancements)
+   - Use for specific advanced patterns
+   - Supplement but don't replace Repomix
 
-### Fallback Strategy
-If MCPs are unavailable:
+### Enforced Fallback Strategy
 ```python
-# Check MCP availability
-if mcp_available("repomix"):
-    use_repomix_summary()
-elif mcp_available("serena"):
-    use_serena_search()
-else:
-    # Fallback to native tools
-    use_grep_and_glob()
+# CORRECT: Always try in order
+from framework.scripts.data_access_utils import get_codebase_data
+
+# This automatically tries: Repomix -> Serena -> Raw
+data = get_codebase_data(search_term="pattern")
+
+# INCORRECT: Direct access without fallback
+# DON'T DO THIS:
+# data = Read("codebase/file.java")  # ❌ Skips Repomix
+# files = Glob("codebase/**/*.java")  # ❌ Skips Repomix
+```
+
+**Monitoring:**
+- Check `output/reports/data-access-log.json` for efficiency
+- If >20% raw access, regenerate Repomix immediately
+- Use `get_access_stats()` to review patterns
+
+## Token Monitoring & Tracking
+
+### Automated Token Usage Tracking
+The framework includes comprehensive token monitoring:
+
+```python
+# Import token monitoring
+from framework.scripts.token_monitor import *
+
+# Initialize for your project
+monitor = init_monitor("medium", "claude-3-sonnet")
+
+# Track usage
+track_tokens(agent, input_tokens, output_tokens, phase, data_source)
+
+# Get real-time report
+display_token_report()
+```
+
+### Features:
+- **Automatic tracking** of all token usage
+- **Budget monitoring** with alerts at 75%, 90%
+- **Efficiency scoring** based on data sources
+- **Cost estimation** for different models
+- **ccusage integration** if available
+- **Per-agent budgets** based on project size
+
+### Token Budgets by Project Size:
+| Agent | Small (<10K) | Medium (10-100K) | Large (>100K) |
+|-------|--------------|------------------|---------------|
+| legacy-code-detective | 30,000 | 50,000 | 75,000 |
+| business-logic-analyst | 25,000 | 40,000 | 60,000 |
+| performance-analyst | 20,000 | 35,000 | 50,000 |
+| security-analyst | 20,000 | 35,000 | 50,000 |
+| diagram-architect | 15,000 | 25,000 | 35,000 |
+| documentation-specialist | 30,000 | 50,000 | 75,000 |
+| **Total Budget** | 175,000 | 285,000 | 420,000 |
+
+### Monitoring Commands:
+```bash
+# View current usage
+python3 framework/scripts/token_monitor.py report
+
+# Initialize for large project
+python3 framework/scripts/token_monitor.py init large
+
+# Check ccusage integration
+python3 framework/scripts/token_monitor.py check
 ```
 
 ## Token Optimization Best Practices
@@ -472,6 +540,38 @@ search_for_pattern("pattern1|pattern2|pattern3")
 - Skip generated/vendor code
 - Focus on service/controller layers
 - Prioritize based on complexity metrics
+
+## Token Monitoring Dashboard
+
+### Real-time Monitoring
+Track token usage and efficiency during analysis:
+
+```bash
+# Start monitoring before analysis
+python3 framework/scripts/token_monitor.py init medium
+
+# Check usage anytime
+python3 framework/scripts/token_monitor.py report
+```
+
+### Usage Reports
+Reports are automatically saved to:
+- `output/reports/token-usage-log.json` - Detailed log
+- `output/reports/token-usage-summary.json` - Summary stats
+- `output/reports/data-access-log.json` - Data source tracking
+
+### Efficiency Metrics
+| Data Source | Token Reduction | Efficiency Score |
+|-------------|----------------|------------------|
+| Repomix | 80% | 100% |
+| Serena | 60% | 60% |
+| Raw Codebase | 0% | 20% |
+
+### Alerts & Warnings
+- **Budget Alerts**: At 75%, 90% of budget
+- **Efficiency Warnings**: Below 50% efficiency
+- **Raw Access Alerts**: >10 raw codebase accesses
+- **Cost Tracking**: Real-time cost estimates
 
 ## Usage Instructions
 

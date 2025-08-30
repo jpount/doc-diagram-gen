@@ -29,23 +29,37 @@ A comprehensive framework for analyzing existing codebases and generating comple
 2. **GUIDED**: Interactive with user checkpoints for accuracy (3-4 hours) - Recommended
 3. **TEMPLATE**: Generates templates for manual completion (highest accuracy)
 
-### 💾 Intelligent Context Management
-- Agents write both full analysis and lightweight context summaries
-- Context summaries enable efficient information passing between agents
-- Fallback to file-based context if MCP tools unavailable
-- Quality always takes priority over token optimization
+### 💾 Token Optimization Strategy
+- **Primary**: Repomix compression (80% reduction) - REQUIRED
+- **Fallback**: Serena MCP (60% reduction) - Optional
+- **Last Resort**: Raw codebase access - Avoid!
+- All agents follow strict hierarchy: Repomix → Serena → Raw
 
-Optimized for Claude Code with intelligent agent orchestration, with flexible token usage that prioritizes quality.
+Optimized for Claude Code with intelligent agent orchestration. **Repomix is MANDATORY for token efficiency** - reducing usage by 80%.
 
 ## 🚀 Quick Start
 
-### ⚡ TL;DR - Optimal Agent Workflow
+### 🔴 CRITICAL: Generate Repomix First!
 ```bash
-# After setup, run these agents in Claude Code:
+# Step 1: Run setup
+python3 setup.py  # or ./setup.sh
+
+# Step 2: Place your code
+cp -r /your/code codebase/project-name/
+
+# Step 3: Generate Repomix (REQUIRED for efficiency)
+repomix --config .repomix.config.json codebase/project-name/
+
+# Step 4: Start Claude Code and run agents
+```
+
+### ⚡ Agent Workflow in Claude Code
+```bash
+# After Repomix is generated, run these agents:
 @mcp-orchestrator           # Token optimization
-@repomix-analyzer          # Codebase compression
-@architecture-selector     # IMPORTANT: Detects your tech stack
-@[technology]-architect    # Run recommended specialists (e.g., @java-architect, @angular-architect)
+@repomix-analyzer          # Analyze compressed codebase
+@architecture-selector     # Detect your tech stack
+@[technology]-architect    # Run recommended specialists
 @business-logic-analyst    # Extract business rules
 @performance-analyst       # Find bottlenecks
 @security-analyst         # Security assessment
@@ -53,40 +67,49 @@ Optimized for Claude Code with intelligent agent orchestration, with flexible to
 @documentation-specialist # Generate final docs
 ```
 
-### Cross-Platform Setup
+### Setup Process
 
-#### Windows
-```powershell
-# Using PowerShell
-powershell -ExecutionPolicy Bypass -File setup.ps1
-
-# Or using Python (recommended)
-python setup.py
-```
-
-#### Mac/Linux
 ```bash
-# Using shell script
-./setup.sh
-
-# Or using Python (recommended)
-python3 setup.py
+# Run interactive setup (all platforms)
+python3 setup.py  # Mac/Linux
+python setup.py   # Windows
 ```
 
-### All Platforms
+#### Setup will:
+1. ✅ **Configure Repomix** (STRONGLY RECOMMENDED)
+   - 80% token reduction
+   - Critical for efficiency
+   - Installs if not present
+
+2. 🔵 **Configure Serena MCP** (Optional)
+   - Disabled by default
+   - Enable only if needed as fallback
+   - 60% token reduction (less than Repomix)
+
+3. 📋 **Set Analysis Mode**
+   - Documentation only (default)
+   - With modernization (optional)
+
+### 🔴 CRITICAL: Generate Repomix Summary
+
+**BEFORE starting any analysis:**
+
 ```bash
-# 1. Follow the interactive prompts to:
-#    - Choose analysis mode (Documentation Only / With Modernization)
-#    - Configure target technology stack (only if modernization selected)
-#    - Set up MCP integration
-#    - Configure codebase path
+# 1. Place your code
+cp -r /path/to/your/code codebase/your-project/
 
-# 2. Place your codebase in the configured directory
-# Windows: xcopy /E /I C:\your\code codebase\your-project
-# Mac/Linux: cp -r /path/to/your/code codebase/your-project/
+# 2. Generate Repomix summary (REQUIRED)
+repomix --config .repomix.config.json codebase/your-project/
 
-# 3. Start analysis in Claude Code
+# 3. Verify output exists
+ls -la output/reports/repomix-summary.md
 ```
+
+⚠️ **Without Repomix:**
+- 5-10x more tokens used
+- Higher costs
+- Slower analysis
+- May hit token limits
 
 ## 📂 Project Structure
 
