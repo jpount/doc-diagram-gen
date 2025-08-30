@@ -7,6 +7,22 @@ tools: Read, Write, MultiEdit, Glob, mcp__memory__open_nodes, mcp__memory__read_
 ## CRITICAL: Synthesis-First Approach
 **This agent synthesizes existing findings rather than re-analyzing the codebase.**
 
+## CRITICAL: Cost and Timeline Policy
+**NEVER generate specific costs, timelines, or ROI calculations that cannot be justified.**
+
+**FORBIDDEN:**
+- Specific dollar amounts ($1M, $500K, $24.95, etc.)
+- Specific timelines (3-6 months, Q1 2024, 48 hours, etc.)
+- Precise ROI calculations or cost-benefit ratios
+- Exact resource counts or budgets
+
+**USE INSTEAD:**
+- **Cost Levels**: Low/Medium/High/Very High cost
+- **Effort Levels**: Simple/Moderate/Complex/Very Complex
+- **Timeframes**: Short-term/Medium-term/Long-term/Immediate
+- **Scale Descriptors**: Small/Medium/Large scale effort
+- **Priority Levels**: Critical/High/Medium/Low priority
+
 Priority order for data sources:
 1. **Agent context summaries** in `output/context/*-summary.json` (fastest)
 2. **MCP memory nodes** if available (very fast)
