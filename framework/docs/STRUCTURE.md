@@ -4,10 +4,8 @@
 
 ### Root Level (Working Directory)
 Files that belong at the root level:
-- `setup.sh` / `setup.py` / `setup.ps1` - Setup scripts for different platforms
+- `setup.py` - Setup script (cross-platform Python)
 - `README.md` - Main documentation
-- `STRUCTURE.md` - This file
-- `TESTING_REFERENCE.md` - Testing and validation guide
 - `.gitignore` - Version control configuration
 
 Auto-generated files (git-ignored):
@@ -167,7 +165,7 @@ output/
 
 1. **Initial Setup**
    ```bash
-   python3 setup.py  # or ./setup.sh or powershell setup.ps1
+   python3 setup.py
    ```
    Creates configuration files
 

@@ -422,7 +422,7 @@ class AgentOrchestrator:
             
             # Add agent command
             if agent_name == "setup":
-                commands.append("# Run setup.py or setup.sh first")
+                commands.append("# Run setup.py first")
             else:
                 commands.append(f"@{agent_name}")
         

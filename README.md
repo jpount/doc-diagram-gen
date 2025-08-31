@@ -42,7 +42,7 @@ Optimized for Claude Code with intelligent agent orchestration. **Repomix is MAN
 ### 🔴 CRITICAL: Generate Repomix First!
 ```bash
 # Step 1: Run setup
-python3 setup.py  # or ./setup.sh
+python3 setup.py
 
 # Step 2: Place your code
 cp -r /your/code codebase/project-name/
@@ -115,9 +115,7 @@ ls -la output/reports/repomix-summary.md
 
 ```
 .
-├── setup.sh                    # Setup script for Mac/Linux
-├── setup.py                    # Setup script for all platforms (RECOMMENDED)
-├── setup.ps1                   # Setup script for Windows PowerShell
+├── setup.py                    # Setup script (cross-platform Python)
 ├── .mcp.json                   # MCP configuration (auto-generated, git-ignored)
 ├── .repomix.config.json        # Repomix config (auto-generated, git-ignored)
 ├── ANALYSIS_MODE.md            # Analysis mode config (auto-generated, git-ignored)
@@ -243,18 +241,13 @@ ls -la output/reports/repomix-summary.md
 
 ### Phase 1: Setup (One-time)
 
-**Windows:**
-```powershell
-python setup.py
-# or
-powershell -ExecutionPolicy Bypass -File setup.ps1
-```
-
-**Mac/Linux:**
+**All Platforms:**
 ```bash
+# Mac/Linux
 python3 setup.py
-# or
-./setup.sh
+
+# Windows
+python setup.py
 ```
 
 ### Phase 2: Pre-Analysis Setup (Optional)
@@ -483,7 +476,7 @@ All generated documentation goes to `output/docs/`
 
 ## 🤝 Best Practices
 
-1. **Always run setup.sh first** - Ensures proper configuration
+1. **Always run setup.py first** - Ensures proper configuration
 2. **Run @architecture-selector early** - Identifies which specialists to use
 3. **Use specialist agents** - Better results than generic legacy-code-detective
 4. **Run specialists in parallel** - Java and Angular architects can run simultaneously

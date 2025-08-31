@@ -319,32 +319,29 @@ class FrameworkSetup:
         
         print(f"{Colors.CYAN}How should documentation be generated?{Colors.RESET}")
         print()
-        print(f"{Colors.YELLOW}1. QUICK Mode{Colors.RESET}")
+        print(f"{Colors.YELLOW}1. UNSUPERVISED Mode{Colors.RESET}")
         print("   - Fully automated, no user interaction")
         print("   - Fast (1-2 hours for medium projects)")
-        print("   - Good for initial exploration")
+        print("   - Runs predefined agent sequence")
+        print("   - Single session completion")
         print()
-        print(f"{Colors.GREEN}2. GUIDED Mode (Recommended){Colors.RESET}")
-        print("   - Interactive checkpoints for validation")
-        print("   - Captures business context and domain knowledge")
-        print("   - Best balance of automation and accuracy")
-        print()
-        print(f"{Colors.BLUE}3. TEMPLATE Mode{Colors.RESET}")
-        print("   - Generates templates for manual completion")
-        print("   - Maximum accuracy but requires more effort")
-        print("   - Best for compliance/audit documentation")
+        print(f"{Colors.GREEN}2. SUPERVISED Mode (Recommended){Colors.RESET}")
+        print("   - Interactive with user guidance")
+        print("   - Session persistence across Claude Code restarts")
+        print("   - User controls agent selection after discovery")
+        print("   - Checkpoints for validation and input")
+        print("   - Best balance of automation and control")
         print()
         
         while True:
-            choice = input(f"Select mode (1-3) [{Colors.GREEN}2{Colors.RESET}]: ").strip() or "2"
-            if choice in ["1", "2", "3"]:
+            choice = input(f"Select mode (1-2) [{Colors.GREEN}2{Colors.RESET}]: ").strip() or "2"
+            if choice in ["1", "2"]:
                 break
-            print(f"{Colors.RED}Invalid choice. Please enter 1, 2, or 3.{Colors.RESET}")
+            print(f"{Colors.RED}Invalid choice. Please enter 1 or 2.{Colors.RESET}")
         
         modes = {
-            "1": "QUICK",
-            "2": "GUIDED",
-            "3": "TEMPLATE"
+            "1": "UNSUPERVISED",
+            "2": "SUPERVISED"
         }
         
         selected_mode = modes[choice]
