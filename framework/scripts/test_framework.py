@@ -368,19 +368,16 @@ class FrameworkTestHarness:
             self.tests_failed += 1
             self.log(f"✗ Python {sys.version.split()[0]} too old (need 3.7+)", "ERROR")
         
-        # Check platform-specific scripts
+        # Check setup script
         self.tests_run += 1
-        if sys.platform == "win32":
-            setup_script = self.project_root / "setup.ps1"
-        else:
-            setup_script = self.project_root / "setup.sh"
+        setup_script = self.project_root / "setup.py"
         
-        if setup_script.exists() or (self.project_root / "setup.py").exists():
+        if setup_script.exists():
             self.tests_passed += 1
-            self.log("✓ Platform-appropriate setup script available", "SUCCESS")
+            self.log("✓ Python setup script available", "SUCCESS")
         else:
             self.tests_failed += 1
-            self.log("✗ No setup script for current platform", "ERROR")
+            self.log("✗ No setup.py script found", "ERROR")
     
     def test_sample_mermaid_diagram(self):
         """Test Mermaid diagram validation with sample"""
@@ -478,10 +475,8 @@ sequenceDiagram
             print(f"{Colors.GREEN}🎉 All tests passed! Framework is ready to use.{Colors.RESET}")
         else:
             print(f"{Colors.YELLOW}⚠️  Some tests failed. Review issues above.{Colors.RESET}")
-            print(f"Run setup scripts to fix missing components:")
-            print(f"  • Python: python setup.py")
-            print(f"  • Mac/Linux: ./setup.sh")
-            print(f"  • Windows: powershell -ExecutionPolicy Bypass -File setup.ps1")
+            print(f"Run setup script to fix missing components:")
+            print(f"  • python3 setup.py (or python setup.py on Windows)")
 
 
 def main():

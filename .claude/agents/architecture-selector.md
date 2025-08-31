@@ -115,7 +115,7 @@ def analyze_tech_stack_from_repomix(analysis_text):
     if "Technology Stack Detected" in analysis_text:
         tech_section = extract_section(analysis_text, "Technology Stack Detected")
         
-        # Extract languages (e.g., "Primary Language: Java (67%)")
+        # Extract languages (e.g., "Primary Language: {detected_language} ({percentage})")
         if "Primary Language:" in tech_section:
             tech_stack["primary_language"] = extract_primary_language(tech_section)
         

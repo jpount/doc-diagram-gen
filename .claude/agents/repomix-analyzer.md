@@ -190,11 +190,11 @@ def analyze_complexity(summary):
 # Repomix Analysis Summary
 
 ## Codebase Overview
-- **Total Files**: 456
-- **Total Tokens**: 125,000 (compressed from ~500,000)
-- **Compression Ratio**: 75%
-- **Primary Language**: Java (67%)
-- **Secondary Languages**: JavaScript (20%), SQL (13%)
+- **Total Files**: {total_files}
+- **Total Tokens**: {compressed_tokens} (compressed from ~{original_tokens})
+- **Compression Ratio**: {compression_ratio}
+- **Primary Language**: {primary_language} ({primary_percentage})
+- **Secondary Languages**: {secondary_languages}
 
 ## Technology Stack Detected
 ### Core Technologies

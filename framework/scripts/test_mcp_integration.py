@@ -93,7 +93,7 @@ class MCPIntegrationTest:
         if not mcp_file.exists():
             self.errors.append(".mcp.json not found - MCPs won't work without it!")
             print(f"{Colors.RED}❌ .mcp.json not found{Colors.RESET}")
-            print(f"   Run: python setup.py or ./setup.sh to create it")
+            print(f"   Run: python setup.py to create it")
             return
         
         self.successes.append(".mcp.json exists")

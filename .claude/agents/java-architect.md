@@ -93,7 +93,52 @@ Always use these indicators to highlight issues:
 {identify_outdated_libraries_from_pom_or_gradle()}
 ```
 
-### 3. Code Quality Issues
+### 3. Legacy Java UI Layer Analysis
+**NEW: Comprehensive Legacy Java UI Support**
+```markdown
+## Legacy Java UI Assessment
+
+### UI Technology Detection
+{analyze_actual_ui_technologies_from_codebase()}
+- 🖥️ **JSP (JavaServer Pages)**: Page structure, scriptlets, tag libraries (JSTL, custom tags)
+- 🖥️ **JSF (JavaServer Faces)**: Components, managed beans, navigation rules, lifecycle analysis
+- 🖥️ **Struts**: Actions, ActionForms, Tiles framework, validation rules
+- 🖥️ **Spring MVC**: Controllers, view resolvers, form binding, templating engines
+- 🖥️ **Wicket**: Component hierarchy, models, behaviors, markup patterns
+- 🖥️ **Vaadin**: Server-side components, layouts, theme analysis
+- 🖥️ **GWT**: Widget composition, RPC services, compiler output analysis
+
+### UI-Backend Integration Patterns
+{analyze_ui_backend_integration_from_code()}
+- 🔄 JSP scriptlets calling EJBs/services directly
+- 🔄 JSF managed beans with CDI/Spring integration
+- 🔄 Struts actions communicating with business services
+- 🔄 Spring MVC controllers with service layer patterns
+- 🔄 Session management and state persistence patterns
+
+### UI Performance Issues
+{identify_ui_performance_problems()}
+- ⚡ **JSP Performance**: Excessive scriptlets, compilation overhead, large pages
+- ⚡ **JSF Performance**: ViewState bloat, component tree overhead, AJAX inefficiencies
+- ⚡ **Session Management**: Large session objects, session clustering issues
+- ⚡ **Rendering Issues**: Inline styles/scripts, missing compression
+
+### UI Security Concerns
+{analyze_ui_security_issues()}
+- 🔥 **XSS Vulnerabilities**: Unescaped output, missing JSTL escaping
+- 🔥 **CSRF Issues**: Missing CSRF tokens in forms
+- 🔥 **Input Validation**: Client-side only validation, injection risks
+- 🔥 **Session Security**: Session fixation, insecure cookies
+
+### UI Modernization Assessment
+{assess_ui_modernization_opportunities()}
+- 🔄 **JSP to Modern SPA**: Component conversion strategies
+- 🔄 **JSF to React/Angular**: Managed bean to REST API conversion
+- 🔄 **Struts Modernization**: Action to Spring Boot controller migration
+- 🔄 **Progressive Enhancement**: Gradual AJAX and API introduction
+```
+
+### 4. Code Quality Issues
 ```markdown
 ## Code Quality Assessment
 
@@ -157,6 +202,21 @@ Always use these indicators to highlight issues:
 # Generate comprehensive Java architecture analysis with visual indicators
 java_analysis = f"""
 # Java Architecture Analysis Report
+
+## 🖥️ UI Layer Analysis Summary
+
+### Legacy Java UI Technology Stack
+{detected_ui_technologies}
+
+### UI Integration Issues
+- 🔄 **Tight Coupling**: {ui_coupling_issues} instances of UI directly calling business logic
+- ⚡ **Performance**: {ui_performance_issues} UI-specific performance problems
+- 🔥 **Security**: {ui_security_issues} UI layer security vulnerabilities
+
+### UI Modernization Priority
+- 🔄 **High Priority**: {high_priority_ui_components} components ready for modernization
+- 🔄 **Medium Priority**: {medium_priority_ui_components} components requiring refactoring first
+- 🔄 **Low Priority**: {low_priority_ui_components} stable components for later migration
 
 ## 🎯 Executive Summary
 
