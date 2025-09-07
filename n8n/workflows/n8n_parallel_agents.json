@@ -1,0 +1,353 @@
+{
+  "name": "Parallel Agent Execution",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 400]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "project_name",
+              "value": "daytrader"
+            },
+            {
+              "name": "codebase_path",
+              "value": "/app/codebase/daytrader"
+            },
+            {
+              "name": "workflow_type",
+              "value": "parallel_analysis"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set_config",
+      "name": "Set Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [450, 400],
+      "notesInFlow": true,
+      "notes": "Configure your project settings"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://doc-framework-api:8100/n8n/trigger",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workflow_type\": \"{{ $json.workflow_type }}\",\n  \"project_name\": \"{{ $json.project_name }}\",\n  \"codebase_path\": \"{{ $json.codebase_path }}\"\n}",
+        "options": {}
+      },
+      "id": "start_workflow",
+      "name": "Initialize Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 400]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "session_id",
+              "value": "={{ $json.session_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract_session",
+      "name": "Extract Session",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [850, 400]
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "wait_init",
+      "name": "Wait 5s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1050, 400]
+    },
+    {
+      "parameters": {
+        "mode": "multiplex"
+      },
+      "id": "split_parallel",
+      "name": "Split for Parallel",
+      "type": "n8n-nodes-base.split",
+      "typeVersion": 1,
+      "position": [1250, 400],
+      "notesInFlow": true,
+      "notes": "Split to run agents in parallel"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://doc-framework-api:8100/n8n/execute",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_name\": \"agent-java-architect\",\n  \"session_id\": \"{{ $node[\"extract_session\"].json.session_id }}\",\n  \"wait_for_completion\": true,\n  \"timeout\": 300\n}",
+        "options": {
+          "timeout": 360000
+        }
+      },
+      "id": "java_architect",
+      "name": "Java Architect",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1500, 200],
+      "notesInFlow": true,
+      "notes": "Analyzes Java/Spring architecture"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://doc-framework-api:8100/n8n/execute",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_name\": \"agent-business-logic-analyst\",\n  \"session_id\": \"{{ $node[\"extract_session\"].json.session_id }}\",\n  \"wait_for_completion\": true,\n  \"timeout\": 300\n}",
+        "options": {
+          "timeout": 360000
+        }
+      },
+      "id": "business_logic",
+      "name": "Business Logic Analyst",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1500, 400],
+      "notesInFlow": true,
+      "notes": "Extracts business rules and logic"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://doc-framework-api:8100/n8n/execute",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_name\": \"agent-ui-analysis-specialist\",\n  \"session_id\": \"{{ $node[\"extract_session\"].json.session_id }}\",\n  \"wait_for_completion\": true,\n  \"timeout\": 300\n}",
+        "options": {
+          "timeout": 360000
+        }
+      },
+      "id": "ui_analysis",
+      "name": "UI Analysis Specialist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1500, 600],
+      "notesInFlow": true,
+      "notes": "Analyzes frontend components"
+    },
+    {
+      "parameters": {},
+      "id": "merge_results",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 2,
+      "position": [1750, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Combine results from parallel agents\nconst results = {\n  session_id: $node[\"extract_session\"].json.session_id,\n  workflow: \"Parallel Agent Execution\",\n  timestamp: new Date().toISOString(),\n  agents_executed: [],\n  summary: {}\n};\n\n// Process each agent result\nconst agents = [\n  { node: \"java_architect\", name: \"Java Architect\" },\n  { node: \"business_logic\", name: \"Business Logic Analyst\" },\n  { node: \"ui_analysis\", name: \"UI Analysis Specialist\" }\n];\n\nfor (const agent of agents) {\n  try {\n    const agentResult = $node[agent.node].json;\n    if (agentResult && agentResult.success) {\n      results.agents_executed.push(agent.name);\n      results.summary[agent.node] = {\n        status: \"completed\",\n        execution_time: agentResult.execution_time || 0\n      };\n    } else {\n      results.summary[agent.node] = {\n        status: \"failed\",\n        error: agentResult?.error || \"Unknown error\"\n      };\n    }\n  } catch (e) {\n    results.summary[agent.node] = {\n      status: \"error\",\n      error: e.message\n    };\n  }\n}\n\nresults.message = `Parallel execution complete: ${results.agents_executed.length} agents finished`;\nresults.success = results.agents_executed.length > 0;\n\nreturn [{ json: results }];"
+      },
+      "id": "compile_results",
+      "name": "Compile Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1950, 400]
+    }
+  ],
+  "connections": {
+    "manual_trigger": {
+      "main": [
+        [
+          {
+            "node": "set_config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_config": {
+      "main": [
+        [
+          {
+            "node": "start_workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "start_workflow": {
+      "main": [
+        [
+          {
+            "node": "extract_session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract_session": {
+      "main": [
+        [
+          {
+            "node": "wait_init",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait_init": {
+      "main": [
+        [
+          {
+            "node": "split_parallel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "split_parallel": {
+      "main": [
+        [
+          {
+            "node": "java_architect",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "business_logic",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "ui_analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "java_architect": {
+      "main": [
+        [
+          {
+            "node": "merge_results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "business_logic": {
+      "main": [
+        [
+          {
+            "node": "merge_results",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ui_analysis": {
+      "main": [
+        [
+          {
+            "node": "merge_results",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "merge_results": {
+      "main": [
+        [
+          {
+            "node": "compile_results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "executionTimeout": 1800
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "parallel-agents",
+    "description": "Executes multiple Claude Code agents in parallel"
+  },
+  "tags": [
+    {
+      "name": "claude-code",
+      "createdAt": "2025-08-31T00:00:00.000Z"
+    },
+    {
+      "name": "parallel",
+      "createdAt": "2025-08-31T00:00:00.000Z"
+    }
+  ]
+}

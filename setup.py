@@ -366,80 +366,76 @@ class FrameworkSetup:
         
         print()
         
-        # Now configure which documents to generate
-        self.configure_documentation_selection()
+        # Now configure which agents to run
+        self.configure_agent_selection()
     
-    def configure_documentation_selection(self):
-        """Configure which documents should be generated"""
-        print()
-        print(f"{Colors.MAGENTA}Step 1c: Select Documents to Generate{Colors.RESET}")
+    def configure_agent_selection(self):
+        """Configure which agents should run"""
+        # Import the agent selection module
+        from framework.scripts.setup_agent_selection import configure_agent_selection
+        
+        # Run the agent selection
+        config = configure_agent_selection(self.framework_dir, self.modernization_enabled)
+        
+        if config:
+            # Save the configuration
+            output_file = self.script_dir / "output" / "context" / "selected-agents.json"
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            
+            # Also save project name
+            config['project'] = self.project_name if hasattr(self, 'project_name') else 'default'
+            
+            with open(output_file, 'w') as f:
+                json.dump(config, f, indent=2)
+            
+            print(f"{Colors.GREEN}✓ Agent configuration saved{Colors.RESET}")
+    
+    def old_document_selection_removed(self):
+        """This method has been replaced with agent-based selection"""
+        pass
+    
+    def run_tech_stack_setup(self, ai_assisted=False):
+        """Run technology stack configuration"""
+        print(f"{Colors.MAGENTA}Step 1c: Configure Target Technology Stack{Colors.RESET}")
         print("-" * 40)
         
-        # Load the configuration file
-        config_file = self.framework_dir / "configs" / "documentation-config.json"
+        if ai_assisted:
+            print(f"{Colors.CYAN}AI-assisted mode: Claude Code will help suggest technology choices{Colors.RESET}")
         
-        if not config_file.exists():
-            print(f"{Colors.YELLOW}⚠ Documentation configuration file not found{Colors.RESET}")
-            print(f"{Colors.BLUE}ℹ Using default document selection{Colors.RESET}")
-            return
+        # Check for Python script first
+        tech_script_py = self.framework_dir / "scripts" / "setup_tech_stack.py"
+        tech_script_sh = self.framework_dir / "scripts" / "setup-tech-stack.sh"
+        tech_script_ps1 = self.framework_dir / "scripts" / "setup-tech-stack.ps1"
         
-        with open(config_file, 'r') as f:
-            config = json.load(f)
-        
-        print(f"{Colors.CYAN}Select which documents to generate:{Colors.RESET}")
-        print()
-        
-        # Default documents (always shown)
-        print(f"{Colors.GREEN}Default Documents (Recommended):{Colors.RESET}")
-        default_docs = config['documentation']['default_documents']
-        for doc_name, doc_info in default_docs.items():
-            status = "✓" if doc_info['enabled'] else " "
-            print(f"  [{status}] {doc_name}: {doc_info['description']}")
+        if tech_script_py.exists():
+            subprocess.run([sys.executable, str(tech_script_py)])
+        elif platform.system() == 'Windows' and tech_script_ps1.exists():
+            subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", str(tech_script_ps1)])
+        elif tech_script_sh.exists() and platform.system() != 'Windows':
+            subprocess.run(["bash", str(tech_script_sh)])
+        else:
+            print(f"{Colors.YELLOW}⚠ Technology stack setup script not found{Colors.RESET}")
+            self.create_default_tech_stack()
         
         print()
+    
+    def create_default_tech_stack(self):
+        """Create a default TARGET_TECH_STACK.md"""
+        print(f"{Colors.YELLOW}Creating default technology stack configuration...{Colors.RESET}")
         
-        # Optional documents
-        print(f"{Colors.YELLOW}Optional Documents:{Colors.RESET}")
-        optional_docs = config['documentation']['optional_documents']
-        for doc_name, doc_info in optional_docs.items():
-            status = "✓" if doc_info['enabled'] else " "
-            print(f"  [{status}] {doc_name}: {doc_info['description']}")
+        template_file = self.framework_dir / "templates" / "TARGET_TECH_STACK.template.md"
+        output_file = self.script_dir / "TARGET_TECH_STACK.md"
         
-        # Modernization documents (only if modernization is enabled)
-        if self.modernization_enabled:
-            print()
-            print(f"{Colors.BLUE}Modernization Documents:{Colors.RESET}")
-            mod_docs = config['documentation']['modernization_documents']
-            for doc_name, doc_info in mod_docs.items():
-                if doc_name != 'description':
-                    status = "✓" if doc_info.get('enabled', False) else " "
-                    print(f"  [{status}] {doc_name}: {doc_info['description']}")
-        
-        print()
-        print(f"{Colors.CYAN}Configuration Options:{Colors.RESET}")
-        print("1. Use default selection (recommended)")
-        print("2. Enable all documents")
-        print("3. Customize selection")
-        print("4. Minimal set (5 core documents only)")
-        print()
-        
-        while True:
-            choice = input(f"Select option (1-4) [{Colors.GREEN}1{Colors.RESET}]: ").strip() or "1"
-            if choice in ["1", "2", "3", "4"]:
-                break
-            print(f"{Colors.RED}Invalid choice. Please enter 1, 2, 3, or 4.{Colors.RESET}")
-        
-        if choice == "1":
-            # Keep default configuration
-            print(f"{Colors.GREEN}✓ Using default document selection{Colors.RESET}")
-        
-        elif choice == "2":
-            # Enable all documents
-            for doc_info in default_docs.values():
-                doc_info['enabled'] = True
-            for doc_info in optional_docs.values():
-                doc_info['enabled'] = True
-            if self.modernization_enabled:
+        if template_file.exists():
+            shutil.copy2(template_file, output_file)
+            print(f"{Colors.GREEN}✓ Created TARGET_TECH_STACK.md from template{Colors.RESET}")
+            print(f"{Colors.BLUE}ℹ Edit TARGET_TECH_STACK.md to customize your target stack{Colors.RESET}")
+        else:
+            print(f"{Colors.RED}✗ Template not found{Colors.RESET}")
+    
+    def generate_claude_md(self):
+        """Generate CLAUDE.md from template based on configuration"""
+        print(f"{Colors.MAGENTA}Generating CLAUDE.md configuration...{Colors.RESET}")
                 for doc_name, doc_info in mod_docs.items():
                     if doc_name != 'description':
                         doc_info['enabled'] = True

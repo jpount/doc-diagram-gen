@@ -34,8 +34,7 @@ class SessionManager:
                 "running_agents": [],
                 "pending_agents": [
                     "mcp-orchestrator",
-                    "repomix-analyzer", 
-                    "architecture-selector"
+                    "repomix-analyzer"
                 ],
                 "failed_agents": [],
                 "skipped_agents": []
@@ -85,7 +84,7 @@ class SessionManager:
             progress['progress']['pending_agents'].append(agent_name)
             
         # Check if required sequence is complete
-        required_agents = ["mcp-orchestrator", "repomix-analyzer", "architecture-selector"]
+        required_agents = ["mcp-orchestrator", "repomix-analyzer"]
         if all(agent in progress['progress']['completed_agents'] for agent in required_agents):
             progress['progress']['required_sequence_complete'] = True
             progress['progress']['phase'] = "analysis"

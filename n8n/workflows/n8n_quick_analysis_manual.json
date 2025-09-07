@@ -1,0 +1,318 @@
+{
+  "name": "Documentation Framework - Quick Analysis (Manual Trigger)",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "project_name",
+              "value": "test-project"
+            },
+            {
+              "name": "codebase_path",
+              "value": "/app/codebase/daytrader"
+            },
+            {
+              "name": "workflow_type",
+              "value": "quick_analysis"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set_config",
+      "name": "Set Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "notesInFlow": true,
+      "notes": "Edit these values:\n- project_name: Your project name\n- codebase_path: Path to your code in container"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://doc-framework-api:8100/n8n/trigger",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workflow_type\": \"{{ $json.workflow_type }}\",\n  \"project_name\": \"{{ $json.project_name }}\",\n  \"codebase_path\": \"{{ $json.codebase_path }}\"\n}",
+        "options": {}
+      },
+      "id": "start_workflow",
+      "name": "Start Quick Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "session_id",
+              "value": "={{ $json.session_id }}"
+            },
+            {
+              "name": "workflow_type",
+              "value": "={{ $json.workflow_type }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "extract_session",
+      "name": "Extract Session ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "wait_initial",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://doc-framework-api:8100/n8n/status/{{ $json.session_id }}",
+        "options": {}
+      },
+      "id": "check_status",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.is_complete }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "check_complete",
+      "name": "Is Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait_loop",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1450, 500]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "message",
+              "value": "Analysis Complete!"
+            },
+            {
+              "name": "session_id",
+              "value": "={{ $node[\"extract_session\"].json.session_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "prepare_results",
+      "name": "Prepare Results",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [1650, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=http://doc-framework-api:8100/n8n/agents/available",
+        "options": {}
+      },
+      "id": "get_completed_agents",
+      "name": "Get Completed Agents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1850, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Combine all results\nconst status = $node[\"check_status\"].json;\nconst agents = $node[\"get_completed_agents\"].json;\n\nreturn [{\n  json: {\n    success: true,\n    session_id: status.session_id,\n    workflow_complete: true,\n    progress: status.progress_percentage,\n    agents_completed: status.agents?.completed || [],\n    agents_failed: status.agents?.failed || [],\n    message: `Analysis complete! ${status.agents?.completed?.length || 0} agents finished.`,\n    output_location: '/app/output/docs/',\n    next_steps: [\n      'Check output/docs/ for documentation',\n      'Check output/diagrams/ for visual diagrams',\n      'Review output/context/ for agent summaries'\n    ]\n  }\n}];"
+      },
+      "id": "final_results",
+      "name": "Final Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [2050, 200]
+    }
+  ],
+  "connections": {
+    "manual_trigger": {
+      "main": [
+        [
+          {
+            "node": "set_config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "set_config": {
+      "main": [
+        [
+          {
+            "node": "start_workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "start_workflow": {
+      "main": [
+        [
+          {
+            "node": "extract_session",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "extract_session": {
+      "main": [
+        [
+          {
+            "node": "wait_initial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait_initial": {
+      "main": [
+        [
+          {
+            "node": "check_status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_status": {
+      "main": [
+        [
+          {
+            "node": "check_complete",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check_complete": {
+      "main": [
+        [
+          {
+            "node": "prepare_results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "wait_loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "wait_loop": {
+      "main": [
+        [
+          {
+            "node": "check_status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare_results": {
+      "main": [
+        [
+          {
+            "node": "get_completed_agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_completed_agents": {
+      "main": [
+        [
+          {
+            "node": "final_results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "doc-framework-manual"
+  },
+  "tags": [
+    {
+      "name": "documentation",
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "name": "manual",
+      "createdAt": "2024-01-01T00:00:00.000Z"
+    }
+  ]
+}

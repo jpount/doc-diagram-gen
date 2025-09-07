@@ -1,0 +1,123 @@
+{
+  "name": "Parallel Agents - Simple",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Define agents to run in parallel\nconst agents = [\n  { name: \"agent-java-architect\", description: \"Java/Spring architecture analysis\" },\n  { name: \"agent-business-logic-analyst\", description: \"Business rules extraction\" },\n  { name: \"agent-ui-analysis-specialist\", description: \"Frontend component analysis\" },\n  { name: \"agent-security-analyst\", description: \"Security vulnerability assessment\" },\n  { name: \"agent-performance-analyst\", description: \"Performance optimization analysis\" }\n];\n\nconst session_id = `parallel-${Date.now()}`;\n\nreturn agents.map(agent => ({\n  json: {\n    agent_name: agent.name,\n    description: agent.description,\n    session_id: session_id,\n    timeout: 300\n  }\n}));"
+      },
+      "id": "prepare_agents",
+      "name": "Prepare Agent List",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [450, 300],
+      "notesInFlow": true,
+      "notes": "Edit this list to choose which agents to run"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8200/execute-agent",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"agent_name\": \"{{ $json.agent_name }}\",\n  \"session_id\": \"{{ $json.session_id }}\",\n  \"timeout\": {{ $json.timeout }}\n}",
+        "options": {
+          "timeout": 360000
+        }
+      },
+      "id": "execute_agent",
+      "name": "Execute Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 300],
+      "notesInFlow": true,
+      "notes": "This runs for each agent in parallel",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "functionCode": "// Compile results from all agents\nconst items = $input.all();\nconst results = {\n  timestamp: new Date().toISOString(),\n  total_agents: items.length,\n  successful: 0,\n  failed: 0,\n  agents: []\n};\n\nfor (const item of items) {\n  const data = item.json;\n  const agentName = data.original_name || data.agent || 'unknown';\n  \n  if (data.success) {\n    results.successful++;\n    results.agents.push({\n      name: agentName,\n      status: 'completed',\n      execution_time: data.execution_time || 0\n    });\n  } else {\n    results.failed++;\n    results.agents.push({\n      name: agentName,\n      status: 'failed',\n      error: data.error || 'Unknown error'\n    });\n  }\n}\n\nresults.message = `Parallel execution complete: ${results.successful}/${results.total_agents} agents succeeded`;\nresults.success_rate = Math.round((results.successful / results.total_agents) * 100);\n\nreturn [{ json: results }];"
+      },
+      "id": "compile_results",
+      "name": "Compile Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 300]
+    }
+  ],
+  "connections": {
+    "manual_trigger": {
+      "main": [
+        [
+          {
+            "node": "prepare_agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare_agents": {
+      "main": [
+        [
+          {
+            "node": "execute_agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "execute_agent": {
+      "main": [
+        [
+          {
+            "node": "compile_results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "executionTimeout": 2400
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "parallel-simple",
+    "description": "Simple parallel execution of multiple Claude agents",
+    "notes": "This workflow runs multiple agents in parallel by processing a list of items. Each item triggers a separate agent execution that runs concurrently."
+  },
+  "tags": [
+    {
+      "name": "claude-code",
+      "createdAt": "2025-08-31T00:00:00.000Z"
+    },
+    {
+      "name": "parallel",
+      "createdAt": "2025-08-31T00:00:00.000Z"
+    },
+    {
+      "name": "simple",
+      "createdAt": "2025-08-31T00:00:00.000Z"
+    }
+  ]
+}

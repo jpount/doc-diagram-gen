@@ -1,3 +1,5 @@
+httpx
+
 # Python Requirements for Codebase Analysis Framework
 # These are optional but recommended for enhanced functionality
 
@@ -15,3 +17,22 @@ PyYAML>=6.0
 
 # For path handling improvements
 pathlib2>=2.3.7 ; python_version < "3.4"
+
+# ===== n8n Integration Dependencies (Optional) =====
+# Only needed if using n8n automation
+
+# API and Web
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+httpx==0.25.1
+websockets==12.0
+pydantic==2.5.0
+
+# Task Queue (for n8n async execution)
+redis==5.0.1
+celery==5.3.4
+
+# Monitoring Dashboard (optional)
+streamlit==1.29.0
+plotly==5.18.0
+pandas==2.1.3

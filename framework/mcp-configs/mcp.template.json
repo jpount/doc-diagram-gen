@@ -1,5 +1,18 @@
 {
   "mcpServers": {
+    "claude-code": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@steipete/claude-code-mcp@latest"
+      ],
+      "env": {
+        "CLAUDE_CLI_NAME": "claude",
+        "MCP_CLAUDE_DEBUG": "false"
+      },
+      "disabled": true,
+      "_comment": "OPTIONAL: Enable for n8n integration - allows programmatic execution of Claude Code agents"
+    },
     "serena": {
       "command": "uvx",
       "args": [

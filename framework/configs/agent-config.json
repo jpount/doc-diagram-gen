@@ -1,0 +1,289 @@
+{
+  "agent_configuration": {
+    "description": "Agent selection and configuration for documentation framework",
+    "version": "2.0",
+    "discovery_agents": {
+      "description": "Required agents for initial discovery (always run)",
+      "agents": [
+        {
+          "name": "mcp-orchestrator",
+          "description": "Optimize token usage with MCP tools",
+          "required": true,
+          "outputs": ["output/reports/mcp-strategy.md"]
+        },
+        {
+          "name": "repomix-analyzer", 
+          "description": "Analyze compressed codebase summary",
+          "required": true,
+          "prerequisite": "repomix --config .repomix.config.json codebase/",
+          "outputs": ["output/context/repomix-analyzer-summary.json"]
+        },
+        {
+          "name": "architecture-selector",
+          "description": "Detect technologies and recommend specialist agents",
+          "required": true,
+          "outputs": [
+            "output/docs/00-agent-selection-report.md",
+            "output/context/architecture-selector-summary.json"
+          ]
+        }
+      ]
+    },
+    "analysis_agents": {
+      "description": "Core analysis agents (select based on needs)",
+      "categories": {
+        "architecture": {
+          "description": "System architecture and technical analysis",
+          "agents": [
+            {
+              "name": "legacy-code-detective",
+              "description": "Deep dive into codebase structure and dependencies",
+              "enabled_by_default": true,
+              "outputs": [
+                "output/docs/01-archaeological-analysis.md",
+                "output/context/legacy-code-detective-summary.json"
+              ],
+              "generates": ["SYSTEM-ARCHITECTURE.md", "TECHNICAL-DEBT-REPORT.md"]
+            },
+            {
+              "name": "java-architect",
+              "description": "Java/Spring/J2EE specific analysis",
+              "enabled_by_default": false,
+              "condition": "technology:java",
+              "outputs": [
+                "output/docs/01-java-analysis.md",
+                "output/context/java-architect-summary.json"
+              ],
+              "generates": ["JAVA-ARCHITECTURE.md"]
+            },
+            {
+              "name": "dotnet-architect",
+              "description": ".NET/C#/ASP.NET specific analysis",
+              "enabled_by_default": false,
+              "condition": "technology:dotnet",
+              "outputs": [
+                "output/docs/01-dotnet-analysis.md",
+                "output/context/dotnet-architect-summary.json"
+              ],
+              "generates": ["DOTNET-ARCHITECTURE.md"]
+            },
+            {
+              "name": "angular-architect",
+              "description": "Angular/AngularJS specific analysis",
+              "enabled_by_default": false,
+              "condition": "technology:angular",
+              "outputs": [
+                "output/docs/01-angular-analysis.md",
+                "output/context/angular-architect-summary.json"
+              ],
+              "generates": ["ANGULAR-ARCHITECTURE.md"]
+            }
+          ]
+        },
+        "business": {
+          "description": "Business logic and domain analysis",
+          "agents": [
+            {
+              "name": "business-logic-analyst",
+              "description": "Extract business rules, workflows, and domain logic",
+              "enabled_by_default": true,
+              "outputs": [
+                "output/docs/02-business-logic-analysis.md",
+                "output/context/business-logic-analyst-summary.json"
+              ],
+              "generates": ["BUSINESS-RULES-CATALOG.md", "DOMAIN-MODEL.md"]
+            },
+            {
+              "name": "domain-boundary-analyst",
+              "description": "Identify domain boundaries for microservices extraction",
+              "enabled_by_default": false,
+              "outputs": [
+                "output/docs/02-domain-boundaries.md",
+                "output/context/domain-boundary-analyst-summary.json"
+              ],
+              "generates": ["DOMAIN-BOUNDARIES.md"]
+            }
+          ]
+        },
+        "data": {
+          "description": "Data and API analysis",
+          "agents": [
+            {
+              "name": "data-model-specialist",
+              "description": "Database schema and data architecture analysis",
+              "enabled_by_default": false,
+              "outputs": [
+                "output/docs/03-data-model-analysis.md",
+                "output/context/data-model-specialist-summary.json"
+              ],
+              "generates": ["DATABASE-SCHEMA.md", "DATA-DICTIONARY.md"]
+            },
+            {
+              "name": "ui-analysis-specialist",
+              "description": "Frontend components and API endpoint analysis",
+              "enabled_by_default": true,
+              "outputs": [
+                "output/docs/03-ui-analysis.md",
+                "output/context/ui-analysis-specialist-summary.json"
+              ],
+              "generates": ["API-DOCUMENTATION.md", "UI-COMPONENTS.md"]
+            }
+          ]
+        },
+        "quality": {
+          "description": "Security and performance analysis",
+          "agents": [
+            {
+              "name": "security-analyst",
+              "description": "Security vulnerabilities and compliance assessment",
+              "enabled_by_default": true,
+              "outputs": [
+                "output/docs/05-security-analysis.md",
+                "output/context/security-analyst-summary.json"
+              ],
+              "generates": ["SECURITY-ANALYSIS.md", "VULNERABILITY-REPORT.md"]
+            },
+            {
+              "name": "performance-analyst",
+              "description": "Performance bottlenecks and optimization opportunities",
+              "enabled_by_default": true,
+              "outputs": [
+                "output/docs/04-performance-analysis.md",
+                "output/context/performance-analyst-summary.json"
+              ],
+              "generates": ["PERFORMANCE-ANALYSIS.md", "OPTIMIZATION-GUIDE.md"]
+            }
+          ]
+        },
+        "modernization": {
+          "description": "Legacy modernization planning",
+          "agents": [
+            {
+              "name": "modernization-architect",
+              "description": "Migration strategy and modernization roadmap",
+              "enabled_by_default": false,
+              "requires_modernization": true,
+              "outputs": [
+                "output/docs/06-modernization-strategy.md",
+                "output/context/modernization-architect-summary.json"
+              ],
+              "generates": ["MIGRATION-ROADMAP.md", "TRANSFORMATION-STRATEGY.md"]
+            }
+          ]
+        }
+      }
+    },
+    "documentation_agents": {
+      "description": "Final documentation and visualization agents (always run)",
+      "agents": [
+        {
+          "name": "diagram-architect",
+          "description": "Create comprehensive visual documentation",
+          "required": true,
+          "outputs": [
+            "output/docs/03-visual-architecture.md",
+            "output/diagrams/*.mermaid"
+          ],
+          "generates": ["All diagram files"]
+        },
+        {
+          "name": "documentation-specialist",
+          "description": "Generate final consolidated documentation",
+          "required": true,
+          "outputs": ["output/docs/*.md"],
+          "generates": ["Consolidated documentation based on enabled agents"]
+        },
+        {
+          "name": "executive-summary",
+          "description": "High-level summary for stakeholders",
+          "required": true,
+          "outputs": ["output/docs/00-executive-summary.md"],
+          "generates": ["EXECUTIVE-SUMMARY.md"]
+        }
+      ]
+    },
+    "workflow_presets": {
+      "minimal": {
+        "description": "Bare minimum analysis",
+        "agents": [
+          "mcp-orchestrator",
+          "repomix-analyzer",
+          "architecture-selector",
+          "legacy-code-detective",
+          "diagram-architect"
+        ]
+      },
+      "quick": {
+        "description": "Essential analysis (1-2 hours)",
+        "agents": [
+          "mcp-orchestrator",
+          "repomix-analyzer",
+          "architecture-selector",
+          "legacy-code-detective",
+          "business-logic-analyst",
+          "diagram-architect",
+          "documentation-specialist"
+        ]
+      },
+      "standard": {
+        "description": "Comprehensive analysis (3-4 hours)",
+        "agents": [
+          "mcp-orchestrator",
+          "repomix-analyzer",
+          "architecture-selector",
+          "legacy-code-detective",
+          "business-logic-analyst",
+          "ui-analysis-specialist",
+          "security-analyst",
+          "performance-analyst",
+          "diagram-architect",
+          "documentation-specialist",
+          "executive-summary"
+        ]
+      },
+      "full": {
+        "description": "Complete analysis with all agents",
+        "agents": [
+          "mcp-orchestrator",
+          "repomix-analyzer",
+          "architecture-selector",
+          "legacy-code-detective",
+          "java-architect",
+          "dotnet-architect",
+          "angular-architect",
+          "business-logic-analyst",
+          "domain-boundary-analyst",
+          "data-model-specialist",
+          "ui-analysis-specialist",
+          "security-analyst",
+          "performance-analyst",
+          "modernization-architect",
+          "diagram-architect",
+          "documentation-specialist",
+          "executive-summary"
+        ]
+      }
+    },
+    "execution_rules": {
+      "parallel_groups": [
+        ["business-logic-analyst", "security-analyst", "performance-analyst"],
+        ["ui-analysis-specialist", "data-model-specialist"],
+        ["java-architect", "dotnet-architect", "angular-architect"]
+      ],
+      "dependencies": {
+        "architecture-selector": [],
+        "legacy-code-detective": ["architecture-selector"],
+        "java-architect": ["architecture-selector"],
+        "dotnet-architect": ["architecture-selector"],
+        "angular-architect": ["architecture-selector"],
+        "business-logic-analyst": ["architecture-selector"],
+        "security-analyst": ["architecture-selector"],
+        "performance-analyst": ["architecture-selector"],
+        "modernization-architect": ["business-logic-analyst", "legacy-code-detective"],
+        "diagram-architect": ["all_analysis_agents"],
+        "documentation-specialist": ["all_agents"],
+        "executive-summary": ["documentation-specialist"]
+      }
+    }
+  }
+}
