@@ -6,8 +6,7 @@
     "removeComments": false,
     "removeEmptyLines": false,
     "showLineNumbers": false,
-    "copyToClipboard": false,
-    "instructionFilePath": "repomix-instructions.md"
+    "copyToClipboard": false
   },
   "include": [
     "**/*.java",

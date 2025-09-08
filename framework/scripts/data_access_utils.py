@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 Data Access Utilities - Enforced Fallback Hierarchy
-Ensures all agents follow: Repomix -> Serena -> Raw Codebase
 """
 
 import json
@@ -13,7 +12,6 @@ from typing import Optional, List, Dict, Any
 class DataAccessManager:
     """
     Manages data access with enforced fallback hierarchy.
-    Priority: 1. Repomix, 2. Serena MCP, 3. Raw Codebase
     """
     
     def __init__(self):
@@ -24,7 +22,6 @@ class DataAccessManager:
             "docs/repomix-summary.md"
         ]
         self.access_log = []
-        self._serena_activated = False
         
     def get_codebase_data(self, 
                           pattern: Optional[str] = None,
@@ -42,22 +39,18 @@ class DataAccessManager:
             Data from the highest priority source available
         """
         
-        # Try Repomix first
+        # Try Repomix first (MANDATORY)
         result = self._try_repomix(pattern, file_path, search_term)
         if result is not None:
             self._log_access("repomix", pattern or file_path or search_term)
             return result
             
-        # Fallback to Serena
-        result = self._try_serena(pattern, file_path, search_term)
-        if result is not None:
-            self._log_access("serena", pattern or file_path or search_term)
-            return result
             
-        # Last resort: raw codebase
-        print("⚠️ WARNING: Falling back to raw codebase access (high token usage)")
-        print("💡 Recommendation: Generate Repomix summary first:")
+        # Last resort: raw codebase (HIGH TOKEN USAGE)
+        print("⚠️ WARNING: No Repomix data available - using raw codebase (5x token usage!)")
+        print("💡 STRONGLY RECOMMENDED: Generate Repomix summary first:")
         print("   repomix --config .repomix.config.json codebase/")
+        print("   This will reduce token usage by 80%!")
         
         result = self._try_raw_codebase(pattern, file_path, search_term)
         self._log_access("raw_codebase", pattern or file_path or search_term)
@@ -100,44 +93,6 @@ class DataAccessManager:
                     
         return None
     
-    def _try_serena(self, pattern: Optional[str],
-                    file_path: Optional[str],
-                    search_term: Optional[str]) -> Optional[Any]:
-        """Try to get data using Serena MCP"""
-        
-        try:
-            print("⚠️ Repomix not sufficient, trying Serena MCP...")
-            
-            # Mock Serena calls - replace with actual MCP calls in Claude
-            # In actual use, these would be:
-            # mcp__serena__activate_project("codebase")
-            # mcp__serena__search_for_pattern(search_term)
-            # etc.
-            
-            if not self._serena_activated:
-                # Activate Serena (mock)
-                print("Activating Serena MCP...")
-                self._serena_activated = True
-                
-            if search_term:
-                # Mock search
-                print(f"Serena: Searching for '{search_term}'")
-                return None  # Would return actual results
-                
-            if file_path:
-                # Mock file lookup
-                print(f"Serena: Looking up '{file_path}'")
-                return None
-                
-            if pattern:
-                # Mock pattern search
-                print(f"Serena: Pattern search '{pattern}'")
-                return None
-                
-        except Exception as e:
-            print(f"❌ Serena not available: {e}")
-            
-        return None
     
     def _try_raw_codebase(self, pattern: Optional[str],
                           file_path: Optional[str], 
@@ -289,10 +244,8 @@ class DataAccessManager:
         if total == 0:
             return "N/A"
             
-        # Weight: Repomix=100, Serena=60, Raw=0
         weighted_sum = (
             by_level.get('repomix', 0) * 100 +
-            by_level.get('serena', 0) * 60 +
             by_level.get('raw_codebase', 0) * 0
         )
         

@@ -16,37 +16,37 @@ class N8nConfigReader:
     
     # Mapping of documents to their required agents
     DOCUMENT_TO_AGENTS = {
-        "SYSTEM-ARCHITECTURE.md": ["architecture-selector", "legacy-code-detective"],
-        "TECHNICAL-DEBT-REPORT.md": ["legacy-code-detective"],
-        "API-DOCUMENTATION.md": ["ui-analysis-specialist", "data-model-specialist"],
-        "BUSINESS-RULES-CATALOG.md": ["business-logic-analyst"],
-        "SECURITY-ANALYSIS.md": ["security-analyst"],
-        "PERFORMANCE-ANALYSIS.md": ["performance-analyst"],
-        "DATABASE-SCHEMA.md": ["data-model-specialist"],
-        "DEVELOPER-GUIDE.md": ["legacy-code-detective"],
-        "CONFIGURATION-GUIDE.md": ["legacy-code-detective"],
-        "DEPLOYMENT-GUIDE.md": ["legacy-code-detective"],
-        "TESTING-GUIDE.md": ["legacy-code-detective"],
-        "TROUBLESHOOTING-GUIDE.md": ["legacy-code-detective"],
+        "SYSTEM-ARCHITECTURE.md": ["architect-agent", "developer-agent"],
+        "TECHNICAL-DEBT-REPORT.md": ["developer-agent"],
+        "API-DOCUMENTATION.md": ["architect-agent", "architect-agent"],
+        "BUSINESS-RULES-CATALOG.md": ["analyst-agent"],
+        "SECURITY-ANALYSIS.md": ["analyst-agent"],
+        "PERFORMANCE-ANALYSIS.md": ["analyst-agent"],
+        "DATABASE-SCHEMA.md": ["architect-agent"],
+        "DEVELOPER-GUIDE.md": ["developer-agent"],
+        "CONFIGURATION-GUIDE.md": ["developer-agent"],
+        "DEPLOYMENT-GUIDE.md": ["developer-agent"],
+        "TESTING-GUIDE.md": ["developer-agent"],
+        "TROUBLESHOOTING-GUIDE.md": ["developer-agent"],
         # Modernization documents
-        "MIGRATION-ROADMAP.md": ["modernization-architect", "domain-boundary-analyst"],
-        "LEGACY-SYSTEM-ANALYSIS.md": ["legacy-code-detective"],
-        "TRANSFORMATION-STRATEGY.md": ["modernization-architect"],
-        "TECHNOLOGY-MIGRATION-GUIDE.md": ["modernization-architect"]
+        "MIGRATION-ROADMAP.md": ["analyst-agent", "analyst-agent"],
+        "LEGACY-SYSTEM-ANALYSIS.md": ["developer-agent"],
+        "TRANSFORMATION-STRATEGY.md": ["analyst-agent"],
+        "TECHNOLOGY-MIGRATION-GUIDE.md": ["analyst-agent"]
     }
     
     # Always run these agents first (discovery phase)
     REQUIRED_DISCOVERY_AGENTS = [
         "mcp-orchestrator",      # Token optimization
         "repomix-analyzer",       # Compressed codebase analysis
-        "architecture-selector"   # Technology detection
+        "architect-agent"   # Technology detection
     ]
     
     # Always run these agents last (documentation phase)
     REQUIRED_FINAL_AGENTS = [
-        "diagram-architect",          # Visual documentation
-        "documentation-specialist",   # Generate selected documents
-        "executive-summary"           # Executive overview
+        "diagram-agent",          # Visual documentation
+        "doc-writer-agent",   # Generate selected documents
+        "doc-writer-agent"           # Executive overview
     ]
     
     def __init__(self, project_root: Path = Path(".")):
@@ -115,17 +115,17 @@ class N8nConfigReader:
         
         # Add analysis agents in proper order
         agent_order = [
-            "legacy-code-detective",
+            "developer-agent",
             "java-architect",
             "dotnet-architect", 
             "angular-architect",
-            "business-logic-analyst",
-            "ui-analysis-specialist",
-            "data-model-specialist",
-            "domain-boundary-analyst",
-            "security-analyst",
-            "performance-analyst",
-            "modernization-architect"
+            "analyst-agent",
+            "architect-agent",
+            "architect-agent",
+            "analyst-agent",
+            "analyst-agent",
+            "analyst-agent",
+            "analyst-agent"
         ]
         
         for agent in agent_order:
@@ -141,8 +141,8 @@ class N8nConfigReader:
         """Get groups of agents that can run in parallel"""
         # These agents can run in parallel as they don't depend on each other
         return [
-            ["business-logic-analyst", "security-analyst", "performance-analyst"],
-            ["ui-analysis-specialist", "data-model-specialist"]
+            ["analyst-agent", "analyst-agent", "analyst-agent"],
+            ["architect-agent", "architect-agent"]
         ]
     
     def get_workflow_config(self, workflow_type: str = "quick_analysis") -> Dict:
@@ -155,13 +155,13 @@ class N8nConfigReader:
             essential = self.REQUIRED_DISCOVERY_AGENTS.copy()
             
             # Add only the most important analysis agents
-            if "business-logic-analyst" in agents:
-                essential.append("business-logic-analyst")
-            if "legacy-code-detective" in agents:
-                essential.append("legacy-code-detective")
+            if "analyst-agent" in agents:
+                essential.append("analyst-agent")
+            if "developer-agent" in agents:
+                essential.append("developer-agent")
             
             # Always add diagram and documentation
-            essential.extend(["diagram-architect", "documentation-specialist"])
+            essential.extend(["diagram-agent", "doc-writer-agent"])
             
             agents = essential
             parallel_groups = []  # No parallel for quick analysis
@@ -172,12 +172,12 @@ class N8nConfigReader:
             
         elif workflow_type == "security_focus":
             # Security-focused workflow
-            agents = self.REQUIRED_DISCOVERY_AGENTS + ["security-analyst"] + self.REQUIRED_FINAL_AGENTS
+            agents = self.REQUIRED_DISCOVERY_AGENTS + ["analyst-agent"] + self.REQUIRED_FINAL_AGENTS
             parallel_groups = []
             
         elif workflow_type == "performance_focus":
             # Performance-focused workflow
-            agents = self.REQUIRED_DISCOVERY_AGENTS + ["performance-analyst"] + self.REQUIRED_FINAL_AGENTS
+            agents = self.REQUIRED_DISCOVERY_AGENTS + ["analyst-agent"] + self.REQUIRED_FINAL_AGENTS
             parallel_groups = []
         
         else:
@@ -202,21 +202,21 @@ class N8nConfigReader:
         descriptions = {
             "mcp-orchestrator": "Optimize token usage with MCP tools",
             "repomix-analyzer": "Analyze compressed codebase summary",
-            "architecture-selector": "Detect technologies and recommend specialists",
-            "legacy-code-detective": "Deep dive into codebase structure",
+            "architect-agent": "Detect technologies and recommend specialists",
+            "developer-agent": "Deep dive into codebase structure",
             "java-architect": "Java/Spring/J2EE specific analysis",
             "dotnet-architect": ".NET/C#/ASP.NET specific analysis",
             "angular-architect": "Angular/AngularJS specific analysis",
-            "business-logic-analyst": "Extract business rules and logic",
-            "security-analyst": "Security vulnerabilities and compliance",
-            "performance-analyst": "Performance bottlenecks and optimization",
-            "ui-analysis-specialist": "Frontend technology and UI/UX analysis",
-            "data-model-specialist": "Database and data architecture analysis",
-            "domain-boundary-analyst": "Domain boundaries for modernization",
-            "modernization-architect": "Migration strategy and roadmap",
-            "diagram-architect": "Create visual documentation",
-            "documentation-specialist": "Generate comprehensive documentation",
-            "executive-summary": "High-level summary for stakeholders"
+            "analyst-agent": "Extract business rules and logic",
+            "analyst-agent": "Security vulnerabilities and compliance",
+            "analyst-agent": "Performance bottlenecks and optimization",
+            "architect-agent": "Frontend technology and UI/UX analysis",
+            "architect-agent": "Database and data architecture analysis",
+            "analyst-agent": "Domain boundaries for modernization",
+            "analyst-agent": "Migration strategy and roadmap",
+            "diagram-agent": "Create visual documentation",
+            "doc-writer-agent": "Generate comprehensive documentation",
+            "doc-writer-agent": "High-level summary for stakeholders"
         }
         return descriptions.get(agent_name, f"Run {agent_name} agent")
 

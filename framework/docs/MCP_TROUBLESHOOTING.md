@@ -23,7 +23,6 @@
    # Check if npm is installed
    npm --version
    
-   # Check if uvx/uv is installed (for Serena)
    uvx --version
    # or
    uv --version
@@ -81,10 +80,7 @@
    npx -y @modelcontextprotocol/server-memory --help
    ```
 
-4. **Verify Python MCP (Serena)**
    ```bash
-   # Test if uvx can run Serena
-   uvx --from git+https://github.com/oraios/serena serena --help
    ```
 
 ### Common Issues and Solutions
@@ -121,7 +117,6 @@ npx -y @modelcontextprotocol/server-filesystem /Users/jp/work/xxx/doc-diagram-ge
 
 1. Run: `repomix --config .repomix.config.json codebase/daytrader/`
 2. In Claude Code with MCPs available:
-   - Use `@serena` to activate the project
    - Use `@mcp-orchestrator` to begin analysis
    - Follow the workflow in CLAUDE.md
 

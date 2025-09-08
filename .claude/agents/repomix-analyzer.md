@@ -1,7 +1,7 @@
 ---
 name: repomix-analyzer
 description: Specializes in analyzing Repomix-generated codebase summaries. Extracts key insights from compressed code, performs security pre-screening with Secretlint results, and provides token-optimized initial analysis for all subsequent agents.
-tools: Read, Write, Bash, Glob, Grep, LS, mcp_serena
+tools: Read, Write, Bash, Glob, Grep, LS, 
 ---
 
 ## CRITICAL: Data Integrity Requirement
@@ -231,20 +231,19 @@ def analyze_complexity(summary):
 | Phase | Traditional | With Repomix | Savings |
 |-------|-------------|--------------|---------|
 | Initial Load | 500,000 | 125,000 | 75% |
-| With Serena | 200,000 | 50,000 | 75% |
 | Total | 700,000 | 175,000 | 75% |
 
 ## Recommendations for Next Agents
 
 ### IMPORTANT: Next Step - Architecture Selector
-**Run @architecture-selector first!** This agent will:
+**Run @architect-agent next!** This agent will:
 - Analyze the technology stack detected in this summary
 - Recommend which specialist architects to use (Java, .NET, Angular, etc.)
 - Provide optimal agent execution order
 - Save significant analysis time by using the right specialists
 
 ### After Architecture Selection
-Based on the architecture-selector's recommendations, run the appropriate specialist architects (e.g., @java-architect, @angular-architect) followed by:
+Run the core analysts using technology-specific knowledge from framework/knowledge/:
 
 ### For Business Logic Analyst
 - Business logic concentrated in Service layer
@@ -276,8 +275,6 @@ Based on the architecture-selector's recommendations, run the appropriate specia
 ## Memory Management for Cross-Agent Sharing
 
 ```python
-# Write compressed insights to Serena memory
-mcp__serena__write_memory("repomix_summary", {
     "total_files": 456,
     "total_tokens": 125000,
     "compression_ratio": 0.75,
@@ -288,7 +285,6 @@ mcp__serena__write_memory("repomix_summary", {
 })
 
 # Write priority targets for other agents
-mcp__serena__write_memory("analysis_priorities", {
     "legacy_detective": ["OrderService.java", "pom.xml", "web.xml"],
     "business_analyst": ["OrderService", "PaymentProcessor", "CustomerService"],
     "security_analyst": ["AuthenticationFilter", "EncryptionUtil", "config.properties"],
@@ -463,7 +459,7 @@ Write("output/docs/00-repomix-analysis-summary.md", analysis_report)
 ### Specific Guidance
 - **Architecture Selector**: Should be run FIRST after this agent to determine specialist needs
 - **Specialist Architects** (Java/Angular/.NET): Use tech stack detection from this summary
-- **Legacy Detective**: Only use if architecture-selector finds 5+ technologies or unknown stack
+- **Developer Agent**: Use for code quality analysis of any technology stack
 - **Business Analyst**: Focus on identified business logic files
 - **Security Analyst**: Start with pre-scan findings
 - **Performance Analyst**: Target complexity hotspots
@@ -479,16 +475,15 @@ Upon successful completion, output:
 - output/context/repomix-analyzer-summary.json (for other agents)
 - output/docs/00-repomix-analysis-summary.md (detailed report)
 
-🎯 NEXT STEP: Run @architecture-selector to determine which specialist architects to use.
+🎯 NEXT STEP: Run @architect-agent to analyze the system architecture.
 
-The architecture-selector will analyze the detected technologies and recommend the optimal 
+The architect-agent will analyze the detected technologies and provide optimal 
 combination of specialist agents (Java, .NET, Angular architects) for your codebase.
 
 After architecture selection, you can run the recommended specialists in parallel with:
-- @business-logic-analyst
-- @security-analyst
-- @performance-analyst
-- @diagram-architect
+- @analyst-agent (covers business logic, security, and performance)  
+- @diagram-agent (creates all visualizations)
+- @doc-writer-agent (generates final documentation)
 ```
 
 Always maximize the value extracted from Repomix compression to minimize token usage across all subsequent analysis phases while maintaining comprehensive understanding.

@@ -6,7 +6,7 @@
     "primary_generation": {
       "description": "Agents that generate specific primary content",
       "mapping": {
-        "legacy-code-detective": {
+        "developer-agent": {
           "primary_outputs": [
             "01-archaeological-analysis.md"
           ],
@@ -15,7 +15,7 @@
             "TECHNICAL-DEBT-REPORT.md"
           ]
         },
-        "java-architect": {
+        "architect-agent": {
           "primary_outputs": [
             "01-java-analysis.md"
           ],
@@ -24,7 +24,7 @@
             "TECHNICAL-DEBT-REPORT.md"
           ]
         },
-        "business-logic-analyst": {
+        "analyst-agent": {
           "primary_outputs": [
             "02-business-logic-analysis.md"
           ],
@@ -49,7 +49,7 @@
             "DATABASE-SCHEMA.md"
           ]
         },
-        "security-analyst": {
+        "analyst-agent": {
           "primary_outputs": [
             "05-security-analysis.md"
           ],
@@ -57,7 +57,7 @@
             "SECURITY-ANALYSIS.md"
           ]
         },
-        "performance-analyst": {
+        "analyst-agent": {
           "primary_outputs": [
             "04-performance-analysis.md"
           ],
@@ -65,7 +65,7 @@
             "PERFORMANCE-ANALYSIS.md"
           ]
         },
-        "diagram-architect": {
+        "diagram-agent": {
           "primary_outputs": [
             "03-visual-architecture.md",
             "output/diagrams/*.mermaid"
@@ -79,7 +79,7 @@
     
     "synthesizing_agents": {
       "description": "Agents that synthesize content from other agents",
-      "documentation-specialist": {
+      "doc-writer-agent": {
         "behavior": "Reads documentation-config.json and generates enabled documents",
         "data_sources": [
           "output/context/*-summary.json",
@@ -122,39 +122,39 @@
     "document_dependencies": {
       "description": "Which agents provide data for which final documents",
       "SYSTEM-ARCHITECTURE.md": {
-        "primary_agent": "legacy-code-detective",
-        "alternate_agents": ["java-architect", "dotnet-architect", "angular-architect"],
-        "synthesis_by": "documentation-specialist"
+        "primary_agent": "developer-agent",
+        "alternate_agents": ["architect-agent", "dotnet-architect", "architect-agent"],
+        "synthesis_by": "doc-writer-agent"
       },
       "TECHNICAL-DEBT-REPORT.md": {
-        "primary_agent": "legacy-code-detective",
+        "primary_agent": "developer-agent",
         "contributing_agents": ["ALL - each agent reports technical debt"],
-        "synthesis_by": "documentation-specialist"
+        "synthesis_by": "doc-writer-agent"
       },
       "API-DOCUMENTATION.md": {
         "primary_agent": "ui-analysis-specialist",
-        "synthesis_by": "documentation-specialist"
+        "synthesis_by": "doc-writer-agent"
       },
       "BUSINESS-RULES-CATALOG.md": {
-        "primary_agent": "business-logic-analyst",
-        "synthesis_by": "documentation-specialist"
+        "primary_agent": "analyst-agent",
+        "synthesis_by": "doc-writer-agent"
       },
       "SECURITY-ANALYSIS.md": {
-        "primary_agent": "security-analyst",
-        "synthesis_by": "documentation-specialist"
+        "primary_agent": "analyst-agent",
+        "synthesis_by": "doc-writer-agent"
       },
       "PERFORMANCE-ANALYSIS.md": {
-        "primary_agent": "performance-analyst",
-        "synthesis_by": "documentation-specialist"
+        "primary_agent": "analyst-agent",
+        "synthesis_by": "doc-writer-agent"
       },
       "DATABASE-SCHEMA.md": {
         "primary_agent": "data-model-specialist",
-        "synthesis_by": "documentation-specialist"
+        "synthesis_by": "doc-writer-agent"
       },
       "DEVELOPER-GUIDE.md": {
         "primary_agent": "NONE",
-        "contributing_agents": ["legacy-code-detective", "java-architect"],
-        "synthesis_by": "documentation-specialist",
+        "contributing_agents": ["developer-agent", "architect-agent"],
+        "synthesis_by": "doc-writer-agent",
         "note": "Fully synthesized document"
       }
     },
@@ -169,7 +169,7 @@
       ],
       "example_scenarios": {
         "scenario_1": {
-          "agents_selected": ["legacy-code-detective", "diagram-architect"],
+          "agents_selected": ["developer-agent", "diagram-agent"],
           "outputs": [
             "01-archaeological-analysis.md (by legacy-code-detective)",
             "03-visual-architecture.md (by diagram-architect)",
@@ -178,7 +178,7 @@
           "no_synthesis": "No SYSTEM-ARCHITECTURE.md since documentation-specialist not selected"
         },
         "scenario_2": {
-          "agents_selected": ["legacy-code-detective", "documentation-specialist", "diagram-architect"],
+          "agents_selected": ["developer-agent", "doc-writer-agent", "diagram-agent"],
           "outputs": [
             "01-archaeological-analysis.md (by legacy-code-detective)",
             "SYSTEM-ARCHITECTURE.md (by documentation-specialist, synthesized)",

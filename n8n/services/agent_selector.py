@@ -83,9 +83,9 @@ class AgentSelector:
                         print(f"User-selected architect: {architect_name}")
         
         # Ensure diagram-architect is at the end if not already there
-        if "diagram-architect" in agents:
-            agents.remove("diagram-architect")
-        agents.append("diagram-architect")
+        if "diagram-agent" in agents:
+            agents.remove("diagram-agent")
+        agents.append("diagram-agent")
         
         return agents
     

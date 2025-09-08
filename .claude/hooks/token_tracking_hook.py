@@ -33,7 +33,6 @@ def estimate_from_tool_use(tool_name, args):
         "Grep": 300,  # Search operation
         "Glob": 100,  # File listing
         "Bash": 150,  # Command execution
-        "mcp__serena": 200,  # MCP call
         "WebSearch": 1000,  # Web content
     }
     
@@ -52,8 +51,6 @@ def determine_data_source(tool_name, args):
     """Determine data source from tool usage"""
     if "repomix" in str(args).lower():
         return "repomix"
-    elif tool_name.startswith("mcp__serena"):
-        return "serena"
     elif "codebase/" in str(args):
         return "raw"
     else:

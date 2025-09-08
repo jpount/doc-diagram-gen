@@ -19,7 +19,7 @@
           "outputs": ["output/context/repomix-analyzer-summary.json"]
         },
         {
-          "name": "architecture-selector",
+          "name": "architect-agent",
           "description": "Detect technologies and recommend specialist agents",
           "required": true,
           "outputs": [
@@ -36,7 +36,7 @@
           "description": "System architecture and technical analysis",
           "agents": [
             {
-              "name": "legacy-code-detective",
+              "name": "developer-agent",
               "description": "Deep dive into codebase structure and dependencies",
               "enabled_by_default": true,
               "outputs": [
@@ -46,7 +46,7 @@
               "generates": ["SYSTEM-ARCHITECTURE.md", "TECHNICAL-DEBT-REPORT.md"]
             },
             {
-              "name": "java-architect",
+              "name": "architect-agent",
               "description": "Java/Spring/J2EE specific analysis",
               "enabled_by_default": false,
               "condition": "technology:java",
@@ -68,7 +68,7 @@
               "generates": ["DOTNET-ARCHITECTURE.md"]
             },
             {
-              "name": "angular-architect",
+              "name": "architect-agent",
               "description": "Angular/AngularJS specific analysis",
               "enabled_by_default": false,
               "condition": "technology:angular",
@@ -84,7 +84,7 @@
           "description": "Business logic and domain analysis",
           "agents": [
             {
-              "name": "business-logic-analyst",
+              "name": "analyst-agent",
               "description": "Extract business rules, workflows, and domain logic",
               "enabled_by_default": true,
               "outputs": [
@@ -134,7 +134,7 @@
           "description": "Security and performance analysis",
           "agents": [
             {
-              "name": "security-analyst",
+              "name": "analyst-agent",
               "description": "Security vulnerabilities and compliance assessment",
               "enabled_by_default": true,
               "outputs": [
@@ -144,7 +144,7 @@
               "generates": ["SECURITY-ANALYSIS.md", "VULNERABILITY-REPORT.md"]
             },
             {
-              "name": "performance-analyst",
+              "name": "analyst-agent",
               "description": "Performance bottlenecks and optimization opportunities",
               "enabled_by_default": true,
               "outputs": [
@@ -159,7 +159,7 @@
           "description": "Legacy modernization planning",
           "agents": [
             {
-              "name": "modernization-architect",
+              "name": "analyst-agent",
               "description": "Migration strategy and modernization roadmap",
               "enabled_by_default": false,
               "requires_modernization": true,
@@ -177,7 +177,7 @@
       "description": "Final documentation and visualization agents (always run)",
       "agents": [
         {
-          "name": "diagram-architect",
+          "name": "diagram-agent",
           "description": "Create comprehensive visual documentation",
           "required": true,
           "outputs": [
@@ -187,7 +187,7 @@
           "generates": ["All diagram files"]
         },
         {
-          "name": "documentation-specialist",
+          "name": "doc-writer-agent",
           "description": "Generate final consolidated documentation",
           "required": true,
           "outputs": ["output/docs/*.md"],
@@ -208,9 +208,9 @@
         "agents": [
           "mcp-orchestrator",
           "repomix-analyzer",
-          "architecture-selector",
-          "legacy-code-detective",
-          "diagram-architect"
+          "architect-agent",
+          "developer-agent",
+          "diagram-agent"
         ]
       },
       "quick": {
@@ -218,11 +218,11 @@
         "agents": [
           "mcp-orchestrator",
           "repomix-analyzer",
-          "architecture-selector",
-          "legacy-code-detective",
-          "business-logic-analyst",
-          "diagram-architect",
-          "documentation-specialist"
+          "architect-agent",
+          "developer-agent",
+          "analyst-agent",
+          "diagram-agent",
+          "doc-writer-agent"
         ]
       },
       "standard": {
@@ -230,14 +230,14 @@
         "agents": [
           "mcp-orchestrator",
           "repomix-analyzer",
-          "architecture-selector",
-          "legacy-code-detective",
-          "business-logic-analyst",
+          "architect-agent",
+          "developer-agent",
+          "analyst-agent",
           "ui-analysis-specialist",
-          "security-analyst",
-          "performance-analyst",
-          "diagram-architect",
-          "documentation-specialist",
+          "analyst-agent",
+          "analyst-agent",
+          "diagram-agent",
+          "doc-writer-agent",
           "executive-summary"
         ]
       },
@@ -246,43 +246,43 @@
         "agents": [
           "mcp-orchestrator",
           "repomix-analyzer",
-          "architecture-selector",
-          "legacy-code-detective",
-          "java-architect",
+          "architect-agent",
+          "developer-agent",
+          "architect-agent",
           "dotnet-architect",
-          "angular-architect",
-          "business-logic-analyst",
+          "architect-agent",
+          "analyst-agent",
           "domain-boundary-analyst",
           "data-model-specialist",
           "ui-analysis-specialist",
-          "security-analyst",
-          "performance-analyst",
-          "modernization-architect",
-          "diagram-architect",
-          "documentation-specialist",
+          "analyst-agent",
+          "analyst-agent",
+          "analyst-agent",
+          "diagram-agent",
+          "doc-writer-agent",
           "executive-summary"
         ]
       }
     },
     "execution_rules": {
       "parallel_groups": [
-        ["business-logic-analyst", "security-analyst", "performance-analyst"],
+        ["analyst-agent", "analyst-agent", "analyst-agent"],
         ["ui-analysis-specialist", "data-model-specialist"],
-        ["java-architect", "dotnet-architect", "angular-architect"]
+        ["architect-agent", "dotnet-architect", "architect-agent"]
       ],
       "dependencies": {
-        "architecture-selector": [],
-        "legacy-code-detective": ["architecture-selector"],
-        "java-architect": ["architecture-selector"],
-        "dotnet-architect": ["architecture-selector"],
-        "angular-architect": ["architecture-selector"],
-        "business-logic-analyst": ["architecture-selector"],
-        "security-analyst": ["architecture-selector"],
-        "performance-analyst": ["architecture-selector"],
-        "modernization-architect": ["business-logic-analyst", "legacy-code-detective"],
-        "diagram-architect": ["all_analysis_agents"],
-        "documentation-specialist": ["all_agents"],
-        "executive-summary": ["documentation-specialist"]
+        "architect-agent": [],
+        "developer-agent": ["architect-agent"],
+        "architect-agent": ["architect-agent"],
+        "dotnet-architect": ["architect-agent"],
+        "architect-agent": ["architect-agent"],
+        "analyst-agent": ["architect-agent"],
+        "analyst-agent": ["architect-agent"],
+        "analyst-agent": ["architect-agent"],
+        "analyst-agent": ["analyst-agent", "developer-agent"],
+        "diagram-agent": ["all_analysis_agents"],
+        "doc-writer-agent": ["all_agents"],
+        "executive-summary": ["doc-writer-agent"]
       }
     }
   }

@@ -55,7 +55,6 @@ class FrameworkSetup:
         self.project_name = None
         self.modernization_enabled = False
         self.repomix_enabled = True  # Default to enabled
-        self.serena_enabled = False  # Default to disabled
         
         # Enable colors on Windows
         Colors.enable_windows_colors()
@@ -144,7 +143,6 @@ class FrameworkSetup:
             self.output_dir / "context",  # For agent context summaries
             self.cache_dir,
             self.cache_dir / "repomix",
-            self.cache_dir / "serena",
         ]
         
         for directory in directories:
@@ -222,9 +220,6 @@ class FrameworkSetup:
                     with open(mcp_file, 'r') as f:
                         mcp_config = json.load(f)
                     
-                    # Update Serena project path
-                    if 'mcpServers' in mcp_config and 'serena' in mcp_config['mcpServers']:
-                        args = mcp_config['mcpServers']['serena']['args']
                         for i, arg in enumerate(args):
                             if arg == '${PWD}/codebase':
                                 args[i] = f'${{PWD}}/codebase/{self.project_name}'
@@ -607,7 +602,6 @@ class FrameworkSetup:
             "{{TOKEN_BUDGET}}": "50,000 tokens (with Repomix)" if self.repomix_enabled else "250,000+ tokens (without Repomix)",
             "{{SETUP_DATE}}": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "{{REPOMIX_STATUS}}": "✅ ENABLED (80% token reduction)" if self.repomix_enabled else "⚠️ DISABLED (5x higher token usage!)",
-            "{{SERENA_STATUS}}": "ENABLED (60% token reduction)" if self.serena_enabled else "DISABLED (using Repomix only)",
         }
         
         # Add modernization agents section if needed
@@ -647,10 +641,7 @@ class FrameworkSetup:
         else:
             mcp_tools.insert(0, "- `repomix` - Codebase compression (⚠️ DISABLED - HIGH TOKEN USAGE!)")
         
-        if self.serena_enabled:
-            mcp_tools.insert(1, "- `@serena` - Semantic code analysis (ENABLED as fallback)")
         else:
-            mcp_tools.insert(1, "- `@serena` - Semantic code analysis (DISABLED)")
         
         replacements["{{MCP_TOOLS}}"] = "\n".join(mcp_tools)
         
@@ -749,29 +740,18 @@ class FrameworkSetup:
         
         print()
     
-    def configure_serena_mcp(self):
-        """Configure Serena MCP (optional)"""
-        print(f"{Colors.MAGENTA}Step 3: Configure Serena MCP (Optional){Colors.RESET}")
         print("-" * 40)
         print()
-        print(f"{Colors.BLUE}Serena provides semantic code analysis as a fallback when Repomix data is insufficient.{Colors.RESET}")
         print()
-        print("Serena features:")
         print("  • 60% token reduction (less than Repomix)")
         print("  • Semantic code understanding")
         print("  • Symbol-level analysis")
         print("  • Memory management for agents")
         print()
-        print(f"{Colors.YELLOW}Note: Serena is optional. The framework works well with just Repomix.{Colors.RESET}")
         print()
         
-        enable_serena = input(f"Enable Serena MCP? (y/N) [{Colors.BLUE}N{Colors.RESET}]: ").strip().lower()
-        self.serena_enabled = enable_serena == 'y'
         
-        if self.serena_enabled:
-            print(f"{Colors.GREEN}✓ Serena will be enabled in MCP configuration{Colors.RESET}")
         else:
-            print(f"{Colors.BLUE}ℹ Serena disabled - using Repomix as primary data source{Colors.RESET}")
         
         print()
     
@@ -784,12 +764,7 @@ class FrameworkSetup:
                 with open(mcp_file, 'r') as f:
                     config = json.load(f)
                 
-                # Update Serena status
-                if 'serena' in config.get('mcpServers', {}):
-                    config['mcpServers']['serena']['disabled'] = not self.serena_enabled
-                    if self.serena_enabled and self.project_name:
                         # Update project path
-                        args = config['mcpServers']['serena']['args']
                         for i, arg in enumerate(args):
                             if arg == '${PWD}/codebase':
                                 args[i] = f'${{PWD}}/codebase/{self.project_name}'
@@ -811,8 +786,6 @@ class FrameworkSetup:
                 
                 # Update enabled servers
                 enabled_servers = ["filesystem", "memory"]
-                if self.serena_enabled:
-                    enabled_servers.append("serena")
                 
                 settings['enabledMcpjsonServers'] = enabled_servers
                 settings['enableAllProjectMcpServers'] = False
@@ -889,7 +862,6 @@ class FrameworkSetup:
         
         print(f"{Colors.MAGENTA}Analysis Mode: {analysis_mode}{Colors.RESET}")
         print(f"{Colors.MAGENTA}Repomix: {'ENABLED ✓' if self.repomix_enabled else 'DISABLED ⚠️'}{Colors.RESET}")
-        print(f"{Colors.MAGENTA}Serena MCP: {'ENABLED' if self.serena_enabled else 'DISABLED (using Repomix only)'}{Colors.RESET}")
         print()
         
         if self.repomix_enabled:
@@ -915,8 +887,6 @@ class FrameworkSetup:
             print(f"{Colors.RED}2. WARNING: Repomix disabled - expect high token usage!{Colors.RESET}")
         
         print("3. Start analysis in Claude Code:")
-        if self.serena_enabled:
-            print("   - Use @serena to activate the project (optional)")
         print("   - Use @mcp-orchestrator to begin analysis")
         print("   - Or use specific agents like @legacy-code-detective")
         
@@ -946,14 +916,8 @@ class FrameworkSetup:
         print("  - framework/docs/CLAUDE_FRAMEWORK.md")
         print("  - framework/templates/AGENT_DATA_ACCESS_PATTERN.md")
     
-    def test_serena_integration(self):
-        """Test Serena MCP integration if enabled"""
-        if self.serena_enabled:
-            print(f"\n{Colors.CYAN}Testing Serena Integration...{Colors.RESET}")
             try:
-                # Run the Serena validation script
                 result = subprocess.run(
-                    [sys.executable, "framework/scripts/test_serena_integration.py"],
                     capture_output=True,
                     text=True,
                     timeout=30
@@ -965,12 +929,8 @@ class FrameworkSetup:
                     for line in output_lines:
                         if '✓' in line or '✗' in line or '⚠' in line:
                             print(line)
-                    print(f"{Colors.GREEN}✓ Serena validation completed{Colors.RESET}")
                 else:
-                    print(f"{Colors.YELLOW}⚠ Serena validation had some issues{Colors.RESET}")
-                    print(f"   Run 'python3 framework/scripts/test_serena_integration.py' for details")
             except Exception as e:
-                print(f"{Colors.YELLOW}⚠ Could not test Serena: {e}{Colors.RESET}")
     
     def run(self):
         """Main setup execution"""
@@ -984,11 +944,9 @@ class FrameworkSetup:
             self.copy_mcp_templates()
             self.configure_codebase_path()
             self.configure_repomix()  # Configure Repomix first
-            self.configure_serena_mcp()  # Optional Serena configuration
             self.configure_analysis_mode()
             self.run_mcp_setup()  # Update configs based on choices
             self.generate_claude_md()  # Generate CLAUDE.md from template
-            self.test_serena_integration()  # Test Serena if enabled
             self.show_repomix_instructions()  # Show how to generate Repomix
             self.show_next_steps()
             

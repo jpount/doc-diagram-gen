@@ -3,7 +3,7 @@ httpx
 # Python Requirements for Codebase Analysis Framework
 # These are optional but recommended for enhanced functionality
 
-# For Serena MCP (semantic code search)
+# REMOVED: Serena MCP dependencies (not working)
 uv>=0.1.0
 
 # For colored terminal output on Windows

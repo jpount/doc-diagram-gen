@@ -1,20 +1,5 @@
 {
   "mcpServers": {
-    "serena": {
-      "command": "uvx",
-      "args": [
-        "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
-        "start-mcp-server",
-        "--context",
-        "ide-assistant",
-        "--project",
-        "${PWD}/codebase"
-      ],
-      "env": {},
-      "_comment": "Serena will analyze all projects in the codebase directory"
-    },
     "filesystem": {
       "command": "npx",
       "args": [

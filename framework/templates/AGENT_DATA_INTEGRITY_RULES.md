@@ -58,7 +58,6 @@ from data_access_utils import get_codebase_data
 
 # This automatically follows:
 # 1. Repomix (80% token reduction)
-# 2. Serena MCP (60% token reduction)  
 # 3. Raw codebase (last resort)
 data = get_codebase_data(search_term="pattern")
 

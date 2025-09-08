@@ -5,7 +5,6 @@
 All agents MUST follow this strict hierarchy when accessing codebase data:
 
 1. **Repomix Summary** (Primary - 80% token reduction)
-2. **Serena MCP** (Secondary - 60% token reduction)  
 3. **Raw Codebase** (Last Resort - 0% token reduction)
 
 ## Implementation Pattern
@@ -19,7 +18,6 @@ def get_codebase_data(pattern=None, file_path=None, search_term=None):
     
     PRIORITY ORDER:
     1. Repomix summary (if available)
-    2. Serena MCP (if available and Repomix insufficient)
     3. Raw codebase (only if both above fail)
     """
     from pathlib import Path
@@ -56,41 +54,25 @@ def get_codebase_data(pattern=None, file_path=None, search_term=None):
                 return content
     
     # ============================
-    # LEVEL 2: Fallback to Serena
     # ============================
     try:
-        print("⚠️ Repomix not sufficient, trying Serena MCP...")
         
-        # Ensure Serena is activated
-        if not hasattr(get_codebase_data, '_serena_activated'):
             try:
-                mcp__serena__activate_project("codebase")
-                mcp__serena__onboarding()
-                get_codebase_data._serena_activated = True
             except:
-                print("❌ Serena activation failed")
         
-        # Use Serena for targeted search
         if search_term:
-            results = mcp__serena__search_for_pattern(search_term)
             if results:
-                print(f"✅ Found via Serena: {len(results)} matches")
                 return results
         
         if file_path:
-            symbols = mcp__serena__find_symbol(file_path)
             if symbols:
-                print(f"✅ Found via Serena: {file_path}")
                 return symbols
         
         if pattern:
-            matches = mcp__serena__search_for_pattern(pattern)
             if matches:
-                print(f"✅ Found via Serena: {len(matches)} pattern matches")
                 return matches
                 
     except Exception as e:
-        print(f"❌ Serena MCP not available: {e}")
     
     # ============================
     # LEVEL 3: Last Resort - Raw Codebase
@@ -191,7 +173,6 @@ def log_fallback_usage(level, query):
 ### Example 1: Finding Technology Stack
 
 ```python
-# This will automatically try Repomix first, then Serena, then raw
 tech_data = get_codebase_data(search_term="springframework")
 ```
 
@@ -253,7 +234,6 @@ def analyze_data_access_efficiency():
     
     print(f"Data Access Statistics ({total} total accesses):")
     print(f"  Repomix: {by_level.get('repomix', 0)} ({by_level.get('repomix', 0)*100/total:.1f}%)")
-    print(f"  Serena: {by_level.get('serena', 0)} ({by_level.get('serena', 0)*100/total:.1f}%)")
     print(f"  Raw: {by_level.get('raw_codebase', 0)} ({by_level.get('raw_codebase', 0)*100/total:.1f}%)")
     
     if by_level.get('raw_codebase', 0) > total * 0.2:
@@ -272,7 +252,6 @@ def analyze_data_access_efficiency():
    - Verify security scan results are included
    - Check token metrics are captured
 
-3. **Configure Serena Properly**
    - Activate project at agent start
    - Use onboarding for initial indexing
    - Write findings to memory for other agents

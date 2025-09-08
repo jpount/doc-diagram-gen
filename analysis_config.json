@@ -1,0 +1,11 @@
+{
+  "mode": "quick",
+  "project_name": "daytrader",
+  "document_types": [
+    "architecture",
+    "business_rules"
+  ],
+  "detected_tech": [
+    "Will be auto-detected during analysis"
+  ]
+}

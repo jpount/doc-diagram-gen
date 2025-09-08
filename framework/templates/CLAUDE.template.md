@@ -14,7 +14,6 @@
 - **Modernization:** {{MODERNIZATION_ENABLED}}
 - **User Interaction:** {{USER_INTERACTION}}
 - **Repomix:** {{REPOMIX_STATUS}}
-- **Serena MCP:** {{SERENA_STATUS}}
 - **Token Strategy:** Repomix-first (80% reduction)
 
 {{MODERNIZATION_CONSTRAINTS}}
@@ -35,17 +34,25 @@ python3 framework/scripts/token_monitor.py report
 # 4. Start analysis in Claude Code with agents below
 ```
 
+## Technology Stack
+{{TECHNOLOGY_STACK}}
+
 ## Available Agents
 
-### Core Analysis Agents (All Modes)
+### Core Analysis Agents (Simplified - Only 7 Total)
 - `@mcp-orchestrator` - Coordinate MCP usage and strategy
-- `@repomix-analyzer` - Analyze compressed codebase summary
-- `@legacy-code-detective` - Deep dive into codebase structure
-- `@business-logic-analyst` - Extract business rules and logic
-- `@performance-analyst` - Identify bottlenecks and issues
-- `@security-analyst` - Find vulnerabilities and risks
-- `@diagram-architect` - Create visual documentation
-- `@documentation-specialist` - Generate comprehensive docs
+- `@repomix-analyzer` - Analyze compressed codebase summary  
+- `@architect-agent` - System architecture analysis with tech-specific knowledge
+- `@developer-agent` - Code quality assessment with language-specific patterns
+- `@analyst-agent` - Business logic + Performance + Security + Modernization analysis
+- `@diagram-agent` - All visualization needs with full Mermaid validation
+- `@doc-writer-agent` - Documentation generation and synthesis
+
+### Knowledge Loading System
+Each agent automatically loads technology-specific knowledge:
+- Language patterns from `framework/knowledge/languages/`
+- Framework patterns from `framework/knowledge/frameworks/`  
+- Generic fallback if specific knowledge unavailable
 
 {{MODERNIZATION_AGENTS}}
 
@@ -67,7 +74,6 @@ python3 framework/scripts/token_monitor.py report
 - **Total Budget:** {{TOKEN_BUDGET}}
 - **With Repomix:** ~50,000 tokens (80% reduction)
 - **Without Repomix:** ~250,000+ tokens (5x more!)
-- **Strategy:** Repomix → Serena → Raw (enforced hierarchy)
 
 ## Key Files to Review
 - `ANALYSIS_MODE.md` - Current analysis configuration

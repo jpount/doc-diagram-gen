@@ -1,0 +1,203 @@
+{
+  "core_agents": {
+    "architect-agent": {
+      "name": "Architecture Analyzer",
+      "description": "Analyzes system architecture, design patterns, and technical structure",
+      "responsibilities": [
+        "System architecture documentation",
+        "Design pattern identification",
+        "Component dependency analysis",
+        "Technology stack assessment",
+        "Integration point mapping",
+        "J2EE/Jakarta EE architecture patterns",
+        "Microservices boundaries",
+        "API design patterns"
+      ],
+      "knowledge_sources": [
+        "languages/java.md",
+        "languages/j2ee.md",
+        "languages/javascript.md",
+        "languages/python.md",
+        "languages/dotnet.md",
+        "frameworks/*",
+        "patterns/*"
+      ],
+      "outputs": [
+        "SYSTEM-ARCHITECTURE.md",
+        "COMPONENT-DEPENDENCIES.md",
+        "INTEGRATION-GUIDE.md"
+      ]
+    },
+    "developer-agent": {
+      "name": "Code Quality Analyzer",
+      "description": "Analyzes code quality, patterns, and implementation details",
+      "responsibilities": [
+        "Code quality assessment",
+        "Anti-pattern detection",
+        "Technical debt analysis",
+        "Best practice violations",
+        "Refactoring recommendations"
+      ],
+      "knowledge_sources": [
+        "languages/*",
+        "frameworks/*"
+      ],
+      "outputs": [
+        "TECHNICAL-DEBT-REPORT.md",
+        "CODE-QUALITY-REPORT.md",
+        "DEVELOPER-GUIDE.md"
+      ]
+    },
+    "analyst-agent": {
+      "name": "Business & Performance Analyzer",
+      "description": "Analyzes business logic, performance, and security aspects",
+      "responsibilities": [
+        "Business rule extraction",
+        "Performance bottleneck identification",
+        "Security vulnerability assessment",
+        "Data flow analysis",
+        "Domain model documentation"
+      ],
+      "knowledge_sources": [
+        "domains/*",
+        "patterns/*"
+      ],
+      "outputs": [
+        "BUSINESS-RULES.md",
+        "PERFORMANCE-REPORT.md",
+        "SECURITY-ASSESSMENT.md"
+      ]
+    },
+    "diagram-agent": {
+      "name": "Visualization Creator",
+      "description": "Creates all architectural and flow diagrams",
+      "responsibilities": [
+        "Architecture diagrams",
+        "Sequence diagrams",
+        "Data flow diagrams",
+        "Component diagrams",
+        "Deployment diagrams"
+      ],
+      "knowledge_sources": [
+        "all"
+      ],
+      "outputs": [
+        "diagrams/*.mmd",
+        "diagrams/*.puml"
+      ]
+    },
+    "doc-writer-agent": {
+      "name": "Documentation Generator",
+      "description": "Synthesizes findings into comprehensive documentation",
+      "responsibilities": [
+        "Executive summary creation",
+        "API documentation",
+        "Configuration guides",
+        "Migration plans",
+        "Final report compilation"
+      ],
+      "knowledge_sources": [
+        "all"
+      ],
+      "outputs": [
+        "EXECUTIVE-SUMMARY.md",
+        "API-DOCUMENTATION.md",
+        "CONFIGURATION-GUIDE.md",
+        "MIGRATION-ROADMAP.md"
+      ]
+    }
+  },
+  "execution_modes": {
+    "quick": {
+      "name": "Quick Documentation",
+      "description": "Fast, automated documentation generation",
+      "duration": "1-2 hours",
+      "interaction": "none",
+      "agents_sequence": [
+        "architect-agent",
+        "analyst-agent",
+        "diagram-agent",
+        "doc-writer-agent"
+      ]
+    },
+    "guided": {
+      "name": "Guided Documentation",
+      "description": "Interactive documentation with review checkpoints",
+      "duration": "3-4 hours",
+      "interaction": "checkpoints",
+      "agents_sequence": [
+        "architect-agent",
+        "checkpoint:architecture_review",
+        "developer-agent",
+        "analyst-agent",
+        "checkpoint:analysis_review",
+        "diagram-agent",
+        "checkpoint:diagram_review",
+        "doc-writer-agent",
+        "checkpoint:final_review"
+      ]
+    }
+  },
+  "document_types": {
+    "architecture": {
+      "name": "Architecture Documentation",
+      "agents": ["architect-agent", "diagram-agent"],
+      "outputs": ["SYSTEM-ARCHITECTURE.md", "COMPONENT-DEPENDENCIES.md", "architecture-diagrams/*"]
+    },
+    "business_rules": {
+      "name": "Business Rules & Domain Logic", 
+      "agents": ["analyst-agent", "diagram-agent"],
+      "outputs": ["BUSINESS-RULES.md", "DOMAIN-MODEL.md", "flow-diagrams/*"]
+    },
+    "security": {
+      "name": "Security Assessment",
+      "agents": ["analyst-agent", "doc-writer-agent"],
+      "outputs": ["SECURITY-ASSESSMENT.md", "SECURITY-REMEDIATION.md", "VULNERABILITY-REPORT.md"]
+    },
+    "performance": {
+      "name": "Performance Analysis",
+      "agents": ["analyst-agent", "diagram-agent"],
+      "outputs": ["PERFORMANCE-REPORT.md", "OPTIMIZATION-GUIDE.md", "bottleneck-diagrams/*"]
+    },
+    "migration": {
+      "name": "Migration/Modernization Plan",
+      "agents": ["architect-agent", "developer-agent", "analyst-agent", "doc-writer-agent"],
+      "outputs": ["MIGRATION-ROADMAP.md", "MODERNIZATION-STRATEGY.md", "TARGET-ARCHITECTURE.md"]
+    },
+    "api": {
+      "name": "API Documentation",
+      "agents": ["architect-agent", "doc-writer-agent"],
+      "outputs": ["API-DOCUMENTATION.md", "API-REFERENCE.md", "api-diagrams/*"]
+    },
+    "quality": {
+      "name": "Code Quality & Technical Debt",
+      "agents": ["developer-agent", "doc-writer-agent"],
+      "outputs": ["TECHNICAL-DEBT-REPORT.md", "CODE-QUALITY-REPORT.md", "REFACTORING-GUIDE.md"]
+    },
+    "ui_analysis": {
+      "name": "UI/UX Analysis",
+      "agents": ["architect-agent", "diagram-agent", "doc-writer-agent"],
+      "outputs": ["UI-ARCHITECTURE.md", "COMPONENT-ANALYSIS.md", "UX-ASSESSMENT.md", "ui-diagrams/*"]
+    },
+    "developer_guide": {
+      "name": "Developer/Troubleshooting Guide",
+      "agents": ["developer-agent", "architect-agent", "doc-writer-agent"],
+      "outputs": ["DEVELOPER-GUIDE.md", "TROUBLESHOOTING-GUIDE.md", "SETUP-INSTRUCTIONS.md", "BUILD-GUIDE.md"]
+    },
+    "executive_summary": {
+      "name": "Executive Summary",
+      "agents": ["doc-writer-agent"],
+      "outputs": ["EXECUTIVE-SUMMARY.md", "PROJECT-OVERVIEW.md", "RECOMMENDATIONS.md"]
+    },
+    "deployment": {
+      "name": "Deployment & Operations Guide", 
+      "agents": ["architect-agent", "developer-agent", "doc-writer-agent"],
+      "outputs": ["DEPLOYMENT-GUIDE.md", "OPERATIONS-GUIDE.md", "MONITORING-GUIDE.md"]
+    },
+    "database": {
+      "name": "Database Schema & Data Model",
+      "agents": ["architect-agent", "analyst-agent", "diagram-agent"],
+      "outputs": ["DATABASE-SCHEMA.md", "DATA-MODEL.md", "database-diagrams/*"]
+    }
+  }
+}

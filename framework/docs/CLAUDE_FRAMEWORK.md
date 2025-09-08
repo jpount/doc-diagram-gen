@@ -15,7 +15,6 @@ This framework provides a comprehensive, reusable approach for analyzing any cod
 ### 0.5. Data Access Hierarchy (ENFORCED)
 **All agents MUST follow this strict priority order:**
 1. **Repomix Summary** (Primary - 80% token reduction)
-2. **Serena MCP** (Fallback - 60% token reduction) 
 3. **Raw Codebase** (Last Resort - 0% token reduction)
 
 **Implementation:**
@@ -24,7 +23,6 @@ This framework provides a comprehensive, reusable approach for analyzing any cod
 - Monitor fallback usage in `output/reports/data-access-log.json`
 
 ### 1. Token Optimization
-- **Use Serena MCP** for semantic code analysis instead of full file reads
 - **Agent Memory** for cross-agent knowledge sharing
 - **Targeted Searches** over exhaustive file scanning
 - **Batch Processing** for similar analysis tasks
@@ -50,7 +48,6 @@ This framework provides a comprehensive, reusable approach for analyzing any cod
 **Prerequisites:**
 1. Configure `TARGET_TECH_STACK.md` with target technology choices
 2. Place codebase in `codebase/[project-name]/` directory
-3. Configure and activate MCPs (Serena, Repomix, Sourcegraph, AST Explorer)
 4. Run MCP setup script: `./setup-mcp.sh`
 
 **Token Optimization:**
@@ -68,9 +65,6 @@ This framework provides a comprehensive, reusable approach for analyzing any cod
 - Create file metrics: token counts, complexity scores, file dependencies
 - Output formats: Markdown (primary), XML (backup)
 
-**Serena Initialization:**
-- Activate project: `mcp__serena__activate_project`
-- Run onboarding: `mcp__serena__onboarding`
 - Create initial project memories
 
 **Sourcegraph Setup (if available):**
@@ -106,8 +100,6 @@ This framework provides a comprehensive, reusable approach for analyzing any cod
 - Performance bottlenecks identification
 
 **Token Optimization:**
-- Use `mcp__serena__get_symbols_overview` for file structure
-- Use `mcp__serena__find_symbol` for targeted symbol analysis
 - Avoid reading entire files unless absolutely necessary
 - Write findings to memory for other agents
 
@@ -126,7 +118,6 @@ This framework provides a comprehensive, reusable approach for analyzing any cod
 - Error handling patterns
 
 **Token Optimization:**
-- Use `mcp__serena__search_for_pattern` for rule patterns
 - Focus on service/controller layers for business logic
 - Cache common patterns for reuse
 - Share findings via agent memory
@@ -373,7 +364,6 @@ quadrantChart
 ### Pre-Analysis
 - [ ] TARGET_TECH_STACK.md configured
 - [ ] Codebase placed in correct directory
-- [ ] Serena MCP activated
 - [ ] Onboarding completed
 
 ### Documentation Completeness
@@ -404,7 +394,6 @@ quadrantChart
 | MCP | Purpose | Token Savings | When to Use |
 |-----|---------|---------------|-------------|
 | **Repomix** | Codebase compression & packaging | 80% | Always - Phase 0.5 |
-| **Serena** | Semantic code search | 60% | All phases |
 | **Sourcegraph** | Cross-repo pattern matching | 40% | Complex patterns |
 | **AST Explorer** | Syntax tree analysis | 30% | Complex refactoring |
 
@@ -416,14 +405,12 @@ quadrantChart
    - Security pre-scan with Secretlint
    - Only fallback if Repomix data insufficient
 
-2. **Use Serena as Secondary Fallback**
    - ONLY when Repomix doesn't have needed data
    - Symbol-specific analysis
    - Semantic understanding
    - Memory management
 
 3. **Raw Codebase Access** (LAST RESORT)
-   - Only when both Repomix and Serena fail
    - Log all raw accesses for monitoring
    - Alert user to regenerate Repomix if >10 raw accesses
 
@@ -436,7 +423,6 @@ quadrantChart
 # CORRECT: Always try in order
 from framework.scripts.data_access_utils import get_codebase_data
 
-# This automatically tries: Repomix -> Serena -> Raw
 data = get_codebase_data(search_term="pattern")
 
 # INCORRECT: Direct access without fallback
@@ -506,11 +492,8 @@ python3 framework/scripts/token_monitor.py check
 ```python
 # BEST: MCP stack approach
 repomix_summary = mcp__repomix__generate_summary()
-serena_symbols = mcp__serena__find_symbol("ServiceClass")
 sourcegraph_patterns = mcp__sourcegraph__search("pattern")
 
-# GOOD: Serena only
-symbols = mcp__serena__find_symbol("ServiceClass")
 
 # AVOID: Reading entire files
 content = read_file("entire_file.java")
@@ -519,10 +502,8 @@ content = read_file("entire_file.java")
 ### 2. Share Knowledge via Memory
 ```python
 # Write findings for other agents
-mcp__serena__write_memory("technology_stack", findings)
 
 # Read in subsequent agents
-stack_info = mcp__serena__read_memory("technology_stack")
 ```
 
 ### 3. Batch Similar Operations
@@ -564,7 +545,6 @@ Reports are automatically saved to:
 | Data Source | Token Reduction | Efficiency Score |
 |-------------|----------------|------------------|
 | Repomix | 80% | 100% |
-| Serena | 60% | 60% |
 | Raw Codebase | 0% | 20% |
 
 ### Alerts & Warnings

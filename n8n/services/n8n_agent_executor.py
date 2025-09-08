@@ -34,21 +34,21 @@ class N8nAgentExecutor:
     AGENT_TIMEOUTS = {
         "mcp-orchestrator": 180,
         "repomix-analyzer": 120,
-        "architecture-selector": 120,
-        "legacy-code-detective": 180,
+        "architect-agent": 120,
+        "developer-agent": 180,
         "java-architect": 150,
         "dotnet-architect": 150,
         "angular-architect": 150,
-        "business-logic-analyst": 180,
-        "domain-boundary-analyst": 150,
-        "data-model-specialist": 150,
-        "ui-analysis-specialist": 150,
-        "security-analyst": 180,
-        "performance-analyst": 180,
-        "modernization-architect": 180,
-        "diagram-architect": 240,
-        "documentation-specialist": 240,
-        "executive-summary": 120
+        "analyst-agent": 180,
+        "analyst-agent": 150,
+        "architect-agent": 150,
+        "architect-agent": 150,
+        "analyst-agent": 180,
+        "analyst-agent": 180,
+        "analyst-agent": 180,
+        "diagram-agent": 240,
+        "doc-writer-agent": 240,
+        "doc-writer-agent": 120
     }
     
     def __init__(self, project_root: Path = Path("."), mode: ExecutionMode = ExecutionMode.SUBPROCESS):
@@ -312,21 +312,21 @@ class N8nAgentExecutor:
         agent_mapping = {
             "mcp-orchestrator": "agent-mcp-orchestrator",
             "repomix-analyzer": "agent-repomix-analyzer",
-            "architecture-selector": "agent-architecture-selector",
-            "legacy-code-detective": "agent-legacy-code-detective",
+            "architect-agent": "agent-architecture-selector",
+            "developer-agent": "agent-legacy-code-detective",
             "java-architect": "agent-java-architect",
             "dotnet-architect": "agent-dotnet-architect",
             "angular-architect": "agent-angular-architect",
-            "business-logic-analyst": "agent-business-logic-analyst",
-            "domain-boundary-analyst": "agent-domain-boundary-analyst",
-            "data-model-specialist": "agent-data-model-specialist",
-            "ui-analysis-specialist": "agent-ui-analysis-specialist",
-            "security-analyst": "agent-security-analyst",
-            "performance-analyst": "agent-performance-analyst",
-            "modernization-architect": "agent-modernization-architect",
-            "diagram-architect": "agent-diagram-architect",
-            "documentation-specialist": "agent-documentation-specialist",
-            "executive-summary": "agent-executive-summary"
+            "analyst-agent": "agent-business-logic-analyst",
+            "analyst-agent": "agent-domain-boundary-analyst",
+            "architect-agent": "agent-data-model-specialist",
+            "architect-agent": "agent-ui-analysis-specialist",
+            "analyst-agent": "agent-security-analyst",
+            "analyst-agent": "agent-performance-analyst",
+            "analyst-agent": "agent-modernization-architect",
+            "diagram-agent": "agent-diagram-architect",
+            "doc-writer-agent": "agent-documentation-specialist",
+            "doc-writer-agent": "agent-executive-summary"
         }
         
         # Get correct agent name

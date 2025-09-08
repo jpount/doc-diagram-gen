@@ -22,7 +22,6 @@ This guide explains how to effectively use MCPs (Model Context Protocols) to ach
 - Provides token counting and metrics
 - Tree-sitter based code understanding
 
-### 2. Serena - Semantic Code Search (60% Token Reduction) [OPTIONAL]
 **Purpose**: Intelligent semantic search and symbol analysis (not required, but recommended for large codebases)
 **When to Use**: Throughout all analysis phases if enabled
 **Key Features**:
@@ -78,11 +77,9 @@ docker run -v $(pwd):/app repomix/repomix
 repomix --version
 ```
 
-#### Serena Configuration
 ```json
 // Add to .claude/settings.local.json
 {
-  "enabledMcpjsonServers": ["serena"],
   "enableAllProjectMcpServers": true
 }
 ```
@@ -115,12 +112,10 @@ The framework agents follow this priority order when analyzing code:
    - Direct file access using Read, Grep, Glob tools
    - No optimization but full access to all code
 
-3. **Serena Enhancement (if enabled)**
    - Works on top of either Repomix or raw files
    - Provides semantic search and symbol analysis
    - Optional - not required for basic operation
 
-**Important:** Even with Serena disabled, Repomix summaries are still used if available!
 
 ## Usage Strategies
 
@@ -129,14 +124,12 @@ The framework agents follow this priority order when analyzing code:
 #### Small Projects (<10K lines)
 ```yaml
 MCPs Required: None (works with raw codebase)
-Optional: Repomix or Serena for optimization
 Token Savings: 0-60%
 Workflow (without MCPs):
   1. Direct file reading from codebase/
   2. Built-in grep and search tools
   3. Standard Claude Code capabilities
 Workflow (with optional MCPs):
-  1. Activate Serena if available
   2. Use semantic search
   3. Native tools for simple patterns
 ```
@@ -144,7 +137,6 @@ Workflow (with optional MCPs):
 #### Medium Projects (10K-100K lines)
 ```yaml
 MCPs Required: None (but recommended for efficiency)
-Recommended: Repomix + Serena
 Optional: Sourcegraph
 Token Savings: 0-85%
 Workflow (without MCPs):
@@ -153,7 +145,6 @@ Workflow (without MCPs):
   3. May require more targeted analysis
 Workflow (with MCPs):
   1. Generate Repomix summary
-  2. Activate Serena indexing if available
   3. Use Sourcegraph for complex patterns
 ```
 
@@ -163,7 +154,6 @@ MCPs Required: All available MCPs
 Token Savings: 90-95%
 Workflow:
   1. Repomix compression (mandatory)
-  2. Serena full indexing
   3. Sourcegraph pattern analysis
   4. AST Explorer for refactoring
 ```
@@ -174,7 +164,6 @@ MCPs Required: All MCPs + batching
 Token Savings: 95%+
 Workflow:
   1. Incremental Repomix processing
-  2. Distributed Serena indexing
   3. Cached Sourcegraph results
   4. Selective AST analysis
 ```
@@ -188,7 +177,6 @@ graph TD
     B -->|No| D[Manual Batching]
     C --> E[Run Security Scan]
     D --> E
-    E --> F{Serena Available?}
     F -->|Yes| G[Semantic Indexing]
     F -->|No| H[Grep/Glob Fallback]
     G --> I[Symbol Analysis]
@@ -209,8 +197,6 @@ graph TD
 | Approach | Files Read | Tokens Used | Time | Quality |
 |----------|------------|-------------|------|---------|
 | Traditional (no MCPs) | 100% | 500,000 | 3 hours | 70% |
-| Serena Only | 40% | 200,000 | 2 hours | 80% |
-| Repomix + Serena | 10% | 50,000 | 1 hour | 90% |
 | All MCPs | 5% | 30,000 | 45 min | 95% |
 
 ### Best Practices for Token Optimization
@@ -223,13 +209,10 @@ repomix --config .repomix.config.json codebase/
 # This reduces initial load by 80%
 ```
 
-#### 2. Use Serena for All Searches
 ```python
 # DON'T: Read entire files
 content = Read("entire_file.java")
 
-# DO: Use Serena semantic search
-symbols = mcp__serena__find_symbol("ClassName")
 ```
 
 #### 3. Cache MCP Results
@@ -237,7 +220,6 @@ symbols = mcp__serena__find_symbol("ClassName")
 # Results are cached in .mcp-cache/
 .mcp-cache/
 ├── repomix/latest.md     # Reuse for all agents
-├── serena/symbols.json   # Share across phases
 └── sourcegraph/patterns.json
 ```
 
@@ -256,7 +238,6 @@ search(patterns.join("|"))
 ```yaml
 Phase 0.5 (MCP Pre-Analysis): 10% of budget
   - Repomix: 5%
-  - Serena init: 3%
   - Sourcegraph: 2%
 
 Phase 1-5 (Core Analysis): 70% of budget
@@ -284,11 +265,8 @@ tech_stack = analyze_files(files)
 
 ### Use Case 2: Business Rule Extraction
 ```python
-# With Serena
-rules = mcp__serena__search_for_pattern("validate|check|verify")
 # Tokens: ~5,000
 
-# Without Serena
 rules = grep_all_files("validate|check|verify")
 # Tokens: ~30,000
 ```
@@ -320,16 +298,12 @@ npm install -g repomix
 docker run -v $(pwd):/app repomix/repomix
 ```
 
-#### Serena Not Connecting
 ```bash
 # Check Claude Code settings
-cat .claude/settings.local.json | grep serena
 
 # Activate project
-@serena activate ./codebase
 
 # Run onboarding
-@serena onboarding
 ```
 
 #### Sourcegraph Timeout
@@ -352,7 +326,6 @@ Solutions:
    - Enable removeEmptyLines
    - Reduce tokenLimit in config
 
-2. Use more selective Serena queries:
    - Specific symbol names
    - Limit depth parameter
    - Use file path filters
@@ -370,7 +343,6 @@ Solutions:
 # Pre-generate all caches before analysis
 ./setup-mcp.sh
 repomix --config .repomix.config.json codebase/
-@serena onboarding
 ```
 
 #### Parallel MCP Execution
@@ -387,7 +359,6 @@ wait
 if file_count > 1000:
     use_repomix()
 elif complexity > "high":
-    use_serena()
 else:
     use_native_tools()
 ```
@@ -406,7 +377,6 @@ else:
 
 ### Partial MCP Availability
 ```yaml
-If only Serena available:
   - Use for all searches
   - Skip compression
   - Token savings: 60%
@@ -428,7 +398,6 @@ If only Sourcegraph available:
 ```bash
 # Log token usage
 echo "Repomix tokens: $(wc -w < docs/repomix-summary.md)"
-echo "Serena queries: $(grep -c "mcp__serena" analysis.log)"
 echo "Cache hits: $(ls -la .mcp-cache/ | wc -l)"
 ```
 
@@ -446,7 +415,6 @@ Metrics to Track:
 
 1. **Always run `./setup-mcp.sh` first** - Ensures optimal configuration
 2. **Generate Repomix summary before analysis** - 80% token savings
-3. **Use Serena for all symbol searches** - Semantic understanding
 4. **Cache everything** - Reuse across agents and phases
 5. **Have fallback strategies** - Graceful degradation
 6. **Monitor token usage** - Track savings and optimize
@@ -455,4 +423,3 @@ Metrics to Track:
 
 ## Conclusion
 
-Proper MCP usage can reduce token consumption by 90%+ while improving analysis quality. The key is using the right combination of MCPs for your project size and requirements, with Repomix and Serena forming the core of any optimization strategy.

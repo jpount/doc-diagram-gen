@@ -3,7 +3,6 @@
 Dynamic Analysis Limits Calculator
 
 Calculates optimal file analysis limits based on:
-- Available MCP tools (Repomix, Serena, Sourcegraph, AST)
 - Project size and complexity
 - User overrides
 - Token budget constraints
@@ -51,7 +50,6 @@ class DynamicLimitsCalculator:
         """Detect which MCP tools are available"""
         mcps = {
             "repomix": False,
-            "serena": False, 
             "sourcegraph": False,
             "ast": False
         }
@@ -62,9 +60,7 @@ class DynamicLimitsCalculator:
         elif subprocess.run(["which", "repomix"], capture_output=True).returncode == 0:
             mcps["repomix"] = True
             
-        # Check Serena (via MCP - look for .mcp.json or similar indicators)
         if (self.project_root / ".mcp.json").exists():
-            mcps["serena"] = True
             
         # Check Sourcegraph
         if subprocess.run(["which", "src"], capture_output=True).returncode == 0:
@@ -114,14 +110,9 @@ class DynamicLimitsCalculator:
     
     def get_mcp_strategy_key(self, mcps: Dict[str, bool]) -> str:
         """Determine which MCP strategy to use"""
-        if mcps["repomix"] and mcps["serena"] and mcps["sourcegraph"]:
             return "all_mcps"
-        elif mcps["repomix"] and mcps["serena"]:
-            return "repomix_plus_serena"
         elif mcps["repomix"]:
             return "repomix_only"
-        elif mcps["serena"]:
-            return "serena_only"
         else:
             return "default_limits"
     

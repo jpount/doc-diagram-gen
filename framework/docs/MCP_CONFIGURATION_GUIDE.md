@@ -19,12 +19,9 @@ This guide ensures proper MCP configuration for Claude Code to achieve 90%+ toke
 ```json
 {
   "mcpServers": {
-    "serena": {
       "command": "uvx",
       "args": [
         "--from",
-        "git+https://github.com/oraios/serena",
-        "serena",
         "start-mcp-server",
         "--context",
         "ide-assistant",
@@ -73,9 +70,7 @@ This guide ensures proper MCP configuration for Claude Code to achieve 90%+ toke
 
 **Important Notes:**
 - **Default MCPs**: Only `filesystem` and `memory` are enabled by default (no installation required)
-- **Serena**: NOT included by default - it's optional and requires uvx/uv
 - **Selective enablement**: `enableAllProjectMcpServers: false` means only explicitly listed MCPs are enabled
-- **To enable Serena**: Add `"serena"` to the array AND remove `"disabled": true` from `.mcp.json`
 
 ### 3. `.repomix.config.json`
 **Location**: `/Users/jp/work/xxx/doc-diagram-gen/.repomix.config.json`
@@ -87,7 +82,6 @@ Already configured and ready to use.
 
 ### Updating Project Path in .mcp.json
 
-When analyzing a different codebase, update the Serena project path:
 
 ```json
 "--project",
@@ -105,9 +99,7 @@ When analyzing a different codebase, update the Serena project path:
 
 ## Installation Requirements
 
-### 1. Serena MCP (Optional - for 60% token reduction)
 ```bash
-# Only required if you want to enable Serena
 # Requires Python and uv/uvx
 pip install uv
 # Or
@@ -128,7 +120,6 @@ npm install -g repomix
 
 ## Troubleshooting
 
-### Issue: "MCP server 'serena' not found"
 
 **Solution 1**: Ensure `.mcp.json` exists in project root
 ```bash
@@ -184,9 +175,7 @@ sudo apt-get install -y nodejs
 cat .mcp.json | jq .
 ```
 
-2. **Verify Serena path**:
 ```bash
-grep -A2 "serena" .mcp.json | grep project
 ```
 
 3. **Test Repomix**:
@@ -207,12 +196,8 @@ cat .claude/settings.local.json | jq .enabledMcpjsonServers
 
 2. **Verify MCPs are available**:
    - Type `@` in Claude Code
-   - You should see available MCPs like `@serena`
 
-3. **Use Serena**:
 ```
-@serena activate ./codebase
-@serena onboarding
 ```
 
 4. **Run Repomix**:
@@ -250,7 +235,6 @@ rm -rf .mcp-cache/*
 
 ### 4. Token Optimization Priority
 1. Always run Repomix first (80% reduction)
-2. Use Serena for searches (60% reduction)
 3. Combine both for 90%+ savings
 
 ## Common Configurations
@@ -259,7 +243,6 @@ rm -rf .mcp-cache/*
 ```json
 {
   "mcpServers": {
-    "serena": {
       "args": [
         "...",
         "--project",
@@ -276,7 +259,6 @@ rm -rf .mcp-cache/*
 ```json
 {
   "mcpServers": {
-    "serena": {
       "args": [
         "...",
         "--project",
@@ -293,7 +275,6 @@ rm -rf .mcp-cache/*
 ```json
 {
   "mcpServers": {
-    "serena": {
       "args": [
         "...",
         "--project",

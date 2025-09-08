@@ -28,7 +28,6 @@ report = f"""
 ---
 name: data-driven-agent
 description: Template for data-driven analysis
-tools: Read, Write, Glob, Grep, mcp_serena
 ---
 
 import json
@@ -67,7 +66,6 @@ class DataDrivenAnalyzer:
         return report
     
     def gather_actual_data(self):
-        """Gather data using Repomix -> Serena -> Raw hierarchy"""
         
         # Try Repomix first
         repomix_data = get_codebase_data()
@@ -390,7 +388,6 @@ def log_operation(operation, data_size, source):
         "timestamp": datetime.now().isoformat(),
         "operation": operation,
         "data_size": data_size,
-        "source": source  # repomix, serena, or raw
     })
     
     # Track tokens

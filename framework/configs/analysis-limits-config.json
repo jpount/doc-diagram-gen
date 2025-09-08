@@ -20,8 +20,6 @@
         "token_savings_percent": 80,
         "reasoning": "Higher limits possible due to Repomix compression"
       },
-      "serena_only": {
-        "description": "Using Serena semantic search (60% token reduction)",
         "critical_files_max": 30,
         "total_files_scan": 300,
         "lines_per_file_max": 3000,
@@ -29,8 +27,6 @@
         "token_savings_percent": 60,
         "reasoning": "Moderate limits with semantic search efficiency"
       },
-      "repomix_plus_serena": {
-        "description": "Using both Repomix and Serena (85-90% token reduction)",
         "critical_files_max": 100,
         "total_files_scan": 1000,
         "lines_per_file_max": 10000,
@@ -39,7 +35,6 @@
         "reasoning": "Maximum limits possible with combined MCP optimization"
       },
       "all_mcps": {
-        "description": "Using Repomix + Serena + Sourcegraph + AST (95% token reduction)",
         "critical_files_max": 200,
         "total_files_scan": 2000,
         "lines_per_file_max": 20000,
@@ -98,7 +93,6 @@
     "limit_calculation": {
       "description": "Algorithm for calculating final limits",
       "steps": [
-        "1. Detect available MCPs (repomix, serena, sourcegraph, ast)",
         "2. Determine project size (small/medium/large/enterprise)",
         "3. Select base limits from mcp_optimized_limits based on MCP availability",
         "4. Apply project size multiplier",
@@ -113,7 +107,7 @@
       }
     },
     "agent_specific_overrides": {
-      "java-architect": {
+      "architect-agent": {
         "description": "Java-specific analysis priorities",
         "priority_patterns": [
           "**/*Application.java",
@@ -140,7 +134,7 @@
           "**/*Service.cs"
         ]
       },
-      "angular-architect": {
+      "architect-agent": {
         "description": "Angular-specific analysis priorities", 
         "priority_patterns": [
           "**/package.json",

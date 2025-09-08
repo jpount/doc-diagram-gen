@@ -1,0 +1,214 @@
+{
+  "name": "Simplified Quick Documentation",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual_trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "project_name",
+              "value": "my-project"
+            },
+            {
+              "name": "mode",
+              "value": "quick"
+            }
+          ]
+        }
+      },
+      "id": "set_config",
+      "name": "Set Project Config",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [450, 300],
+      "notes": "Edit project_name to match your project"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8200/execute-agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "agent_name",
+              "value": "architect-agent"
+            },
+            {
+              "name": "session_id",
+              "value": "={{ $json.project_name }}-{{ Date.now() }}"
+            }
+          ]
+        }
+      },
+      "id": "run_architect",
+      "name": "Run Architect Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [650, 300]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait_1",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8200/execute-agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "agent_name",
+              "value": "analyst-agent"
+            },
+            {
+              "name": "session_id",
+              "value": "={{ $node['set_config'].json['session_id'] }}"
+            }
+          ]
+        }
+      },
+      "id": "run_analyst",
+      "name": "Run Analyst Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1050, 300]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait_2",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1250, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8200/execute-agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "agent_name",
+              "value": "diagram-agent"
+            },
+            {
+              "name": "session_id",
+              "value": "={{ $node['set_config'].json['session_id'] }}"
+            }
+          ]
+        }
+      },
+      "id": "run_diagram",
+      "name": "Run Diagram Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "wait_3",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1650, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8200/execute-agent",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "agent_name",
+              "value": "doc-writer-agent"
+            },
+            {
+              "name": "session_id",
+              "value": "={{ $node['set_config'].json['session_id'] }}"
+            }
+          ]
+        }
+      },
+      "id": "run_doc_writer",
+      "name": "Run Doc Writer Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [1850, 300]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "Complete"
+            },
+            {
+              "name": "message",
+              "value": "Documentation generation complete. Check output/docs/ for results."
+            }
+          ]
+        }
+      },
+      "id": "completion",
+      "name": "Analysis Complete",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [2050, 300]
+    }
+  ],
+  "connections": {
+    "manual_trigger": {
+      "main": [[{"node": "set_config", "type": "main", "index": 0}]]
+    },
+    "set_config": {
+      "main": [[{"node": "run_architect", "type": "main", "index": 0}]]
+    },
+    "run_architect": {
+      "main": [[{"node": "wait_1", "type": "main", "index": 0}]]
+    },
+    "wait_1": {
+      "main": [[{"node": "run_analyst", "type": "main", "index": 0}]]
+    },
+    "run_analyst": {
+      "main": [[{"node": "wait_2", "type": "main", "index": 0}]]
+    },
+    "wait_2": {
+      "main": [[{"node": "run_diagram", "type": "main", "index": 0}]]
+    },
+    "run_diagram": {
+      "main": [[{"node": "wait_3", "type": "main", "index": 0}]]
+    },
+    "wait_3": {
+      "main": [[{"node": "run_doc_writer", "type": "main", "index": 0}]]
+    },
+    "run_doc_writer": {
+      "main": [[{"node": "completion", "type": "main", "index": 0}]]
+    }
+  }
+}

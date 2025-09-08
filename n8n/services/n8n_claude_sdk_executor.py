@@ -26,21 +26,20 @@ class ClaudeSDKAgentExecutor:
     AGENT_MAPPING = {
         "mcp-orchestrator": "agent-mcp-orchestrator",
         "repomix-analyzer": "agent-repomix-analyzer",
-        "architecture-selector": "agent-architecture-selector",
-        "legacy-code-detective": "agent-legacy-code-detective",
+        "architect-agent": "agent-architecture-selector",
+        "developer-agent": "agent-legacy-code-detective",
         "java-architect": "agent-java-architect",
         "dotnet-architect": "agent-dotnet-architect",
         "angular-architect": "agent-angular-architect",
-        "business-logic-analyst": "agent-business-logic-analyst",
-        "domain-boundary-analyst": "agent-domain-boundary-analyst",
-        "data-model-specialist": "agent-data-model-specialist",
-        "ui-analysis-specialist": "agent-ui-analysis-specialist",
-        "security-analyst": "agent-security-analyst",
-        "performance-analyst": "agent-performance-analyst",
-        "modernization-architect": "agent-modernization-architect",
-        "diagram-architect": "agent-diagram-architect",
-        "documentation-specialist": "agent-documentation-specialist",
-        "executive-summary": "agent-executive-summary"
+        "analyst-agent": "agent-business-logic-analyst",
+        "analyst-agent": "agent-domain-boundary-analyst",
+        "architect-agent": "agent-data-model-specialist",
+        "architect-agent": "agent-ui-analysis-specialist",
+        "analyst-agent": "agent-analyst-agent",
+        "analyst-agent": "agent-modernization-architect",
+        "diagram-agent": "agent-diagram-architect",
+        "doc-writer-agent": "agent-documentation-specialist",
+        "doc-writer-agent": "agent-executive-summary"
     }
     
     # Recommended timeouts for each agent (in seconds)
@@ -56,8 +55,7 @@ class ClaudeSDKAgentExecutor:
         "agent-domain-boundary-analyst": 150,
         "agent-data-model-specialist": 150,
         "agent-ui-analysis-specialist": 150,
-        "agent-security-analyst": 180,
-        "agent-performance-analyst": 180,
+        "agent-analyst-agent": 240,
         "agent-modernization-architect": 180,
         "agent-diagram-architect": 300,  # 5 minutes for diagrams
         "agent-documentation-specialist": 240,
@@ -506,7 +504,7 @@ async def test_executor():
     
     # Test parallel execution
     print("\n2. Testing parallel agent execution:")
-    agents = ["repomix-analyzer", "legacy-code-detective", "business-logic-analyst"]
+    agents = ["repomix-analyzer", "developer-agent", "analyst-agent"]
     results = await executor.execute_agents_parallel(
         agents,
         "test-session-002",
@@ -519,7 +517,7 @@ async def test_executor():
     
     # Test sequential execution with context passing
     print("\n3. Testing sequential execution with context:")
-    agents = ["architecture-selector", "java-architect"]
+    agents = ["architect-agent", "java-architect"]
     results = await executor.execute_agents_sequential(
         agents,
         "test-session-003",

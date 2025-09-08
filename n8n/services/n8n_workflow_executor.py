@@ -68,7 +68,7 @@ class N8nWorkflowExecutor:
             selected = user_config.get('selected_analysis_agents', {}).get('agents', [])
             if selected:
                 quick_agents.extend(selected[:2])  # Add first 2 selected agents
-            quick_agents.append("diagram-architect")
+            quick_agents.append("diagram-agent")
             
             definitions = {
                 N8nWorkflowType.QUICK: {
@@ -90,8 +90,8 @@ class N8nWorkflowExecutor:
                     "agents": [
                         "mcp-orchestrator",
                         "repomix-analyzer",
-                        "security-analyst",
-                        "diagram-architect"
+                        "analyst-agent",
+                        "diagram-agent"
                     ],
                 "parallel_groups": [],
                 "timeout": 7200,  # 2 hours
@@ -102,9 +102,9 @@ class N8nWorkflowExecutor:
                 "agents": [
                     "mcp-orchestrator",
                     "repomix-analyzer",
-                    "performance-analyst",
-                    "diagram-architect",
-                    "documentation-specialist"
+                    "analyst-agent",
+                    "diagram-agent",
+                    "doc-writer-agent"
                 ],
                 "parallel_groups": [],
                 "timeout": 7200,  # 2 hours
@@ -115,16 +115,16 @@ class N8nWorkflowExecutor:
                 "agents": [
                     "mcp-orchestrator",
                     "repomix-analyzer",
-                    "architecture-selector",
-                    "legacy-code-detective",
-                    "business-logic-analyst",
-                    "domain-boundary-analyst",
-                    "modernization-architect",
-                    "diagram-architect",
-                    "documentation-specialist"
+                    "architect-agent",
+                    "developer-agent",
+                    "analyst-agent",
+                    "analyst-agent",
+                    "analyst-agent",
+                    "diagram-agent",
+                    "doc-writer-agent"
                 ],
                 "parallel_groups": [
-                    ["business-logic-analyst", "domain-boundary-analyst"]
+                    ["analyst-agent"]
                 ],
                 "timeout": 10800,  # 3 hours
                 "checkpoints": ["architecture_review", "modernization_strategy_review"]

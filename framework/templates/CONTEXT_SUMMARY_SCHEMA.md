@@ -264,9 +264,7 @@ def read_previous_context(agent_name):
         with open(context_file) as f:
             return json.load(f)
     else:
-        # Fallback to Serena memory if available
         try:
-            return mcp__serena__read_memory(f"{agent_name}_context")
         except:
             return None
 
@@ -302,9 +300,7 @@ def write_context_summary(agent_name, summary_data):
     with open(f"output/context/{agent_name}-summary.json", "w") as f:
         json.dump(context, f, indent=2)
     
-    # Also write to Serena memory if available
     try:
-        mcp__serena__write_memory(f"{agent_name}_context", context)
     except:
         pass  # Fallback gracefully
 ```

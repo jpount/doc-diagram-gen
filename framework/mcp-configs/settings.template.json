@@ -31,7 +31,6 @@
     "filesystem",
     "memory"
   ],
-  "_comment": "Serena is disabled by default. Enable it by adding 'serena' to enabledMcpjsonServers",
   "hooks": {
     "PreToolUse": [
       {

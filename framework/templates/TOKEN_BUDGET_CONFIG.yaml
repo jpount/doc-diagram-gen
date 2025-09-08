@@ -287,7 +287,6 @@ optimization:
       when_to_use: "For re-analysis or similar projects"
     
     - name: "MCP Tools"
-      description: "Use Repomix, Serena, etc."
       typical_savings: "80-90%"
       when_to_use: "Always when available"
 

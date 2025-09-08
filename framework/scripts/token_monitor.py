@@ -1,225 +1,259 @@
 #!/usr/bin/env python3
 """
-Token Usage Monitor for Codebase Analysis Framework
-Tracks token consumption across agents and provides optimization insights
+Token usage monitoring and optimization tracking for the framework.
+Tracks token efficiency from different data sources (Repomix vs raw files).
 """
 
-import json
 import os
-import subprocess
-from pathlib import Path
+import sys
+import json
+import time
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, asdict
-import re
-
-@dataclass
-class TokenUsage:
-    """Token usage data structure"""
-    agent: str
-    timestamp: str
-    input_tokens: int
-    output_tokens: int
-    total_tokens: int
-    phase: str = ""
-    cost_estimate: float = 0.0
-    efficiency_score: float = 0.0
-    data_source: str = ""  # repomix, serena, or raw
+from pathlib import Path
+from typing import Dict, List, Any, Optional, Tuple
+import argparse
 
 class TokenMonitor:
-    """
-    Monitors and tracks token usage across all agents
-    """
+    """Monitor and track token usage across different data access strategies"""
     
-    # Token pricing (as of 2024 - adjust as needed)
+    # Token estimation constants
+    CHARS_PER_TOKEN = 3.5  # Average characters per token
+    LINES_PER_TOKEN = 0.75  # Average lines per token
+    
+    # Cost estimates (in USD per 1K tokens)
     PRICING = {
-        "claude-3-opus": {"input": 0.015, "output": 0.075},  # per 1K tokens
         "claude-3-sonnet": {"input": 0.003, "output": 0.015},
         "claude-3-haiku": {"input": 0.00025, "output": 0.00125},
-        "gpt-4": {"input": 0.03, "output": 0.06},
-        "gpt-4-turbo": {"input": 0.01, "output": 0.03}
+        "claude-3-opus": {"input": 0.015, "output": 0.075},
+        "claude-3.5-sonnet": {"input": 0.003, "output": 0.015}
     }
     
-    # Token budgets by project size and agent
-    BUDGETS = {
-        "small": {  # <10K lines
-            "legacy-code-detective": 30000,
-            "business-logic-analyst": 25000,
-            "performance-analyst": 20000,
-            "security-analyst": 20000,
-            "diagram-architect": 15000,
-            "documentation-specialist": 30000,
-            "modernization-architect": 35000,
-            "total": 175000
-        },
-        "medium": {  # 10K-100K lines
-            "legacy-code-detective": 50000,
-            "business-logic-analyst": 40000,
-            "performance-analyst": 35000,
-            "security-analyst": 35000,
-            "diagram-architect": 25000,
-            "documentation-specialist": 50000,
-            "modernization-architect": 50000,
-            "total": 285000
-        },
-        "large": {  # 100K+ lines
-            "legacy-code-detective": 75000,
-            "business-logic-analyst": 60000,
-            "performance-analyst": 50000,
-            "security-analyst": 50000,
-            "diagram-architect": 35000,
-            "documentation-specialist": 75000,
-            "modernization-architect": 75000,
-            "total": 420000
+    def __init__(self, project_root: str = None):
+        self.project_root = Path(project_root or os.getcwd())
+        self.log_file = self.project_root / "logs" / "token_usage.jsonl"
+        self.summary_file = self.project_root / "logs" / "token_summary.json"
+        self.model = "claude-3.5-sonnet"  # Default model
+        
+        # Ensure logs directory exists
+        self.log_file.parent.mkdir(exist_ok=True)
+    
+    def log_usage(self, 
+                  agent: str, 
+                  operation: str, 
+                  input_tokens: int, 
+                  output_tokens: int,
+                  data_source: str = "unknown",
+                  file_path: str = None,
+                  optimization_used: bool = False,
+                  metadata: Dict = None) -> Dict:
+        """Log token usage for an operation"""
+        
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "agent": agent,
+            "operation": operation,
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens,
+            "data_source": data_source,
+            "file_path": file_path,
+            "optimization_used": optimization_used,
+            "estimated_cost": self._calculate_cost(input_tokens, output_tokens),
+            "model": self.model,
+            "metadata": metadata or {}
         }
-    }
+        
+        # Append to log file
+        with open(self.log_file, "a") as f:
+            f.write(json.dumps(entry) + "\n")
+        
+        return entry
     
-    def __init__(self, project_size: str = "medium", model: str = "claude-3-sonnet"):
-        self.project_size = project_size
-        self.model = model
-        self.log_file = Path("output/reports/token-usage-log.json")
-        self.summary_file = Path("output/reports/token-usage-summary.json")
-        self.usage_history: List[TokenUsage] = []
-        self.current_agent: Optional[str] = None
-        self.session_start = datetime.now().isoformat()
-        
-        # Create output directory if needed
-        self.log_file.parent.mkdir(parents=True, exist_ok=True)
-        
-        # Load existing history
-        self._load_history()
-    
-    def _load_history(self):
-        """Load existing token usage history"""
-        if self.log_file.exists():
-            try:
-                with open(self.log_file, 'r') as f:
-                    data = json.load(f)
-                    for entry in data:
-                        self.usage_history.append(TokenUsage(**entry))
-            except:
-                pass
-    
-    def track_usage(self, agent: str, input_tokens: int, output_tokens: int,
-                   phase: str = "", data_source: str = "") -> TokenUsage:
-        """
-        Track token usage for an agent
-        
-        Args:
-            agent: Name of the agent
-            input_tokens: Number of input tokens used
-            output_tokens: Number of output tokens generated
-            phase: Optional phase description
-            data_source: Source of data (repomix, serena, raw)
-        
-        Returns:
-            TokenUsage object with calculated metrics
-        """
-        total = input_tokens + output_tokens
-        
-        # Calculate cost
-        cost = self._calculate_cost(input_tokens, output_tokens)
-        
-        # Calculate efficiency score
-        efficiency = self._calculate_efficiency(data_source, total)
-        
-        usage = TokenUsage(
-            agent=agent,
-            timestamp=datetime.now().isoformat(),
-            input_tokens=input_tokens,
-            output_tokens=output_tokens,
-            total_tokens=total,
-            phase=phase,
-            cost_estimate=cost,
-            efficiency_score=efficiency,
-            data_source=data_source
-        )
-        
-        self.usage_history.append(usage)
-        self._save_usage(usage)
-        
-        # Check budget
-        self._check_budget(agent, total)
-        
-        return usage
-    
-    def get_ccusage(self) -> Optional[Dict[str, int]]:
-        """
-        Try to get token usage from ccusage command if available
-        
-        Returns:
-            Dict with token counts or None if not available
-        """
+    def estimate_tokens_from_file(self, file_path: str) -> Dict[str, int]:
+        """Estimate tokens from file content"""
         try:
-            # Try to run ccusage command
-            result = subprocess.run(
-                ["ccusage"],
-                capture_output=True,
-                text=True,
-                timeout=5
-            )
+            with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                content = f.read()
             
-            if result.returncode == 0:
-                # Parse output (format may vary)
-                output = result.stdout
-                
-                # Common patterns for token usage output
-                patterns = [
-                    r"Input:\s*(\d+)",
-                    r"Output:\s*(\d+)",
-                    r"Total:\s*(\d+)",
-                    r"Tokens used:\s*(\d+)",
-                    r"(\d+)\s*input.*?(\d+)\s*output"
-                ]
-                
-                tokens = {}
-                for pattern in patterns:
-                    matches = re.findall(pattern, output, re.IGNORECASE)
-                    if matches:
-                        if len(matches[0]) == 2:  # input/output pair
-                            tokens["input"] = int(matches[0][0])
-                            tokens["output"] = int(matches[0][1])
-                        elif "input" in pattern.lower():
-                            tokens["input"] = int(matches[0])
-                        elif "output" in pattern.lower():
-                            tokens["output"] = int(matches[0])
-                        elif "total" in pattern.lower():
-                            tokens["total"] = int(matches[0])
-                
-                return tokens if tokens else None
-                
-        except (subprocess.SubprocessError, FileNotFoundError):
-            return None
+            char_count = len(content)
+            line_count = content.count('\n')
+            
+            # Multiple estimation methods
+            char_based = int(char_count / self.CHARS_PER_TOKEN)
+            line_based = int(line_count / self.LINES_PER_TOKEN)
+            
+            # Use the more conservative (higher) estimate
+            estimated = max(char_based, line_based)
+            
+            return {
+                "estimated_tokens": estimated,
+                "char_count": char_count,
+                "line_count": line_count,
+                "char_based_estimate": char_based,
+                "line_based_estimate": line_based
+            }
+            
+        except Exception as e:
+            return {
+                "estimated_tokens": 0,
+                "error": str(e)
+            }
     
-    def estimate_from_text(self, text: str) -> int:
-        """
-        Estimate token count from text
+    def estimate_tokens_from_directory(self, directory: str, patterns: List[str] = None) -> Dict:
+        """Estimate total tokens from directory"""
+        if patterns is None:
+            patterns = ["**/*.java", "**/*.js", "**/*.py", "**/*.ts", "**/*.cs"]
         
-        Rule of thumb: ~1 token per 4 characters or ~0.75 tokens per word
-        """
-        # Method 1: Character-based (more accurate for code)
-        char_estimate = len(text) / 4
+        total_tokens = 0
+        total_files = 0
+        file_breakdown = {}
         
-        # Method 2: Word-based (more accurate for documentation)
-        word_estimate = len(text.split()) * 0.75
+        dir_path = Path(directory)
         
-        # Use average for balance
-        return int((char_estimate + word_estimate) / 2)
+        for pattern in patterns:
+            for file_path in dir_path.glob(pattern):
+                if file_path.is_file():
+                    estimates = self.estimate_tokens_from_file(str(file_path))
+                    tokens = estimates.get("estimated_tokens", 0)
+                    
+                    total_tokens += tokens
+                    total_files += 1
+                    
+                    # Store relative path for cleaner output
+                    rel_path = str(file_path.relative_to(dir_path))
+                    file_breakdown[rel_path] = {
+                        "tokens": tokens,
+                        "chars": estimates.get("char_count", 0),
+                        "lines": estimates.get("line_count", 0)
+                    }
+        
+        return {
+            "total_tokens": total_tokens,
+            "total_files": total_files,
+            "average_tokens_per_file": int(total_tokens / total_files) if total_files > 0 else 0,
+            "file_breakdown": file_breakdown
+        }
     
-    def track_file_read(self, file_path: str, content: str, agent: str) -> TokenUsage:
-        """
-        Track tokens from reading a file
-        """
-        tokens = self.estimate_from_text(content)
-        source = self._determine_source(file_path)
+    def compare_strategies(self, codebase_path: str, repomix_path: str = None) -> Dict:
+        """Compare token usage between raw codebase and Repomix summary"""
         
-        return self.track_usage(
-            agent=agent,
-            input_tokens=tokens,
-            output_tokens=0,
-            phase=f"Reading {file_path}",
-            data_source=source
-        )
+        # Estimate raw codebase tokens
+        raw_estimate = self.estimate_tokens_from_directory(codebase_path)
+        
+        # Estimate Repomix tokens if available
+        repomix_estimate = {"total_tokens": 0, "available": False}
+        
+        if repomix_path and os.path.exists(repomix_path):
+            repomix_file_estimate = self.estimate_tokens_from_file(repomix_path)
+            repomix_estimate = {
+                "total_tokens": repomix_file_estimate.get("estimated_tokens", 0),
+                "available": True,
+                "file_size": repomix_file_estimate.get("char_count", 0),
+                "lines": repomix_file_estimate.get("line_count", 0)
+            }
+        
+        # Calculate savings
+        if repomix_estimate["available"] and raw_estimate["total_tokens"] > 0:
+            token_reduction = raw_estimate["total_tokens"] - repomix_estimate["total_tokens"]
+            percentage_reduction = (token_reduction / raw_estimate["total_tokens"]) * 100
+        else:
+            token_reduction = 0
+            percentage_reduction = 0
+        
+        return {
+            "raw_codebase": raw_estimate,
+            "repomix_summary": repomix_estimate,
+            "optimization": {
+                "token_reduction": token_reduction,
+                "percentage_reduction": percentage_reduction,
+                "cost_savings": self._calculate_cost(token_reduction, 0)
+            }
+        }
+    
+    def generate_report(self) -> Dict:
+        """Generate comprehensive token usage report"""
+        
+        # Check if we have any logs
+        if not self.log_file.exists():
+            return {
+                "error": "No token usage logs found",
+                "log_file": str(self.log_file)
+            }
+        
+        # Load all log entries
+        entries = []
+        try:
+            with open(self.log_file, "r") as f:
+                for line in f:
+                    entries.append(json.loads(line.strip()))
+        except Exception as e:
+            return {"error": f"Failed to read logs: {e}"}
+        
+        if not entries:
+            return {"error": "No log entries found"}
+        
+        # Analyze usage patterns
+        total_input = sum(e["input_tokens"] for e in entries)
+        total_output = sum(e["output_tokens"] for e in entries)
+        total_cost = sum(e.get("estimated_cost", 0) for e in entries)
+        
+        # Group by data source
+        source_breakdown = {}
+        for entry in entries:
+            source = entry["data_source"]
+            if source not in source_breakdown:
+                source_breakdown[source] = {
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "operations": 0,
+                    "cost": 0
+                }
+            
+            source_breakdown[source]["input_tokens"] += entry["input_tokens"]
+            source_breakdown[source]["output_tokens"] += entry["output_tokens"]
+            source_breakdown[source]["operations"] += 1
+            source_breakdown[source]["cost"] += entry.get("estimated_cost", 0)
+        
+        # Calculate efficiency metrics
+        repomix_usage = source_breakdown.get("repomix", {}).get("input_tokens", 0)
+        total_usage = total_input
+        repomix_efficiency = (repomix_usage / total_usage * 100) if total_usage > 0 else 0
+        
+        return {
+            "summary": {
+                "total_operations": len(entries),
+                "total_input_tokens": total_input,
+                "total_output_tokens": total_output,
+                "total_tokens": total_input + total_output,
+                "estimated_total_cost": round(total_cost, 4),
+                "repomix_efficiency_percentage": round(repomix_efficiency, 1)
+            },
+            "by_data_source": source_breakdown,
+            "latest_entries": entries[-5:],  # Last 5 entries
+            "recommendations": self._generate_recommendations(source_breakdown, repomix_efficiency)
+        }
+    
+    def _generate_recommendations(self, source_breakdown: Dict, repomix_efficiency: float) -> List[str]:
+        """Generate optimization recommendations based on usage patterns"""
+        recommendations = []
+        
+        if repomix_efficiency < 80:
+            recommendations.append(
+                f"LOW REPOMIX USAGE ({repomix_efficiency:.1f}%): Increase Repomix usage to achieve 80%+ token reduction"
+            )
+        
+        raw_tokens = source_breakdown.get("raw", {}).get("input_tokens", 0)
+        if raw_tokens > 50000:
+            recommendations.append(
+                f"HIGH RAW TOKEN USAGE ({raw_tokens:,}): Consider using Repomix compression to reduce costs"
+            )
+        
+        if repomix_efficiency > 90:
+            recommendations.append(
+                f"EXCELLENT OPTIMIZATION ({repomix_efficiency:.1f}%): Maintaining optimal token efficiency"
+            )
+        
+        return recommendations
     
     def _determine_source(self, file_path: str) -> str:
         """Determine data source from file path"""
@@ -228,7 +262,7 @@ class TokenMonitor:
         elif "codebase/" in file_path:
             return "raw"
         else:
-            return "serena"
+            return "unknown"
     
     def _calculate_cost(self, input_tokens: int, output_tokens: int) -> float:
         """Calculate estimated cost in USD"""
@@ -241,291 +275,81 @@ class TokenMonitor:
         
         return round(input_cost + output_cost, 4)
     
-    def _calculate_efficiency(self, data_source: str, total_tokens: int) -> float:
-        """
-        Calculate efficiency score based on data source
+    def cleanup_old_logs(self, days: int = 7) -> int:
+        """Clean up log entries older than specified days"""
+        if not self.log_file.exists():
+            return 0
         
-        Repomix: 100% efficient (best)
-        Serena: 60% efficient (good)
-        Raw: 20% efficient (poor)
-        """
-        efficiency_map = {
-            "repomix": 1.0,
-            "serena": 0.6,
-            "raw": 0.2,
-            "": 0.5  # Unknown
-        }
+        cutoff_time = time.time() - (days * 24 * 60 * 60)
+        kept_entries = []
         
-        return efficiency_map.get(data_source.lower(), 0.5)
+        try:
+            with open(self.log_file, "r") as f:
+                for line in f:
+                    entry = json.loads(line.strip())
+                    entry_time = datetime.fromisoformat(entry["timestamp"]).timestamp()
+                    if entry_time > cutoff_time:
+                        kept_entries.append(entry)
+            
+            # Rewrite file with kept entries
+            with open(self.log_file, "w") as f:
+                for entry in kept_entries:
+                    f.write(json.dumps(entry) + "\n")
+            
+            return len(kept_entries)
+            
+        except Exception as e:
+            print(f"Error cleaning logs: {e}")
+            return 0
+
+def main():
+    """CLI interface for token monitoring"""
+    parser = argparse.ArgumentParser(description="Token Usage Monitor")
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
     
-    def _check_budget(self, agent: str, tokens_used: int):
-        """Check if agent is within budget"""
-        if agent not in self.BUDGETS[self.project_size]:
-            return
-        
-        budget = self.BUDGETS[self.project_size][agent]
-        
-        # Calculate total used by this agent
-        agent_total = sum(
-            u.total_tokens for u in self.usage_history 
-            if u.agent == agent
-        )
-        
-        if agent_total > budget:
-            print(f"⚠️ WARNING: {agent} exceeded token budget!")
-            print(f"   Used: {agent_total:,} / Budget: {budget:,}")
-            print(f"   Overage: {agent_total - budget:,} tokens")
-        elif agent_total > budget * 0.8:
-            print(f"⚠️ CAUTION: {agent} at {(agent_total/budget*100):.0f}% of budget")
+    # Report command
+    report_parser = subparsers.add_parser('report', help='Generate usage report')
     
-    def _save_usage(self, usage: TokenUsage):
-        """Save usage to log file"""
-        # Convert history to dictionaries
-        history_data = [asdict(u) for u in self.usage_history]
-        
-        with open(self.log_file, 'w') as f:
-            json.dump(history_data, f, indent=2)
+    # Compare command  
+    compare_parser = subparsers.add_parser('compare', help='Compare strategies')
+    compare_parser.add_argument('--codebase', required=True, help='Path to codebase directory')
+    compare_parser.add_argument('--repomix', help='Path to Repomix summary file')
     
-    def get_summary(self) -> Dict[str, Any]:
-        """
-        Get comprehensive usage summary
-        """
-        if not self.usage_history:
-            return {"message": "No usage data available"}
-        
-        # Overall stats
-        total_input = sum(u.input_tokens for u in self.usage_history)
-        total_output = sum(u.output_tokens for u in self.usage_history)
-        total_all = sum(u.total_tokens for u in self.usage_history)
-        total_cost = sum(u.cost_estimate for u in self.usage_history)
-        
-        # By agent
-        by_agent = {}
-        for usage in self.usage_history:
-            if usage.agent not in by_agent:
-                by_agent[usage.agent] = {
-                    "input": 0, "output": 0, "total": 0, 
-                    "cost": 0.0, "calls": 0
-                }
-            by_agent[usage.agent]["input"] += usage.input_tokens
-            by_agent[usage.agent]["output"] += usage.output_tokens
-            by_agent[usage.agent]["total"] += usage.total_tokens
-            by_agent[usage.agent]["cost"] += usage.cost_estimate
-            by_agent[usage.agent]["calls"] += 1
-        
-        # By data source
-        by_source = {}
-        for usage in self.usage_history:
-            source = usage.data_source or "unknown"
-            if source not in by_source:
-                by_source[source] = {"tokens": 0, "calls": 0}
-            by_source[source]["tokens"] += usage.total_tokens
-            by_source[source]["calls"] += 1
-        
-        # Calculate efficiency
-        weighted_efficiency = sum(
-            u.total_tokens * u.efficiency_score for u in self.usage_history
-        ) / total_all if total_all > 0 else 0
-        
-        # Budget status
-        budget_total = self.BUDGETS[self.project_size]["total"]
-        budget_used_pct = (total_all / budget_total * 100) if budget_total > 0 else 0
-        
-        summary = {
-            "session_start": self.session_start,
-            "project_size": self.project_size,
-            "model": self.model,
-            "overall": {
-                "total_tokens": total_all,
-                "input_tokens": total_input,
-                "output_tokens": total_output,
-                "total_cost_usd": round(total_cost, 2),
-                "efficiency_score": round(weighted_efficiency * 100, 1),
-                "budget_used": f"{budget_used_pct:.1f}%",
-                "budget_remaining": max(0, budget_total - total_all)
-            },
-            "by_agent": by_agent,
-            "by_source": by_source,
-            "top_consumers": self._get_top_consumers(by_agent, 5),
-            "recommendations": self._get_recommendations(by_source, weighted_efficiency)
-        }
-        
-        # Save summary
-        with open(self.summary_file, 'w') as f:
-            json.dump(summary, f, indent=2)
-        
-        return summary
+    # Estimate command
+    estimate_parser = subparsers.add_parser('estimate', help='Estimate tokens')
+    estimate_parser.add_argument('path', help='File or directory path')
+    estimate_parser.add_argument('--directory', action='store_true', help='Treat path as directory')
     
-    def _get_top_consumers(self, by_agent: Dict, limit: int = 5) -> List[Dict]:
-        """Get top token consuming agents"""
-        sorted_agents = sorted(
-            by_agent.items(), 
-            key=lambda x: x[1]["total"], 
-            reverse=True
-        )[:limit]
-        
-        return [
-            {
-                "agent": agent,
-                "tokens": data["total"],
-                "percentage": f"{(data['total'] / sum(a[1]['total'] for a in by_agent.items()) * 100):.1f}%"
-            }
-            for agent, data in sorted_agents
-        ]
+    # Cleanup command
+    cleanup_parser = subparsers.add_parser('cleanup', help='Clean old logs')
+    cleanup_parser.add_argument('--days', type=int, default=7, help='Days to keep (default: 7)')
     
-    def _get_recommendations(self, by_source: Dict, efficiency: float) -> List[str]:
-        """Generate recommendations based on usage patterns"""
-        recommendations = []
-        
-        # Check efficiency
-        if efficiency < 0.5:
-            recommendations.append("🔴 Critical: Poor token efficiency - ensure Repomix is generated")
-        elif efficiency < 0.7:
-            recommendations.append("🟡 Warning: Suboptimal efficiency - check Repomix completeness")
+    args = parser.parse_args()
+    
+    if not args.command:
+        parser.print_help()
+        return
+    
+    monitor = TokenMonitor()
+    
+    if args.command == 'report':
+        report = monitor.generate_report()
+        print(json.dumps(report, indent=2))
+    
+    elif args.command == 'compare':
+        comparison = monitor.compare_strategies(args.codebase, args.repomix)
+        print(json.dumps(comparison, indent=2))
+    
+    elif args.command == 'estimate':
+        if args.directory:
+            estimates = monitor.estimate_tokens_from_directory(args.path)
         else:
-            recommendations.append("✅ Good: Efficient token usage")
-        
-        # Check data sources
-        if "raw" in by_source and by_source["raw"]["tokens"] > 0:
-            raw_pct = by_source["raw"]["tokens"] / sum(s["tokens"] for s in by_source.values()) * 100
-            if raw_pct > 20:
-                recommendations.append(f"⚠️ {raw_pct:.0f}% raw codebase access - regenerate Repomix")
-        
-        # Check if Repomix is being used
-        if "repomix" not in by_source or by_source["repomix"]["tokens"] == 0:
-            recommendations.append("🚨 Not using Repomix - generate with: repomix --config .repomix.config.json")
-        
-        return recommendations
+            estimates = monitor.estimate_tokens_from_file(args.path)
+        print(json.dumps(estimates, indent=2))
     
-    def display_summary(self):
-        """Display formatted summary to console"""
-        summary = self.get_summary()
-        
-        print("\n" + "="*60)
-        print("📊 TOKEN USAGE SUMMARY")
-        print("="*60)
-        
-        overall = summary["overall"]
-        print(f"\n🎯 Overall Statistics:")
-        print(f"  Total Tokens: {overall['total_tokens']:,}")
-        print(f"  Input/Output: {overall['input_tokens']:,} / {overall['output_tokens']:,}")
-        print(f"  Estimated Cost: ${overall['total_cost_usd']:.2f}")
-        print(f"  Efficiency Score: {overall['efficiency_score']}%")
-        print(f"  Budget Used: {overall['budget_used']}")
-        print(f"  Remaining: {overall['budget_remaining']:,} tokens")
-        
-        print(f"\n👥 Top Token Consumers:")
-        for consumer in summary["top_consumers"]:
-            print(f"  {consumer['agent']}: {consumer['tokens']:,} ({consumer['percentage']})")
-        
-        print(f"\n📍 By Data Source:")
-        for source, data in summary["by_source"].items():
-            print(f"  {source}: {data['tokens']:,} tokens ({data['calls']} calls)")
-        
-        print(f"\n💡 Recommendations:")
-        for rec in summary["recommendations"]:
-            print(f"  {rec}")
-        
-        print("\n" + "="*60)
-
-
-# Convenience functions for agents to use
-_monitor = None
-
-def init_monitor(project_size: str = "medium", model: str = "claude-3-sonnet"):
-    """Initialize the token monitor"""
-    global _monitor
-    _monitor = TokenMonitor(project_size, model)
-    return _monitor
-
-def track_tokens(agent: str, input_tokens: int, output_tokens: int, 
-                phase: str = "", data_source: str = ""):
-    """Track token usage for current operation"""
-    global _monitor
-    if not _monitor:
-        _monitor = TokenMonitor()
-    return _monitor.track_usage(agent, input_tokens, output_tokens, phase, data_source)
-
-def estimate_tokens(text: str) -> int:
-    """Estimate token count from text"""
-    global _monitor
-    if not _monitor:
-        _monitor = TokenMonitor()
-    return _monitor.estimate_from_text(text)
-
-def check_ccusage(agent: str = "current"):
-    """Check and track tokens from ccusage if available"""
-    global _monitor
-    if not _monitor:
-        _monitor = TokenMonitor()
-    
-    usage = _monitor.get_ccusage()
-    if usage:
-        return _monitor.track_usage(
-            agent=agent,
-            input_tokens=usage.get("input", 0),
-            output_tokens=usage.get("output", 0),
-            phase="ccusage_check"
-        )
-    return None
-
-def get_token_summary():
-    """Get current token usage summary"""
-    global _monitor
-    if not _monitor:
-        _monitor = TokenMonitor()
-    return _monitor.get_summary()
-
-def display_token_report():
-    """Display formatted token usage report"""
-    global _monitor
-    if not _monitor:
-        _monitor = TokenMonitor()
-    _monitor.display_summary()
-
+    elif args.command == 'cleanup':
+        kept = monitor.cleanup_old_logs(args.days)
+        print(f"Cleaned logs, kept {kept} recent entries")
 
 if __name__ == "__main__":
-    import sys
-    
-    # Command line interface
-    if len(sys.argv) > 1:
-        command = sys.argv[1].lower()
-        
-        if command == "init":
-            size = sys.argv[2] if len(sys.argv) > 2 else "medium"
-            model = sys.argv[3] if len(sys.argv) > 3 else "claude-3-sonnet"
-            monitor = init_monitor(size, model)
-            print(f"✅ Token monitor initialized for {size} project with {model}")
-        
-        elif command == "report":
-            display_token_report()
-        
-        elif command == "check":
-            usage = check_ccusage()
-            if usage:
-                print(f"✅ Tracked {usage.total_tokens} tokens from ccusage")
-            else:
-                print("❌ ccusage not available")
-        
-        elif command == "test":
-            # Test tracking
-            monitor = init_monitor("medium", "claude-3-sonnet")
-            
-            # Simulate some usage
-            track_tokens("test-agent", 1000, 500, "testing", "repomix")
-            track_tokens("test-agent", 2000, 1000, "analyzing", "serena")
-            track_tokens("test-agent", 5000, 2000, "raw access", "raw")
-            
-            display_token_report()
-        
-        else:
-            print("Usage: python token_monitor.py [init|report|check|test] [project_size] [model]")
-    else:
-        print("Token Monitor - Track token usage across agents")
-        print("Usage: python token_monitor.py [init|report|check|test]")
-        print()
-        print("Commands:")
-        print("  init [size] [model]  - Initialize monitor")
-        print("  report               - Display usage report")
-        print("  check                - Check ccusage if available")
-        print("  test                 - Run test simulation")
+    main()

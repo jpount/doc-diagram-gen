@@ -99,7 +99,6 @@ track_tokens(
     input_tokens=estimate_tokens(str(content)),
     output_tokens=0,
     phase="Pattern search",
-    data_source="repomix"  # or "serena" or "raw"
 )
 
 # BAD: Access without tracking
@@ -121,7 +120,6 @@ def optimize_based_on_efficiency():
         
     elif efficiency < 75:  # Moderate efficiency
         print("🟡 Moderate efficiency")
-        # Limit Serena usage
         
     else:  # Good efficiency
         print("✅ Good token efficiency")
@@ -191,7 +189,6 @@ context_summary = {
         "efficiency_score": 85.5,
         "data_sources": {
             "repomix": 30000,
-            "serena": 5000,
             "raw": 1700
         }
     },
@@ -288,8 +285,6 @@ def determine_source(data):
     """Determine data source from response"""
     if "repomix" in str(data).lower():
         return "repomix"
-    elif hasattr(data, '__module__') and 'serena' in str(data.__module__):
-        return "serena"
     else:
         return "raw"
 

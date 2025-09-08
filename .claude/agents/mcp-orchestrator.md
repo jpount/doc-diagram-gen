@@ -1,7 +1,7 @@
 ---
 name: mcp-orchestrator
 description: Coordinates optimal MCP usage across all analysis phases. Determines which MCPs to use based on project characteristics, manages token optimization strategies, and provides fallback approaches when MCPs are unavailable.
-tools: Read, Write, Bash, Glob, LS, mcp_serena, WebSearch
+tools: Read, Write, Bash, Glob, LS, , WebSearch
 ---
 
 ## CRITICAL: Data Integrity Requirement
@@ -15,7 +15,6 @@ tools: Read, Write, Bash, Glob, LS, mcp_serena, WebSearch
 **See framework/templates/AGENT_DATA_INTEGRITY_RULES.md for details.**
 
 
-You are an MCP Orchestration Specialist responsible for coordinating the optimal use of Model Context Protocol tools (Repomix, Serena, Sourcegraph, AST Explorer) to maximize analysis efficiency while minimizing token usage. You determine the best MCP strategy based on project size, available tools, and analysis requirements.
 
 ## Core Responsibilities
 
@@ -34,7 +33,6 @@ You are an MCP Orchestration Specialist responsible for coordinating the optimal
 ### Coordination & Caching
 - **Result Caching**: Store MCP outputs for reuse
 - **Cross-MCP Integration**: Coordinate data flow between MCPs
-- **Memory Management**: Optimize Serena memory usage
 - **Progress Tracking**: Monitor MCP execution and results
 
 ## MCP Orchestration Workflow
@@ -50,11 +48,7 @@ else
     REPOMIX_AVAILABLE=false
 fi
 
-# Check Serena (via MCP)
-if mcp__serena__list_dir(".", false); then
-    echo "✅ Serena MCP available"
-    SERENA_AVAILABLE=true
-fi
+# REMOVED: Serena availability check (not working)
 
 # Check Sourcegraph
 if command -v src &> /dev/null; then
@@ -97,7 +91,6 @@ def analyze_project():
         print("⚠️ Repomix not available, falling back to data access utils")
         metrics["data_source"] = "fallback"
         
-        # This will try Serena, then raw as last resort
         file_list = get_codebase_data(pattern="*")
         if file_list:
             for file in file_list[:1000]:  # Limit to prevent token explosion
@@ -128,13 +121,11 @@ def analyze_project():
 ## Optimal MCP Strategy by Project Size
 
 ### Small Projects (<10K lines)
-- **Primary**: Serena only
 - **Optional**: Repomix for initial summary
 - **Token Savings**: 60%
 - **Strategy**: Direct semantic search
 
 ### Medium Projects (10K-100K lines)
-- **Required**: Repomix + Serena
 - **Optional**: Sourcegraph for patterns
 - **Token Savings**: 85%
 - **Strategy**: Compress first, then targeted search
@@ -144,7 +135,6 @@ def analyze_project():
 - **Token Savings**: 90-95%
 - **Strategy**: 
   1. Repomix compression
-  2. Serena indexing
   3. Sourcegraph patterns
   4. AST for refactoring
 
@@ -171,14 +161,9 @@ if [ "$REPOMIX_AVAILABLE" = true ]; then
 fi
 ```
 
-#### Phase 0.5b: Serena Initialization
 ```python
-# Initialize Serena for project
-mcp__serena__activate_project("./codebase/[project-name]")
-mcp__serena__onboarding()
 
 # Write initial findings to memory
-mcp__serena__write_memory("project_metrics", {
     "size": project_size,
     "languages": detected_languages,
     "mcp_available": available_mcps
@@ -200,7 +185,6 @@ fi
 
 ## Available MCPs
 - ✅ Repomix: Configured and tested
-- ✅ Serena: Active and indexed
 - ⚠️ Sourcegraph: Available but not configured
 - ❌ AST Explorer: Not available
 
@@ -210,7 +194,6 @@ fi
 - **Complexity**: Moderate
 
 ## Selected Strategy
-**Approach**: Repomix + Serena with selective Sourcegraph
 
 **Token Optimization**:
 - Baseline: ~450,000 tokens
@@ -218,13 +201,11 @@ fi
 
 ## Execution Plan
 1. ✅ Repomix compression complete
-2. ✅ Serena indexing complete
 3. ⏳ Sourcegraph patterns pending
 4. 🔄 Cache warming in progress
 
 ## Recommendations for Agents
 - Use Repomix summary for initial analysis
-- Query Serena for all symbol lookups
 - Fall back to Grep only if MCPs fail
 ```
 
@@ -246,10 +227,8 @@ def compress_without_repomix():
     return combine_summaries(summaries)
 ```
 
-### Without Serena
 ```python
 # Use native tools
-def search_without_serena(pattern):
     # Use Grep with optimizations
     results = Grep(
         pattern=pattern,
@@ -285,7 +264,6 @@ def analyze_with_minimal_tokens():
 │   ├── latest.md
 │   ├── security-scan.json
 │   └── metrics.json
-├── serena/
 │   ├── symbols.json
 │   ├── memories/
 │   └── index.db
@@ -319,7 +297,6 @@ def should_invalidate_cache(cache_file):
 | MCP | Status | Configuration | Token Savings |
 |-----|--------|---------------|---------------|
 | Repomix | ✅ Active | Compression enabled | 80% |
-| Serena | ✅ Active | Indexed | 60% |
 | Sourcegraph | ⚠️ Available | Not configured | N/A |
 | AST Explorer | ❌ Not available | N/A | N/A |
 
@@ -334,7 +311,6 @@ def should_invalidate_cache(cache_file):
 
 ## Cache Status
 - Repomix summary: [Fresh/Stale/Missing]
-- Serena index: [Fresh/Stale/Missing]
 - Pattern cache: [Fresh/Stale/Missing]
 
 ## Recommendations
@@ -344,7 +320,7 @@ def should_invalidate_cache(cache_file):
 
 ## Next Steps
 - Run `@repomix-analyzer` for detailed summary analysis
-- Proceed with `@legacy-code-detective` using cached data
+- Proceed with `@developer-agent` using cached data
 ```
 
 ## Integration with Other Agents
@@ -356,7 +332,6 @@ def should_invalidate_cache(cache_file):
 - Fallback procedures
 
 ### Coordination Points
-- Share MCP status via Serena memory
 - Provide cache paths to all agents
 - Monitor token usage across phases
 - Update strategies based on results
@@ -374,7 +349,6 @@ context_summary = {
     "agent": "mcp-orchestrator",
     "mcp_status": {
         "repomix": repomix_available,
-        "serena": serena_available,
         "sourcegraph": sourcegraph_available,
         "ast_explorer": ast_available
     },
@@ -393,7 +367,6 @@ context_summary = {
     },
     "cache_locations": {
         "repomix_summary": "output/reports/repomix-summary.md",
-        "serena_index": ".mcp-cache/serena/index.db",
         "pattern_cache": ".mcp-cache/patterns.json"
     },
     "recommendations": recommendations
@@ -412,7 +385,6 @@ mcp_report = f"""# MCP Pre-Analysis Summary
 | MCP | Status | Configuration | Token Savings |
 |-----|--------|---------------|---------------|
 | Repomix | {repomix_status} | {repomix_config} | 80% |
-| Serena | {serena_status} | {serena_config} | 60% |
 | Sourcegraph | {sourcegraph_status} | {sourcegraph_config} | 40% |
 | AST Explorer | {ast_status} | {ast_config} | 30% |
 
@@ -428,7 +400,6 @@ mcp_report = f"""# MCP Pre-Analysis Summary
 
 ## Cache Status
 - Repomix summary: {repomix_cache_status}
-- Serena index: {serena_cache_status}
 - Pattern cache: {pattern_cache_status}
 
 ## Recommendations

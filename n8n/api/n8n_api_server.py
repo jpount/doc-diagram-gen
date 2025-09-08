@@ -331,9 +331,9 @@ async def n8n_list_available_agents():
             "success": True,
             "agents": agents,
             "groups": {
-                "discovery": ["mcp-orchestrator", "repomix-analyzer", "architecture-selector"],
-                "analysis": ["business-logic-analyst", "security-analyst", "performance-analyst"],
-                "documentation": ["diagram-architect", "documentation-specialist", "executive-summary"]
+                "discovery": ["mcp-orchestrator", "repomix-analyzer", "architect-agent"],
+                "analysis": ["analyst-agent"],
+                "documentation": ["diagram-agent", "doc-writer-agent"]
             }
         }
         
@@ -352,22 +352,21 @@ async def n8n_get_workflow_templates():
                 "id": "quick_analysis",
                 "name": "Quick Analysis",
                 "description": "Fast automated analysis (1-2 hours)",
-                "agents": ["mcp-orchestrator", "repomix-analyzer", "architecture-selector", "business-logic-analyst", "diagram-architect"],
+                "agents": ["mcp-orchestrator", "repomix-analyzer", "architect-agent", "analyst-agent", "diagram-agent"],
                 "parallel_groups": []
             },
             {
                 "id": "comprehensive",
                 "name": "Comprehensive Analysis",
                 "description": "Full analysis with all agents",
-                "agents": ["mcp-orchestrator", "repomix-analyzer", "architecture-selector", "business-logic-analyst", 
-                          "security-analyst", "performance-analyst", "diagram-architect", "documentation-specialist"],
-                "parallel_groups": [["business-logic-analyst", "security-analyst", "performance-analyst"]]
+                "agents": ["mcp-orchestrator", "repomix-analyzer", "architect-agent", "developer-agent", "analyst-agent", "diagram-agent", "doc-writer-agent"],
+                "parallel_groups": []
             },
             {
                 "id": "security_focus",
                 "name": "Security Analysis",
                 "description": "Security-focused analysis",
-                "agents": ["mcp-orchestrator", "repomix-analyzer", "security-analyst", "documentation-specialist"],
+                "agents": ["mcp-orchestrator", "repomix-analyzer", "analyst-agent", "doc-writer-agent"],
                 "parallel_groups": []
             }
         ]
