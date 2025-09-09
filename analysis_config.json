@@ -3,7 +3,9 @@
   "project_name": "daytrader",
   "document_types": [
     "architecture",
-    "business_rules"
+    "security",
+    "performance",
+    "quality"
   ],
   "detected_tech": [
     "Will be auto-detected during analysis"

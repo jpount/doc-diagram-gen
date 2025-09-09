@@ -116,9 +116,7 @@ def analyze_technology_stack(summary):
 - Unencrypted connections: 5 instances
 
 ### Compliance Concerns
-- PII handling detected in: UserService, CustomerDAO
-- Financial data processing in: PaymentProcessor, TransactionManager
-- No encryption markers found for sensitive data
+[BASED ON ACTUAL CODEBASE SECURITY SCAN - NO FABRICATED SERVICE NAMES]
 ```
 
 ### Step 4: Architectural Pattern Recognition
@@ -217,15 +215,10 @@ def analyze_complexity(summary):
 
 ## Complexity Analysis
 ### High Complexity Components (Priority for Deep Analysis)
-1. OrderService.java - 8,500 tokens (complexity: 0.92)
-2. PaymentProcessor.java - 6,200 tokens (complexity: 0.88)
-3. CustomerDAO.java - 5,100 tokens (complexity: 0.85)
+[POPULATED WITH ACTUAL FILES FROM REPOMIX ANALYSIS - NO HARDCODED EXAMPLES]
 
 ### Recommended Analysis Focus
-- **Business Logic**: OrderService, PaymentProcessor
-- **Data Access**: CustomerDAO, TransactionRepository
-- **Security**: AuthenticationFilter, EncryptionUtil
-- **Performance**: ReportGenerator, BatchProcessor
+[BASED ON ACTUAL CODEBASE PATTERNS - NO FABRICATED NAMES]
 
 ## Token Optimization Achieved
 | Phase | Traditional | With Repomix | Savings |
@@ -246,9 +239,7 @@ def analyze_complexity(summary):
 Run the core analysts using technology-specific knowledge from framework/knowledge/:
 
 ### For Business Logic Analyst
-- Business logic concentrated in Service layer
-- Key files: OrderService, PaymentProcessor, CustomerService
-- ~50 business rules estimated based on complexity
+[BUSINESS LOGIC ANALYSIS FROM ACTUAL CODEBASE - NO FABRICATED SERVICE NAMES]
 
 ### For Security Analyst
 - Start with Secretlint findings
@@ -256,9 +247,7 @@ Run the core analysts using technology-specific knowledge from framework/knowled
 - Focus on authentication and encryption gaps
 
 ### For Performance Analyst
-- Hotspots identified: ReportGenerator, BatchProcessor
-- Database queries need optimization (15 N+1 patterns detected)
-- Memory usage concerns in FileProcessor
+[PERFORMANCE HOTSPOTS FROM ACTUAL ANALYSIS - NO FABRICATED COMPONENT NAMES]
 
 ### For Diagram Architect
 - Use the architectural patterns identified here
@@ -284,11 +273,11 @@ Run the core analysts using technology-specific knowledge from framework/knowled
     "architecture_pattern": "Layered/MVC"
 })
 
-# Write priority targets for other agents
-    "legacy_detective": ["OrderService.java", "pom.xml", "web.xml"],
-    "business_analyst": ["OrderService", "PaymentProcessor", "CustomerService"],
-    "security_analyst": ["AuthenticationFilter", "EncryptionUtil", "config.properties"],
-    "performance_analyst": ["ReportGenerator", "BatchProcessor", "CustomerDAO"]
+# Write priority targets for other agents based on ACTUAL findings
+    "legacy_detective": priority_files[:3],  # Top 3 complex files found
+    "business_analyst": service_files[:3],   # Top 3 service files found  
+    "security_analyst": config_files[:3],    # Top 3 config files found
+    "performance_analyst": hotspot_files[:3] # Top 3 performance hotspots found
 })
 ```
 

@@ -8,6 +8,7 @@ ANALYSIS_MODE.md
 DOCUMENTATION_MODE.md
 .mcp.json
 .repomix.config.json
+analysis_config.json
 
 # Archive
 .archive/

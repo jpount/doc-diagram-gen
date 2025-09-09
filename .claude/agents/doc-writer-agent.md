@@ -110,8 +110,7 @@ Create a new order
 ```
 
 **Business Rules:**
-- BR-001: Order minimum $100 for free shipping
-- BR-002: Customer must be verified
+[EXTRACTED FROM ACTUAL BUSINESS-LOGIC ANALYSIS - NO HARDCODED EXAMPLES]
 ```
 
 ## Technology-Specific Documentation

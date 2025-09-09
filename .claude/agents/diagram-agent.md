@@ -107,6 +107,138 @@ project_name = config["project_name"]
 
 print(f"📊 Starting diagram creation for: {project_name}")
 
+# Load core agents configuration for comprehensive diagram requirements
+core_agents_file = Path("framework/agents/core_agents.json")
+if core_agents_file.exists():
+    with open(core_agents_file) as f:
+        core_agents_config = json.load(f)
+    
+    # Get document-specific diagram requirements
+    selected_doc_types = config.get("document_types", [])
+    required_diagrams = []
+    
+    for doc_type in selected_doc_types:
+        if doc_type in core_agents_config.get("document_types", {}):
+            doc_config = core_agents_config["document_types"][doc_type]
+            if "diagram-agent" in doc_config.get("agents", []):
+                outputs = doc_config.get("outputs", [])
+                diagram_outputs = [o for o in outputs if "diagrams" in o or o.endswith(".mmd")]
+                required_diagrams.extend(diagram_outputs)
+    
+    print(f"📋 Required diagram categories based on selected document types:")
+    for diagram in set(required_diagrams):
+        print(f"   - {diagram}")
+else:
+    print("⚠️ Core agents config not found - using default diagram set")
+
+## 🎯 COMPREHENSIVE DIAGRAM GENERATION REQUIREMENTS
+
+### MANDATORY: Generate ALL Required Diagrams Based on Document Selection
+
+**SMART DIAGRAM DISTRIBUTION - Avoid Unnecessary Duplication:**
+1. **Complex/Reusable diagrams** → Standalone `.mmd` files in `output/diagrams/`
+2. **Context-specific diagrams** → Embedded in relevant `.md` documentation files
+3. **Reference shared diagrams** in markdown using relative paths when needed
+
+#### Architecture Diagrams (when 'architecture' selected):
+**Standalone Files (Complex/Reusable):**
+- `output/diagrams/system-architecture.mmd` - Master system overview (referenced by multiple docs)
+- `output/diagrams/component-dependencies.mmd` - Detailed component relationships
+
+**Embedded Only (Context-Specific):**
+- Technology stack diagrams in `SYSTEM-ARCHITECTURE.md` (specific to that doc)
+- Integration point details in `INTEGRATION-GUIDE.md` (context-dependent)
+
+#### Business Flow Diagrams (when 'business_rules' selected):
+**Standalone Files (Complex/Reusable):**
+- `output/diagrams/main-business-flows.mmd` - Master business process overview
+- `output/diagrams/user-journey-complete.mmd` - End-to-end user experience
+
+**Embedded Only (Context-Specific):**
+- Individual business rule sequence diagrams in `BUSINESS-RULES.md` (one per rule)
+- State machine diagrams in `WORKFLOW-DOCUMENTATION.md` (workflow-specific)
+- Decision tree diagrams for specific business logic sections
+
+#### Performance Bottleneck Diagrams (when 'performance' selected):
+**Standalone Files (Complex/Reusable):**
+- `output/diagrams/performance-overview.mmd` - System-wide performance analysis
+- `output/diagrams/database-performance.mmd` - DB bottlenecks (referenced by multiple docs)
+
+**Embedded Only (Context-Specific):**
+- Resource utilization charts in `PERFORMANCE-ANALYSIS.md` (analysis-specific)
+- Optimization flow diagrams in `OPTIMIZATION-GUIDE.md` (guide-specific)
+- Caching strategy details in performance sections (context-dependent)
+
+#### API Diagrams (when 'api' selected):
+**Standalone Files (Complex/Reusable):**
+- `output/diagrams/api-architecture.mmd` - Master API structure (referenced by multiple docs)
+- `output/diagrams/auth-sequences.mmd` - Authentication flows (used by security & API docs)
+
+**Embedded Only (Context-Specific):**
+- Individual endpoint sequence diagrams in `API-DOCUMENTATION.md` (one per endpoint)
+- Request/response flow details in API reference sections
+
+#### UI/UX Diagrams (when 'ui_analysis' selected):
+**Standalone Files (Complex/Reusable):**
+- `output/diagrams/ui-component-hierarchy.mmd` - Master component structure
+- `output/diagrams/user-journey-overview.mmd` - High-level user flows
+
+**Embedded Only (Context-Specific):**
+- Page-specific interaction flows in `UI-ARCHITECTURE.md` (page-dependent)
+- Component detail diagrams in `UX-ASSESSMENT.md` (assessment-specific)
+
+#### Database Diagrams (when 'database' selected):
+**Standalone Files (Complex/Reusable):**
+- `output/diagrams/entity-relationship.mmd` - Master ERD (referenced by multiple docs)
+- `output/diagrams/data-flow-overview.mmd` - System-wide data movement
+
+**Embedded Only (Context-Specific):**
+- Table-specific relationship diagrams in `DATABASE-SCHEMA.md` (table-focused)
+- Migration-specific data flows in `DATA-MIGRATION.md` (migration-dependent)
+
+#### Security Diagrams (when 'security' selected):
+**Standalone Files (Complex/Reusable):**
+- `output/diagrams/security-architecture.mmd` - Master security structure
+- `output/diagrams/threat-model.mmd` - Comprehensive threat analysis
+
+**Embedded Only (Context-Specific):**
+- Vulnerability-specific flow diagrams in `SECURITY-ASSESSMENT.md` (assessment-focused)
+- Remediation-specific diagrams in `SECURITY-REMEDIATION.md` (solution-focused)
+
+### 📎 How to Reference Shared Diagrams in Documentation
+
+**When a standalone diagram is referenced in multiple documents:**
+
+```markdown
+## System Architecture Overview
+
+The overall system architecture is shown below:
+
+![System Architecture](../diagrams/system-architecture.mmd)
+
+*For detailed component relationships, see [Component Dependencies](../diagrams/component-dependencies.mmd)*
+```
+
+**This approach:**
+- ✅ Avoids duplication
+- ✅ Maintains single source of truth  
+- ✅ Allows updates in one place
+- ✅ Provides context-specific commentary
+
+### 🔄 Sequence Diagrams (MANDATORY for ALL core business processes):
+**Create these as EMBEDDED diagrams (context-specific) unless they're complex master flows:**
+- User authentication and session management
+- All CRUD operations for main entities
+- Payment/transaction processing flows
+- External system integration sequences
+- Error handling and recovery sequences
+- Batch processing and background job flows
+
+**Only create standalone sequence diagrams for:**
+- Master business process overviews (referenced by multiple docs)
+- Complex multi-system integration flows
+- Core authentication flows (used by security + API docs)
+
 # MANDATORY: Load Repomix for actual data
 repomix_files = [
     "output/reports/repomix-summary.md",

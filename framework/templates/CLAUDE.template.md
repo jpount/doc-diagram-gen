@@ -7,6 +7,99 @@
 - **Codebase Location:** codebase/{{PROJECT_PATH}}
 - **Framework Version:** 2.0
 
+## 🚨 CRITICAL OPERATIONAL RULES - NEVER VIOLATE THESE
+
+### 1. 🛡️ DO NOT BREAK ANYTHING
+- **NEVER break the manual flow** - it must continue working in Claude Code
+- **NEVER break the n8n automated workflows** - they run in production  
+- **NEVER change core framework files** without understanding dependencies
+- **ALWAYS test changes** before considering them complete
+- **PRESERVE existing functionality** while adding enhancements
+
+### 2. 📊 DO NOT FABRICATE DATA - ONLY USE ACTUAL COLLECTED DATA
+**NEVER MAKE UP ANY OF THE FOLLOWING:**
+- ❌ Specific dollar amounts ($1,000, $50.00, €100)
+- ❌ Specific dates (2025-01-09, January 15, 2024, March 2023)
+- ❌ Specific percentages (80%, 40-60%, 25.5%)
+- ❌ Specific timings (200ms, 5 seconds, 10 minutes)  
+- ❌ Specific file sizes (578KB, 2.8MB, 1.2GB)
+- ❌ Specific counts (1000 users, 50 classes, 247 methods)
+- ❌ Specific performance metrics not found in actual code
+- ❌ Specific version numbers not in the actual codebase
+- ❌ Specific server configurations not in actual config files
+- ❌ **Hardcoded class names** (OrderService, CustomerDAO, PaymentProcessor)
+
+**ONLY USE ACTUAL DATA FROM:**
+- ✅ **Codebase files** (via Read, Grep, Glob tools)
+- ✅ **Repomix summaries** in `output/reports/repomix-summary.md`
+- ✅ **Agent context files** in `output/context/*.json`
+- ✅ **Configuration files** found in the actual codebase
+- ✅ **Import statements** and dependencies in actual code
+
+**WHEN NO DATA EXISTS, USE GENERIC TERMS:**
+- ✅ High/low/moderate instead of specific percentages
+- ✅ Fast/slow/extended instead of specific times
+- ✅ Large/small/substantial instead of specific sizes
+- ✅ Many/few/several instead of specific counts
+- ✅ Recent/current/legacy instead of specific dates
+- ✅ Complex/simple/moderate instead of specific metrics
+
+**VALIDATE DATA INTEGRITY:**
+```bash
+# Check for hardcoded examples after any agent work:
+python3 framework/scripts/data_integrity_validator.py
+```
+
+### 3. 🔍 ALWAYS VALIDATE DIAGRAMS AFTER CREATION
+**MANDATORY: After creating ANY `.mmd` file or `.md` file with embedded Mermaid diagrams:**
+
+```bash
+# ALWAYS run this command after diagram creation:
+python3 framework/scripts/simple_mermaid_validator.py --fix
+```
+
+**The validator will:**
+- ✅ **Check syntax** using actual Mermaid CLI (same as browsers)
+- ✅ **Auto-fix common errors** (@ symbols, quotes, ERD syntax)
+- ✅ **Report validation status** for all diagram files
+- ✅ **Ensure diagrams render** correctly in document-viewer.html
+
+**DO NOT consider diagram work complete until validation passes!**
+
+### 4. 🚫 GENERIC TERMS ENFORCEMENT
+**WHEN NO DATA EXISTS - Instead of specific values, ALWAYS use generic descriptors:**
+
+| ❌ DO NOT USE | ✅ USE INSTEAD |
+|---------------|----------------|
+| 80% reduction | significant reduction |
+| 200ms response time | fast response |
+| $1,000 budget | substantial cost |
+| 50 classes | many classes |
+| January 2024 | recent timeframe |
+| 2.5GB memory | large memory usage |
+| 1000 users | numerous users |
+| 95% accuracy | high accuracy |
+
+### 5. 📋 EXPLICIT DATA UNAVAILABILITY DISCLOSURE
+**WHEN NO RELEVANT DATA CAN BE FOUND:**
+- ✅ **Explicitly state**: "Data not available" or "No data found in codebase"
+- ✅ **Be specific**: "No performance metrics found in logs" 
+- ✅ **Suggest action**: "Run performance profiling to gather this data"
+- ❌ **NEVER fabricate** placeholder data to fill gaps
+- ❌ **NEVER estimate** without actual basis
+
+**Examples:**
+```markdown
+## Performance Analysis
+- Database response times: Data not available
+- Memory usage patterns: No profiling data found  
+- Recommendation: Configure application monitoring to collect this data
+
+## Security Assessment  
+- Vulnerability count: No security scan results available
+- Compliance status: Data not available - recommend security audit
+```
+
 ## Analysis Configuration
 
 ### Current Settings
@@ -81,6 +174,7 @@ Each agent automatically loads technology-specific knowledge:
 {{TARGET_TECH_STACK_FILE}}
 - `framework/docs/USER_INTERACTION_GUIDE.md` - User interaction guidance
 - `framework/docs/MODERNIZATION_CONSTRAINTS.md` - Agent modernization guidelines
+- `framework/docs/DATA_DRIVEN_ENFORCEMENT.md` - **CRITICAL: Data integrity enforcement rules**
 - `framework/templates/CONTEXT_SUMMARY_SCHEMA.md` - Agent communication format
 
 ## Project-Specific Notes

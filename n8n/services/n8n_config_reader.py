@@ -14,45 +14,51 @@ class N8nConfigReader:
     based on user selections from setup.py
     """
     
-    # Mapping of documents to their required agents
+    # Mapping of document types to their required agents (SINGLE SOURCE OF TRUTH)
+    # Uses simplified keys from analysis_config.json document_types
     DOCUMENT_TO_AGENTS = {
-        "SYSTEM-ARCHITECTURE.md": ["architect-agent", "developer-agent"],
-        "TECHNICAL-DEBT-REPORT.md": ["developer-agent"],
-        "API-DOCUMENTATION.md": ["architect-agent", "architect-agent"],
-        "BUSINESS-RULES-CATALOG.md": ["analyst-agent"],
-        "SECURITY-ANALYSIS.md": ["analyst-agent"],
-        "PERFORMANCE-ANALYSIS.md": ["analyst-agent"],
-        "DATABASE-SCHEMA.md": ["architect-agent"],
-        "DEVELOPER-GUIDE.md": ["developer-agent"],
-        "CONFIGURATION-GUIDE.md": ["developer-agent"],
-        "DEPLOYMENT-GUIDE.md": ["developer-agent"],
-        "TESTING-GUIDE.md": ["developer-agent"],
-        "TROUBLESHOOTING-GUIDE.md": ["developer-agent"],
+        "architecture": ["architect-agent", "developer-agent"],
+        "quality": ["developer-agent"],
+        "api": ["architect-agent"],  # Removed duplicate
+        "business_rules": ["analyst-agent"],
+        "security": ["analyst-agent"],
+        "performance": ["analyst-agent"],
+        "database": ["architect-agent"],
+        "developer_guide": ["developer-agent"],
+        "deployment": ["developer-agent"],
+        "ui_analysis": ["architect-agent"],
+        "executive_summary": ["doc-writer-agent"],
         # Modernization documents
-        "MIGRATION-ROADMAP.md": ["analyst-agent", "analyst-agent"],
-        "LEGACY-SYSTEM-ANALYSIS.md": ["developer-agent"],
-        "TRANSFORMATION-STRATEGY.md": ["analyst-agent"],
-        "TECHNOLOGY-MIGRATION-GUIDE.md": ["analyst-agent"]
+        "migration": ["analyst-agent"],  # Removed duplicate
+        "legacy_analysis": ["developer-agent"],
+        "transformation": ["analyst-agent"]
     }
     
     # Always run these agents first (discovery phase)
     REQUIRED_DISCOVERY_AGENTS = [
         "mcp-orchestrator",      # Token optimization
-        "repomix-analyzer",       # Compressed codebase analysis
-        "architect-agent"   # Technology detection
+        "repomix-analyzer"       # Compressed codebase analysis + technology detection
     ]
     
     # Always run these agents last (documentation phase)
     REQUIRED_FINAL_AGENTS = [
         "diagram-agent",          # Visual documentation
-        "doc-writer-agent",   # Generate selected documents
-        "doc-writer-agent"           # Executive overview
+        "doc-writer-agent"        # Generate all selected documents
     ]
     
     def __init__(self, project_root: Path = Path(".")):
         self.project_root = Path(project_root)
         self.config_file = self.project_root / "framework" / "configs" / "documentation-config.json"
         self.user_config_file = self.project_root / "output" / "context" / "user-config.json"
+        self.core_agents_file = self.project_root / "framework" / "agents" / "core_agents.json"
+        self.core_agents_config = self._load_core_agents_config()
+    
+    def _load_core_agents_config(self) -> Dict:
+        """Load the core agents configuration with detailed diagram requirements"""
+        if self.core_agents_file.exists():
+            with open(self.core_agents_file) as f:
+                return json.load(f)
+        return {}
         
     def read_documentation_config(self) -> Dict:
         """Read the documentation configuration file"""

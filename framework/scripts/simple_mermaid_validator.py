@@ -88,8 +88,8 @@ def validate_with_mermaid_cli(diagram_content: str) -> Tuple[bool, str]:
 
 def apply_basic_fixes(content: str) -> str:
     """
-    Apply the same basic fixes that work in document-viewer.html
-    These are minimal, safe transformations that don't change semantics
+    Apply comprehensive fixes for common Mermaid syntax errors
+    These are safe transformations that preserve diagram meaning
     """
     # Remove trailing whitespace
     lines = content.split('\n')
@@ -106,6 +106,42 @@ def apply_basic_fixes(content: str) -> str:
     
     # 2. Fix multiple spaces after colons in Notes
     content = re.sub(r'(Note\s+(?:over|right of|left of)\s+[^:]+:)\s{2,}', r'\1 ', content)
+    
+    # 3. Fix @ symbols in node labels - they cause parse errors
+    # Pattern: [NodeName<br/>@Annotation<br/>Description] -> ["NodeName<br/>Annotation<br/>Description"]
+    def fix_at_symbols_in_labels(match):
+        label = match.group(1)
+        # Remove @ symbols from annotations and add quotes if needed
+        fixed_label = re.sub(r'@(\w+)', r'\1', label)
+        # Ensure the label is quoted if it contains special characters
+        if '<br/>' in fixed_label or any(char in fixed_label for char in ['@', '/', ':', '(', ')']):
+            return f'["{fixed_label}"]'
+        else:
+            return f'[{fixed_label}]'
+    
+    # Apply to node definitions like: NODE[Label<br/>@Annotation]
+    content = re.sub(r'\[([^[\]]*@[^[\]]*)\]', fix_at_symbols_in_labels, content)
+    
+    # 4. Fix ERD note syntax - remove invalid note blocks inside entities
+    if content.strip().startswith('erDiagram'):
+        # Remove note blocks inside entity definitions (invalid syntax)
+        content = re.sub(r'(\w+\s*{\s*\n(?:[^}]*\n)*?)\s*note\s+"[^"]*"\s*\n([^}]*})', r'\1\2', content, flags=re.MULTILINE | re.DOTALL)
+    
+    # 5. Fix node IDs that start with numbers or contain invalid characters
+    # Replace problematic node IDs
+    def fix_node_id(match):
+        node_id = match.group(1)
+        # If starts with number, prefix with N
+        if node_id[0].isdigit():
+            return f"N{node_id}"
+        # Replace invalid characters
+        fixed_id = re.sub(r'[^A-Za-z0-9_]', '_', node_id)
+        return fixed_id
+    
+    # Fix node definitions and references
+    content = re.sub(r'\b([0-9][A-Za-z0-9_]*)\[', lambda m: f"{fix_node_id(m)}[", content)
+    
+    return content
     
     # 3. Remove @ symbols from stereotypes (class diagrams)
     content = re.sub(r'<<@(\w+)>>', r'<<\1>>', content)

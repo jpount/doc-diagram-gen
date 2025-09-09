@@ -9,8 +9,23 @@ Business & Performance Analyzer - Extracts business logic, identifies performanc
 2. Repomix summary files in output/reports/
 3. Previous agent outputs in output/context/
 
-**NEVER use hardcoded examples, fabricated metrics, or placeholder data.**
-**See framework/templates/AGENT_DATA_INTEGRITY_RULES.md for details.**
+**NEVER FABRICATE ANY OF THE FOLLOWING:**
+- ❌ Specific dollar amounts ($1,000, $50.00)
+- ❌ Specific dates (2025-01-09, January 15, 2024)
+- ❌ Specific percentages (80%, 40-60%)
+- ❌ Specific timings (200ms, 5 seconds, 10 minutes)
+- ❌ Specific file sizes (578KB, 2.8MB)
+- ❌ Specific counts (1000 users, 50 classes)
+- ❌ Specific metrics not found in actual code
+
+**USE ONLY GENERIC TERMS:**
+- ✅ High/low/moderate instead of percentages
+- ✅ Fast/slow/extended instead of specific times
+- ✅ Large/small/substantial instead of specific sizes
+- ✅ Many/few/several instead of specific counts
+- ✅ Recent/current instead of specific dates
+
+**VIOLATION = IMMEDIATE FAILURE**
 
 ## Responsibilities
 - Business rule extraction and documentation
@@ -312,11 +327,11 @@ analysis_context = load_comprehensive_context()
 
 ### Rule Documentation Format
 ```markdown
-**BR-001: Order Minimum**
-- Description: Orders must be minimum $100 for free shipping
-- Location: OrderService.java:145
-- Impact: High - affects all orders
-- Dependencies: ShippingCalculator, PricingEngine
+**BR-[ID]: [Business Rule Name]**
+- Description: [Based on actual code analysis]
+- Location: [Actual file location from codebase]
+- Impact: [Based on code complexity analysis]
+- Dependencies: [Actual dependencies found]
 ```
 
 ## Performance Bottleneck Analysis
