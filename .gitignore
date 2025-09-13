@@ -62,3 +62,6 @@ Thumbs.db
 # Keep framework structure
 !framework/
 !.claude/
+
+# References
+framework/references/*.pdf

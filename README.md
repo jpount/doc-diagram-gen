@@ -1,508 +1,235 @@
-# Codebase Analysis & Documentation Generation Framework
+# Documentation & Diagram Generation Framework
 
-A comprehensive framework for analyzing existing codebases and generating complete documentation, architecture diagrams, and improvement recommendations. Primary focus is on understanding and documenting your current system, with optional modernization planning capabilities.
+A streamlined framework for analyzing codebases and generating comprehensive documentation, architecture diagrams, and technical insights. Optimized for Claude Code with intelligent agent orchestration.
 
-## Primary Goals
+## Overview
 
-### 📚 Documentation & Analysis (Default Mode)
-- **Comprehensive Documentation**: Generate complete technical documentation for your existing codebase
-- **Architecture Visualization**: Create detailed diagrams showing system structure and data flows
-- **Technical Debt Analysis**: Identify and catalog technical debt with improvement recommendations
-- **Performance Analysis**: Find bottlenecks and optimization opportunities
-- **Security Assessment**: Discover vulnerabilities and security improvements
-- **Business Logic Extraction**: Document business rules and domain logic
+This framework analyzes your codebase using specialized AI agents to produce:
+- **Technical Documentation**: Complete system analysis and architecture documentation
+- **Visual Diagrams**: Mermaid-based architecture, flow, and component diagrams  
+- **Business Logic Analysis**: Extracted business rules and domain insights
+- **Performance & Security Analysis**: Bottlenecks, vulnerabilities, and optimization opportunities
 
-### 🚀 Optional Modernization Planning
-- Available as an add-on feature when needed
-- Creates migration roadmaps and target architectures
-- Requires additional configuration (TARGET_TECH_STACK.md)
-
-## Key Features
-
-### 🎯 Quality-First Approach
-- **Flexible Token Usage**: Prioritizes documentation quality over strict token limits
-- **Context Management**: Dual-layer context system (memory + files) for resilience
-- **Progressive Refinement**: Each agent builds on previous findings efficiently
-
-### 🔄 Three Documentation Modes
-1. **QUICK**: Fully automated, fast analysis (1-2 hours)
-2. **GUIDED**: Interactive with user checkpoints for accuracy (3-4 hours) - Recommended
-3. **TEMPLATE**: Generates templates for manual completion (highest accuracy)
-
-### 💾 Token Optimization Strategy
-- **Primary**: Repomix compression (80% reduction) - REQUIRED
-- **Fallback**: Serena MCP (60% reduction) - Optional
-- **Last Resort**: Raw codebase access - Avoid!
-- All agents follow strict hierarchy: Repomix → Serena → Raw
-
-Optimized for Claude Code with intelligent agent orchestration. **Repomix is MANDATORY for token efficiency** - reducing usage by 80%.
+### Key Features
+- **Intelligent Agent System**: Specialized agents for different analysis tasks
+- **Token Optimization**: 80% token reduction via Repomix compression
+- **Progressive Analysis**: Agents build context from previous outputs
+- **Automated Workflow**: Hands-off execution with progress tracking
 
 ## 🚀 Quick Start
 
-### 🔴 CRITICAL: Generate Repomix First!
+### 1. Place Your Code
 ```bash
-# Step 1: Run setup
-python3 setup.py
+# Copy your codebase to the analysis directory
+cp -r /path/to/your/code codebase/project-name/
+```
 
-# Step 2: Place your code
-cp -r /your/code codebase/project-name/
-
-# Step 3: Generate Repomix (REQUIRED for efficiency)
+### 2. Generate Repomix Summary (Required)
+```bash
+# Create compressed codebase summary (80% token reduction)
 repomix --config .repomix.config.json codebase/project-name/
 
-# Step 4: Start Claude Code and run agents
-```
-
-### ⚡ Agent Workflow in Claude Code
-```bash
-# After Repomix is generated, run these agents:
-@mcp-orchestrator           # Token optimization
-@repomix-analyzer          # Analyze compressed codebase
-@architecture-selector     # Detect your tech stack
-@[technology]-architect    # Run recommended specialists
-@business-logic-analyst    # Extract business rules
-@performance-analyst       # Find bottlenecks
-@security-analyst         # Security assessment
-@diagram-architect        # Create diagrams
-@documentation-specialist # Generate final docs
-```
-
-### Setup Process
-
-```bash
-# Run interactive setup (all platforms)
-python3 setup.py  # Mac/Linux
-python setup.py   # Windows
-```
-
-#### Setup will:
-1. ✅ **Configure Repomix** (STRONGLY RECOMMENDED)
-   - 80% token reduction
-   - Critical for efficiency
-   - Installs if not present
-
-2. 🔵 **Configure Serena MCP** (Optional)
-   - Disabled by default
-   - Enable only if needed as fallback
-   - 60% token reduction (less than Repomix)
-
-3. 📋 **Set Analysis Mode**
-   - Documentation only (default)
-   - With modernization (optional)
-
-### 🔴 CRITICAL: Generate Repomix Summary
-
-**BEFORE starting any analysis:**
-
-```bash
-# 1. Place your code
-cp -r /path/to/your/code codebase/your-project/
-
-# 2. Generate Repomix summary (REQUIRED)
-repomix --config .repomix.config.json codebase/your-project/
-
-# 3. Verify output exists
+# Verify output exists
 ls -la output/reports/repomix-summary.md
 ```
 
-⚠️ **Without Repomix:**
-- 5-10x more tokens used
-- Higher costs
-- Slower analysis
-- May hit token limits
+### 3. Run Analysis Agents
+```bash
+# Using the analysis configuration (recommended)
+python3 -c "from run_analysis import run_analysis; import json; config = json.load(open('analysis_config.json')); run_analysis(config['selected_agents'])"
 
-## 📂 Project Structure
+# Or run agents individually in Claude Code:
+@repomix-analyzer
+@solution-architect
+@performance-analyst
+```
+
+## Available Agents
+
+### Current Configuration (3 Selected)
+Based on `analysis_config.json`:
+- **`@repomix-analyzer`** - Analyzes Repomix-generated codebase summaries (REQUIRED - ALWAYS FIRST)
+- **`@solution-architect`** - Comprehensive C4 model analysis + technical + deployment + integration architecture
+- **`@performance-analyst`** - Performance bottlenecks, memory leaks, scalability issues
+
+### Additional Available Agents
+- `@integration-specialist` - APIs, messaging, event-driven architecture  
+- `@security-analyst` - OWASP Top 10, vulnerabilities, compliance
+- `@business-logic-analyst` - Business rules, domain logic, process flows
+- `@ui-analyst` - Frontend analysis, UI/UX assessment
+- `@delphi-architect` - Delphi/Object Pascal specialist
+- `@php-architect` - PHP application specialist
+- `@java-architect` - Java/Spring/J2EE specialist  
+- `@dotnet-architect` - .NET/C#/ASP.NET specialist
+- `@angular-architect` - Angular/AngularJS specialist
+
+## Agent Data Flow
+
+### Critical Workflow Rules
+All agents follow this priority:
+1. **PRIMARY**: Read `output/reports/repomix-summary.md` (compressed codebase)
+2. **SECONDARY**: Read `output/context/*.json` (previous agent outputs) 
+3. **FALLBACK**: Access raw codebase only if needed
+
+### Context Chain
+```
+repomix-summary.md 
+    ↓
+repomix-analyzer-summary.json
+    ↓  
+solution-architect-summary.json
+    ↓
+specialist agents read all previous contexts
+```
+
+## Project Structure
 
 ```
-.
-├── setup.py                    # Setup script (cross-platform Python)
-├── .mcp.json                   # MCP configuration (auto-generated, git-ignored)
-├── .repomix.config.json        # Repomix config (auto-generated, git-ignored)
-├── ANALYSIS_MODE.md            # Analysis mode config (auto-generated, git-ignored)
-├── CLAUDE.md                   # Project config for Claude Code (auto-generated, git-ignored)
-├── DOCUMENTATION_MODE.md       # Documentation mode config (auto-generated, git-ignored)
-├── TARGET_TECH_STACK.md        # Target stack config (only for modernization modes, git-ignored)
+├── CLAUDE.md                   # Project configuration for Claude Code
+├── analysis_config.json        # Selected agents and project settings
+├── .repomix.config.json        # Repomix compression configuration
+├── run_analysis.py             # Python script for automated agent execution
 │
-├── framework/                  # Framework components (DO NOT MODIFY)
-│   ├── scripts/               # Setup and utility scripts
-│   │   ├── setup-tech-stack.sh
-│   │   ├── setup-mcp.sh
-│   │   └── test-mcp-integration.sh
-│   ├── mcp-configs/           # MCP configuration templates
-│   │   ├── mcp.template.json
-│   │   └── repomix.config.template.json
-│   ├── templates/             # Project templates
-│   │   ├── ANALYSIS_MODE.template.md
-│   │   ├── DOCUMENTATION_MODE.template.md
-│   │   ├── CONTEXT_SUMMARY_SCHEMA.md
-│   │   ├── TOKEN_BUDGET_CONFIG.yaml
-│   │   ├── TARGET_TECH_STACK.template.md
-│   │   └── tech-stack-presets.yaml
-│   └── docs/                  # Framework documentation
-│       ├── CLAUDE_FRAMEWORK.md
-│       ├── USER_INTERACTION_GUIDE.md
-│       ├── MCP_USAGE_GUIDE.md
-│       └── MCP_CONFIGURATION_GUIDE.md
-│
-├── .claude/                    # Claude Code configuration
-│   ├── agents/                # Analysis agents
-│   │   ├── legacy-code-detective.md
-│   │   ├── business-logic-analyst.md
-│   │   ├── performance-analyst.md
-│   │   ├── security-analyst.md
-│   │   ├── modernization-architect.md
-│   │   ├── documentation-specialist.md
-│   │   ├── diagram-architect.md
-│   │   ├── mcp-orchestrator.md
-│   │   └── repomix-analyzer.md
-│   ├── hooks/                 # Validation hooks (Python for cross-platform)
-│   │   └── simple_mermaid_validation.py  # Pre-write Mermaid validation
-│   └── settings.local.json    # Claude settings
+├── .claude/agents/             # AI agent definitions
+│   ├── repomix-analyzer.md
+│   ├── solution-architect.md  
+│   ├── performance-analyst.md
+│   └── [other-agents].md
 │
 ├── codebase/                   # YOUR CODE GOES HERE
-│   └── [project-name]/        # Your project to analyze
+│   └── daytrader/             # Target project (configurable)
 │
 ├── output/                     # GENERATED OUTPUT
 │   ├── docs/                  # Generated documentation
-│   │   ├── 00-executive-summary.md
-│   │   ├── 01-archaeological-analysis.md
-│   │   ├── 02-business-logic-analysis.md
-│   │   ├── 03-visual-architecture.md
-│   │   ├── 04-performance-analysis.md
-│   │   ├── 05-security-analysis.md
-│   │   └── 06-modernization-strategy.md
-│   ├── context/               # Agent context summaries (for efficiency)
-│   │   ├── legacy-code-detective-summary.json
-│   │   ├── business-logic-analyst-summary.json
-│   │   └── [agent-name]-summary.json
-│   ├── diagrams/              # Generated diagrams
-│   │   └── *.mermaid
+│   ├── diagrams/              # Mermaid diagrams
+│   ├── context/               # Agent context files
 │   └── reports/               # Analysis reports
-│       ├── repomix-summary.md
-│       └── mcp-strategy.md
 │
-└── .mcp-cache/                # MCP cache (auto-managed)
+└── framework/                  # Framework components
+    ├── scripts/               # Automation scripts  
+    └── templates/             # Configuration templates
 ```
 
-## 🎯 Key Features
+## Expected Outputs
 
-### 🚀 Technology-Specific Analysis (NEW!)
-- **Smart Detection**: `@architecture-selector` automatically identifies your tech stack
-- **Specialist Agents**: Dedicated architects for Java, .NET, and Angular
-- **Better Results**: Technology-specific patterns, anti-patterns, and best practices
-- **Parallel Execution**: Run backend and frontend specialists simultaneously
+### Documentation (`output/docs/`)
+- **Architecture Analysis**: Complete system design and component relationships
+- **Performance Assessment**: Bottlenecks, memory issues, scalability analysis  
+- **Business Logic Documentation**: Extracted rules and domain processes
+- **Security Analysis**: Vulnerabilities and compliance assessment
+- **Integration Patterns**: APIs, messaging, and data flows
 
-### Token Optimization (Up to 90% Reduction)
-- **Default (Raw Codebase)**: Direct file access, no optimization needed
-- **Repomix (Optional)**: Compresses codebase by 80% - if generated, agents will use it automatically
-- **Serena MCP (Optional)**: Semantic search saves 60% - for advanced symbol analysis
-- **Combined (All Optional Tools)**: 90-95% token reduction
+### Diagrams (`output/diagrams/`)
+- **C4 Architecture Models**: Context, Container, Component, Code diagrams
+- **Process Flow Diagrams**: Business workflows and data flows
+- **Component Relationship Maps**: System architecture visualization
+- **Performance Heat Maps**: Bottleneck identification diagrams
 
-**How It Works:**
-1. Agents first check for Repomix summary (`output/reports/repomix-summary.md`)
-2. If Repomix exists, agents use it for initial analysis (80% token savings)
-3. If no Repomix, agents read directly from `codebase/` directory
-4. Serena (if enabled) provides semantic search on top of either approach
+### Context Files (`output/context/`)
+- **Agent Summaries**: JSON files with key findings for downstream agents
+- **Progressive Knowledge**: Each agent builds on previous analysis
+- **Token Optimization**: Efficient context sharing between agents
 
-### Comprehensive Analysis
-- **50+ Business Rules**: Extracted with code references
-- **Complete Diagrams**: Architecture, sequence, flow diagrams
-- **Security Assessment**: OWASP compliance, vulnerability detection
-- **Performance Analysis**: Bottlenecks, optimization opportunities
-- **Migration Strategy**: Phased modernization roadmap
+## Automation Options
 
-### Quality Assurance
-- Automated diagram validation
-- Business rule verification
-- Documentation completeness checks
-- Cross-referenced outputs
-
-## 🤖 Available Agents
-
-### Core Analysis Agents
-
-| Agent | Purpose | Output Location | When to Use |
-|-------|---------|-----------------|-------------|
-| `@mcp-orchestrator` | Coordinates MCP usage | output/reports/ | Always run first for token optimization |
-| `@repomix-analyzer` | Analyzes compressed code | output/reports/ | After MCP orchestrator |
-| **`@architecture-selector`** | **Detects technologies & recommends specialists** | **output/docs/00-agent-selection-report.md** | **Run BEFORE any analysis agents** |
-| `@java-architect` | Java/Spring/J2EE analysis with visual indicators | output/docs/01-java-*.md | When Java detected |
-| `@dotnet-architect` | .NET/C#/ASP.NET analysis | output/docs/01-dotnet-*.md | When .NET detected |
-| `@angular-architect` | Angular/AngularJS analysis | output/docs/01-angular-*.md | When Angular detected |
-| `@legacy-code-detective` | Generic technology analysis | output/docs/01-*.md | ONLY for unknown/5+ technologies |
-| `@business-logic-analyst` | Business rule extraction | output/docs/02-*.md | Always run |
-| `@diagram-architect` | Visual documentation | output/diagrams/ | Always run |
-| `@performance-analyst` | Performance bottlenecks | output/docs/04-*.md | Always run |
-| `@security-analyst` | Security vulnerabilities | output/docs/05-*.md | Always run |
-| `@modernization-architect` | Migration strategy | output/docs/06-*.md | For modernization projects |
-| `@documentation-specialist` | Comprehensive documentation | output/docs/*.md | Always run last |
-
-## 📋 Workflow
-
-### Phase 1: Setup (One-time)
-
-**All Platforms:**
+### Option 1: Python Script (Recommended)
 ```bash
-# Mac/Linux
-python3 setup.py
-
-# Windows
-python setup.py
+# Run all configured agents automatically
+python3 -c "from run_analysis import run_analysis; import json; config = json.load(open('analysis_config.json')); run_analysis(config['selected_agents'])"
 ```
 
-### Phase 2: Pre-Analysis Setup (Optional)
+### Option 2: Manual Execution in Claude Code
+Run agents individually:
 ```bash
-# Optional: Generate compressed summary for token optimization (all platforms)
-repomix --config .repomix.config.json
-
-# Test MCP integration (shows which MCPs are available)
-# Windows:
-python framework\scripts\test_mcp_integration.py
-
-# Mac/Linux:
-python3 framework/scripts/test_mcp_integration.py
+@repomix-analyzer        # Always first
+@solution-architect      # Core architecture analysis  
+@performance-analyst     # Performance bottlenecks
 ```
 
-### Phase 3: Run Analysis Agents
-In Claude Code, run agents in sequence:
-
-#### 🎯 Recommended Workflow (with Specialist Agents)
-```
-# 1. Optional: MCP Optimization (if Repomix/Serena enabled)
-@mcp-orchestrator
-@repomix-analyzer
-
-# 2. Technology Detection (IMPORTANT: Run this first!)
-@architecture-selector    # Detects technologies and recommends specialists
-
-# 3. Technology-Specific Analysis (based on detection results)
-# Example for Java + Angular application:
-@java-architect  # Backend analysis with visual indicators (if Java detected)
-@angular-architect       # Frontend analysis (if Angular detected)
-# Run these in parallel for faster analysis
-
-# 4. Cross-Cutting Analysis (always run these)
-@business-logic-analyst
-@performance-analyst
-@security-analyst
-
-# 5. Documentation Generation
-@diagram-architect
-@modernization-architect  # If doing modernization
-@documentation-specialist  
-```
-
-#### Alternative: Generic Workflow (for unknown codebases)
-```
-# Only use this if architecture-selector finds 5+ technologies
-# or completely unknown tech stack
-@legacy-code-detective   # Generic analysis
-@business-logic-analyst
-@diagram-architect
-@performance-analyst
-@security-analyst
-@modernization-architect
-@documentation-specialist
-```
-
-### Phase 4: Review Output
-- Documentation: `output/docs/`
-- Diagrams: `output/diagrams/`
-- Reports: `output/reports/`
-
-## 🔧 Configuration
-
-### Technology Stack
-Configure your target technology stack:
+### Option 3: n8n Workflow
 ```bash
-./framework/scripts/setup-tech-stack.sh
+# Hands-off automation with n8n
+python3 n8n/run_hands_off_analysis.py
 ```
 
-Or edit `TARGET_TECH_STACK.md` directly after setup.
+## Token Optimization Strategy
 
-### MCP Configuration
-The `.mcp.json` file is auto-generated during setup with Serena disabled by default.
+The framework uses **Repomix compression** to achieve 80% token reduction:
 
-To enable Serena for semantic code analysis (60% token reduction):
-1. Edit `.mcp.json` and remove the `"disabled": true` line from the serena section
-2. Edit `.claude/settings.local.json` and either:
-   - Set `"enableAllProjectMcpServers": true` to enable all MCPs, OR
-   - Add `"serena"` to the `"enabledMcpjsonServers"` array
+1. **Generate Repomix Summary**: Creates `output/reports/repomix-summary.md`
+2. **Agent Priority System**: Agents check Repomix → Context → Raw codebase
+3. **Progressive Context**: Each agent creates summary JSON for downstream agents
+4. **Efficient Analysis**: Dramatic reduction in token usage and costs
 
-To reconfigure from scratch:
-```bash
-python3 framework/scripts/setup_mcp.py
-```
+### Without Repomix:
+- ❌ 5-10x more tokens used
+- ❌ Higher costs and slower analysis  
+- ❌ May hit token limits on large codebases
 
-### Codebase Path
-Update in `.mcp.json`:
+### With Repomix:
+- ✅ 80% token reduction
+- ✅ Faster analysis  
+- ✅ Lower costs
+- ✅ Handles large codebases efficiently
+
+## Configuration Files
+
+### `analysis_config.json` 
+Contains project configuration and selected agents:
 ```json
-"--project",
-"${PWD}/codebase/your-project-name"
+{
+  "project_name": "daytrader",
+  "mode": "hands-off", 
+  "selected_agents": [
+    "repomix-analyzer",
+    "solution-architect", 
+    "performance-analyst"
+  ]
+}
 ```
 
-## 🚨 Validation
+### `CLAUDE.md`
+Contains agent execution instructions and workflow rules.
 
-Validation hooks run automatically when files are written to `output/docs/`.
+### `.repomix.config.json` 
+Configures which files to include/exclude during compression.
 
-To run manually:
+## Troubleshooting
 
-**Windows:**
-```powershell
-python .claude\hooks\simple_mermaid_validation.py
-python .claude\hooks\documentation_completeness_check.py
-python .claude\hooks\business_rule_validation.py
-```
+### Common Issues
 
-**Mac/Linux:**
-```bash
-python3 .claude/hooks/simple_mermaid_validation.py
-python3 .claude/hooks/documentation_completeness_check.py
-python3 .claude/hooks/business_rule_validation.py
-```
+1. **Missing Repomix Summary**
+   ```
+   ❌ Repomix summary not found: output/reports/repomix-summary.md
+   ```
+   **Solution**: Run `repomix --config .repomix.config.json codebase/daytrader/`
 
-## 📊 Enhanced Expected Outputs
+2. **Agent Execution Failures**
+   - Ensure Claude Code is installed and accessible
+   - Verify agent names match those in `.claude/agents/`
+   - Check that `output/` directories exist
 
-### Comprehensive Documentation Deliverables
-1. **Technology Stack Analysis** - Complete frontend and backend technology detection
-2. **Component Inventories** - Backend services, UI components, API endpoints
-3. **Data Architecture** - Entity relationships, database patterns, data flows
-4. **UI/UX Analysis** - Component hierarchies, user journeys, state management patterns
-5. **API Documentation** - Complete endpoint catalog with integration patterns
-6. **Business Process Documentation** - 50+ business rules with sequence diagrams
-7. **Performance Analysis** - Backend and frontend bottlenecks with heat maps
-8. **Security Assessment** - Comprehensive vulnerability analysis with remediation
-9. **Domain Analysis** - Domain boundaries with strangler fig extraction strategies
-10. **Migration Roadmap** - Phased modernization with UI and backend strategies
-11. **Visual Documentation** - 30+ diagram types covering all aspects
-12. **Executive Summary** - Stakeholder-ready overview with recommendations
+3. **Large Codebase Issues**
+   - Ensure Repomix summary was generated successfully
+   - Check `.repomix.config.json` excludes unnecessary files
+   - Consider running agents individually rather than in batch
 
-### Enhanced Diagram Collection (30+ Types)
-- **Architecture**: System, component, deployment, security, network topology
-- **UI/Frontend**: Component hierarchy, user journeys, state management, API integration
-- **Data**: Entity relationships, data flows, database architecture
-- **Business**: Process flows, state machines, integration sequences
-- **Performance**: Bottleneck analysis, class hierarchies, accessibility compliance
-- **Modernization**: Domain boundaries, migration timelines, strangler fig patterns
+## Requirements
 
-### Enhanced Quality Metrics
-- ✅ **Technology Coverage**: Frontend and backend fully analyzed
-- ✅ **Component Documentation**: All UI components and backend services cataloged
-- ✅ **API Documentation**: Complete endpoint coverage with integration patterns
-- ✅ **Business Rules**: Minimum 50+ extracted with code references
-- ✅ **Data Model**: All entities with relationships documented
-- ✅ **User Experience**: All user journeys mapped with interaction flows
-- ✅ **Domain Analysis**: Business boundaries identified for modernization
-- ✅ **Visual Documentation**: 30+ diagrams covering all system aspects
-- ✅ **Performance Analysis**: Frontend and backend bottlenecks quantified
-- ✅ **Security Assessment**: Comprehensive vulnerability coverage
-- ✅ **Migration Strategy**: Phased approach with strangler fig patterns
-- ✅ **Stakeholder Readiness**: Executive summary with actionable recommendations
+- **Claude Code CLI**: [Installation guide](https://claude.ai/code)
+- **Python 3.7+**: For automation scripts
+- **Repomix**: `npm install -g repomix` (for token optimization)
+- **Your codebase**: Place in `codebase/[project-name]/`
 
-## 🆘 Troubleshooting
-
-### Architecture Selector Not Finding Technologies
-```bash
-# Check if codebase is in correct location
-ls -la codebase/
-
-# Manually check for technology indicators
-find codebase -name "*.java" | head -5  # Java files
-find codebase -name "*.cs" | head -5    # .NET files
-find codebase -name "*.ts" -o -name "angular.json" | head -5  # Angular files
-
-# If technologies found but selector missed them, run specialists directly:
-@java-architect  # For Java code (with visual indicators)
-@angular-architect   # For Angular code
-```
-
-### Mermaid Diagram Issues
-```bash
-# Validate and auto-fix all diagrams
-python3 framework/scripts/smart_mermaid_validator.py output/ --fix
-
-# Run final check
-python3 framework/scripts/mermaid_final_check.py output/
-
-# Test in browser
-# Open framework/document-viewer.html and load your output directory
-```
-
-### MCP Not Working
-```bash
-# Run diagnostic test (all platforms)
-python3 framework/scripts/test_mcp_integration.py
-
-# Check .mcp.json exists in root
-ls -la .mcp.json
-
-# Restart Claude Code after changes
-```
-
-### Serena Not Available
-Serena is disabled by default. To enable:
-1. Remove `"disabled": true` from serena section in `.mcp.json`
-2. Restart Claude Code
-3. Serena will be available as `@serena` in Claude Code
-
-### Repomix Issues
-```bash
-# Install if missing
-npm install -g repomix
-
-# Generate repomix summary for your codebase only
-repomix --config .repomix.config.json codebase/
-
-# Or for a specific project
-repomix --config .repomix.config.json codebase/daytrader/
-```
-
-### Path Issues
-- Ensure codebase is in `codebase/[project-name]/`
-- Update `.mcp.json` with correct path
-- Use absolute paths in configurations
-
-## 📚 Documentation
-
-### Framework Documentation
-- `framework/docs/CLAUDE_FRAMEWORK.md` - Complete framework guide
-- `framework/docs/MERMAID_COMPLETE_GUIDE.md` - Comprehensive Mermaid validation guide
-- `framework/docs/MERMAID_STRICT_RULES.md` - Quick reference for diagram rules
-- `framework/docs/MCP_USAGE_GUIDE.md` - MCP optimization strategies
-- `framework/docs/MCP_CONFIGURATION_GUIDE.md` - MCP setup details
-
-### Generated Documentation
-All generated documentation goes to `output/docs/`
-
-## 🤝 Best Practices
-
-1. **Always run setup.py first** - Ensures proper configuration
-2. **Run @architecture-selector early** - Identifies which specialists to use
-3. **Use specialist agents** - Better results than generic legacy-code-detective
-4. **Run specialists in parallel** - Java and Angular architects can run simultaneously
-5. **Use MCPs when available** - 90%+ token savings
-6. **Validate outputs** - Use provided hooks
-7. **Keep framework updated** - Don't modify framework/ directory
-
-## 📝 Notes
-
-- Framework components are in `framework/` - do not modify
-- Your code goes in `codebase/`
-- All output goes to `output/`
-- Configuration files (`.mcp.json`, `.repomix.config.json`) stay in root
-- `TARGET_TECH_STACK.md` is generated during setup
-
-## 🔗 Resources
+## Resources
 
 - [Claude Code Documentation](https://docs.anthropic.com/claude-code)
-- [Mermaid Diagram Syntax](https://mermaid.js.org)
+- [Mermaid Diagram Syntax](https://mermaid.js.org) 
 - [Repomix Documentation](https://github.com/repomix/repomix)
-- [Serena MCP](https://github.com/oraios/serena)
 
 ---
 
-**Framework Version**: 2.1.0  
-**Platform Support**: Windows, Mac, Linux  
-**Requirements**: Python 3.7+, Node.js (optional)  
-**Optimized for**: Claude Code with MCP Integration  
-**Token Reduction**: 90-95% with full MCP stack
+**Framework Focus**: Documentation and diagram generation  
+**Token Optimization**: 80% reduction via Repomix compression  
+**Automation**: Python scripts + n8n workflow integration  
+**Target Project**: `daytrader` (configurable in `analysis_config.json`)

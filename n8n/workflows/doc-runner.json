@@ -1,0 +1,366 @@
+{
+  "name": "doc-runner",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "2cc7d690-3d94-4616-84f0-b055da03ab72",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "project_name",
+              "value": "daytrader"
+            },
+            {
+              "name": "codebase_path",
+              "value": "/Users/jp/work/agent-docs/doc-diagram-gen/codebase/daytrader"
+            },
+            {
+              "name": "workflow_type",
+              "value": "quick_analysis"
+            },
+            {
+              "name": "mode",
+              "value": "hands-off"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ce5794a6-bd88-46c1-8095-fd168ecc442b",
+      "name": "Set Configuration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -1200,
+        112
+      ],
+      "notesInFlow": true,
+      "notes": "Edit these values:\n- project_name: Your project name\n- codebase_path: Path to your code in container"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://doc-framework-api:8100/n8n/trigger",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"workflow_type\": \"{{ $json.workflow_type }}\",\n  \"project_name\": \"{{ $json.project_name }}\",\n  \"codebase_path\": \"{{ $json.codebase_path }}\",\n  \"options\": {\n    \"mode\": \"{{ $json.mode }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "1880e39b-c6f0-4a67-9eab-5c74887c6e7e",
+      "name": "Start Quick Analysis",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -1008,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "session_id",
+              "value": "={{ $json.session_id }}"
+            },
+            {
+              "name": "workflow_type",
+              "value": "={{ $json.workflow_type }}"
+            },
+            {
+              "name": "mode",
+              "value": "={{ $json.mode }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c579bc6a-8ff0-48a3-be73-47e0a9d9c49c",
+      "name": "Extract Session ID",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        -800,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      },
+      "id": "ceb71f6d-3abb-4bfb-beb0-4e22d99d1aac",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        112
+      ],
+      "webhookId": "ac0b5f0e-f322-47bf-8b04-236401689002"
+    },
+    {
+      "parameters": {
+        "url": "=http://doc-framework-api:8100/n8n/status/{{ $node[\"Extract Session ID\"].json.session_id }}",
+        "options": {}
+      },
+      "id": "af530791-3bbf-486d-b7cb-2dea0793bab4",
+      "name": "Check Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        -400,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.is_complete }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "8829b786-64cc-46f0-bd10-b8fed7ff5465",
+      "name": "Is Complete?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "amount": 30,
+        "unit": "seconds"
+      },
+      "id": "ef9e36cd-a58a-4110-91d3-eac38aa9eaa2",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        0,
+        256
+      ],
+      "webhookId": "88e80505-9b64-4412-ba48-fb0d3b684bc4"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "message",
+              "value": "Analysis Complete!"
+            },
+            {
+              "name": "session_id",
+              "value": "={{ $node[\"Check Status\"].json.session_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5b375ec3-e817-401b-aecf-b6142519304d",
+      "name": "Prepare Results",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=http://doc-framework-api:8100/n8n/agents/available",
+        "options": {}
+      },
+      "id": "dccc8080-1b8a-4868-a009-71ead8c60966",
+      "name": "Get Completed Agents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 3,
+      "position": [
+        208,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Combine all results\nconst status = $node[\"Check Status\"].json;\nconst agents = $node[\"Get Completed Agents\"].json;\n\nreturn [{\n  json: {\n    success: true,\n    session_id: status.session_id,\n    workflow_complete: true,\n    progress: status.progress_percentage,\n    agents_completed: status.agents?.completed || [],\n    agents_failed: status.agents?.failed || [],\n    message: `Analysis complete! ${status.agents?.completed?.length || 0} agents finished.`,\n    output_location: '/app/output/docs/',\n    next_steps: [\n      'Check output/docs/ for documentation',\n      'Check output/diagrams/ for visual diagrams',\n      'Review output/context/ for agent summaries'\n    ]\n  }\n}];"
+      },
+      "id": "db17ecac-561a-4560-b001-7082b76c5c39",
+      "name": "Final Results",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        400,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Is Complete?": {
+      "main": [
+        [
+          {
+            "node": "Prepare Results",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Wait 30s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Results": {
+      "main": [
+        [
+          {
+            "node": "Get Completed Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Completed Agents": {
+      "main": [
+        [
+          {
+            "node": "Final Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30s": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Status": {
+      "main": [
+        [
+          {
+            "node": "Is Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s": {
+      "main": [
+        [
+          {
+            "node": "Check Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Session ID": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start Quick Analysis": {
+      "main": [
+        [
+          {
+            "node": "Extract Session ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Configuration": {
+      "main": [
+        [
+          {
+            "node": "Start Quick Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Configuration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "3ad41f5c-ba9d-40e1-8a9f-ceaca0e4ad68",
+  "meta": {
+    "instanceId": "dcd31b07c22398929d03b7b56eebb646162d9ed4ad6500c74258e9e446e0986f"
+  },
+  "id": "xoW8hoahqRadKEkX",
+  "tags": [
+    {
+      "createdAt": "2025-08-31T16:20:57.470Z",
+      "updatedAt": "2025-08-31T16:20:57.470Z",
+      "id": "GFjX3ASn9CHsfrSX",
+      "name": "documentation"
+    },
+    {
+      "createdAt": "2025-08-31T16:20:57.467Z",
+      "updatedAt": "2025-08-31T16:20:57.467Z",
+      "id": "tjOXLWrBTgrdMymo",
+      "name": "manual"
+    }
+  ]
+}

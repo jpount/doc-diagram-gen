@@ -1,0 +1,20 @@
+{
+  "agent_timeouts": {
+    "agent-solution-architect": 600,
+    "agent-technical-architect": 720,
+    "agent-business-logic-analyst": 480,
+    "agent-integration-specialist": 300,
+    "agent-security-analyst": 360,
+    "agent-performance-analyst": 300,
+    "agent-ui-analyst": 240,
+    "agent-java-architect": 300,
+    "agent-dotnet-architect": 300,
+    "agent-angular-architect": 300,
+    "agent-delphi-architect": 300,
+    "agent-php-architect": 300,
+    "agent-repomix-analyzer": 300,
+    "agent-legacy-code-detective": 240
+  },
+  "default_timeout": 300,
+  "description": "Timeout configuration for Claude agents (in seconds). Adjust based on agent complexity and expected execution time. You can modify these values without changing code."
+}

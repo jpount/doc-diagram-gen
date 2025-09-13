@@ -11,10 +11,7 @@ Files that belong at the root level:
 Auto-generated files (git-ignored):
 - `.mcp.json` - MCP configuration (MUST be at root for Claude Code)
 - `.repomix.config.json` - Repomix configuration
-- `CLAUDE.md` - Project configuration for Claude Code
-- `ANALYSIS_MODE.md` - Analysis mode configuration
-- `DOCUMENTATION_MODE.md` - Documentation mode configuration
-- `TARGET_TECH_STACK.md` - Target technology configuration (modernization only)
+- `CLAUDE.md` - Project configuration for Claude Code (generated dynamically)
 
 ### Framework Directory
 **Path**: `framework/`  
@@ -23,15 +20,14 @@ Auto-generated files (git-ignored):
 ```
 framework/
 ├── scripts/                    # Core scripts
+│   ├── generate_claude_md.py          # Dynamic CLAUDE.md generation
 │   ├── smart_mermaid_validator.py     # Intelligent Mermaid validation
 │   ├── mermaid_pre_write_hook.py      # Pre-write validation
 │   ├── mermaid_final_check.py         # Final validation pass
 │   ├── simple_mermaid_validator.py    # Basic validation (backup)
 │   ├── setup_mcp.py                   # MCP setup
-│   ├── setup_tech_stack.py            # Tech stack configuration
 │   ├── test_mcp_integration.py        # MCP diagnostic
-│   ├── test_framework.py              # Framework health check
-│   └── agent_orchestrator.py          # Agent workflow coordinator
+│   └── test_framework.py              # Framework health check
 │
 ├── mcp-configs/               # MCP configuration templates
 │   ├── mcp.template.json     # Template for .mcp.json
@@ -39,12 +35,9 @@ framework/
 │   └── repomix.config.template.json
 │
 ├── templates/                 # Project templates
-│   ├── CLAUDE.template.md
-│   ├── ANALYSIS_MODE.template.md
-│   ├── DOCUMENTATION_MODE.template.md
-│   ├── TARGET_TECH_STACK.template.md
-│   ├── CONTEXT_SUMMARY_SCHEMA.md
-│   └── tech-stack-presets.yaml
+│   ├── CLAUDE.template.md.old        # Archived template (dynamic generation used)
+│   ├── CONTEXT_SUMMARY_SCHEMA.md     # Agent context format
+│   └── tech-stack-presets.yaml       # Technology presets
 │
 ├── docs/                      # Framework documentation
 │   ├── CLAUDE_FRAMEWORK.md           # Complete framework guide
@@ -149,10 +142,7 @@ output/
 ### Configuration Files (Auto-generated, git-ignored)
 - `.mcp.json` - MCP configuration
 - `.repomix.config.json` - Repomix config
-- `CLAUDE.md` - Project settings
-- `ANALYSIS_MODE.md` - Analysis mode
-- `DOCUMENTATION_MODE.md` - Documentation mode
-- `TARGET_TECH_STACK.md` - Target technology
+- `CLAUDE.md` - Project settings (generated dynamically from filesystem)
 
 ### Generated Files (Do not edit)
 - `output/**/*` - All analysis outputs

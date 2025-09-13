@@ -1,0 +1,51 @@
+# Dockerfile for n8n API Server
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install system dependencies
+# Note: Using Claude Code SDK for agent execution
+
+# Copy requirements
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Install additional dependencies for n8n integration
+RUN pip install --no-cache-dir \
+    fastapi \
+    uvicorn[standard] \
+    httpx \
+    websockets \
+    redis \
+    celery
+
+# Copy framework and n8n code
+COPY framework/ /app/framework/
+COPY n8n/ /app/n8n/
+COPY .claude/ /app/.claude/
+
+# Create necessary directories
+RUN mkdir -p /app/output/context /app/output/docs /app/output/diagrams /app/output/reports
+
+# Environment variables
+ENV PYTHONPATH=/app
+ENV API_HOST=0.0.0.0
+ENV API_PORT=8100
+ENV PROJECT_ROOT=/app
+
+# Expose port
+EXPOSE 8100
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8100/health || exit 1
+
+# Run the API server
+CMD ["python", "-m", "uvicorn", "n8n.api.n8n_api_server:app", "--host", "0.0.0.0", "--port", "8100"]
