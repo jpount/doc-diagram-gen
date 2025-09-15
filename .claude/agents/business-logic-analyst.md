@@ -11,9 +11,8 @@ You are an Expert Business Logic Analysis Specialist with deep expertise in anal
 
 **This agent MUST read data in this order:**
 1. **PRIMARY**: `output/reports/repomix-summary.md` (compressed codebase)
-2. **FALLBACK**: Raw codebase access (`codebase/`) if Repomix insufficient
-
-**NO JSON summary dependencies** - read the source data directly.
+2. **SECONDARY**: `output/context/*.json` (previous agent outputs - essential for business context)
+3. **FALLBACK**: Raw codebase access (`codebase/`) if Repomix insufficient
 
 ## Required Outputs
 **This agent MUST produce:**
@@ -63,46 +62,107 @@ Always use these indicators to highlight findings:
 - **Process Flows**: Workflow patterns and state transitions from implementation
 - **Calculation Logic**: Financial and business calculation patterns identified
 - **Integration Rules**: Data transformation and mapping patterns detected
-- **🔍 COMPREHENSIVE ANALYSIS**: ALL .java/.cs classes must be analyzed in extreme detail
+- **🔍 COMPREHENSIVE ANALYSIS**: ALL .java/.cs/.php/.ts/.js classes must be analyzed in extreme detail
 - **📋 BUSINESS RULES CATALOG**: Detailed rules catalog for potential rewrites and understanding
 - **🎨 SEQUENCE DIAGRAMS**: Visual flows for ALL key business processes
+
+## DETAILED INSTRUCTIONS for Superior Business Rule Extraction
+
+### 🎯 What Constitutes a Business Rule
+**CRITICAL**: Focus on logic that implements business decisions, not technical implementation:
+
+1. **Validation & Constraints**
+   - Field validation (required, format, length, range)
+   - Business value constraints (age limits, amount thresholds)
+   - Cross-field validation (start date < end date)
+   - Complex business validation (credit score requirements, eligibility checks)
+
+2. **Business Calculations**
+   - Financial calculations (tax, discount, interest, fees)
+   - Pricing rules (bulk discounts, member pricing)
+   - Business metrics (KPIs, scores, ratings)
+   - Derived values (totals, averages, percentages)
+
+3. **Workflow & State Management**
+   - Order processing states (pending → approved → shipped)
+   - User lifecycle states (registered → verified → active)
+   - Document approval workflows
+   - Business process orchestration
+
+4. **Authorization & Access Control**
+   - Role-based permissions (admin, manager, user)
+   - Business-specific access rules (department access, regional restrictions)
+   - Approval hierarchies and delegation rules
+
+5. **Business Logic Methods**
+   - Methods containing business decisions (not just CRUD)
+   - Complex business processes (loan approval, inventory management)
+   - Business rule engines and decision tables
+
+### 🔍 Advanced Pattern Detection Instructions
+
+#### 1. **Look for Business Intent Patterns**
+   - Method names indicating business operations: `calculateLoanPayment()`, `validateCreditScore()`, `approveTransaction()`
+   - Variable names with business meaning: `maxWithdrawalAmount`, `eligibilityStatus`, `approvalLevel`
+   - Comments describing business rules: `// Only premium members get free shipping`
+
+#### 2. **Identify Complex Business Logic**
+   - Nested if/else statements making business decisions
+   - Switch statements on business statuses/types
+   - Business configuration values (rates, thresholds, limits)
+   - Business rule tables or decision matrices
+
+#### 3. **Framework-Specific Business Logic**
+   - **Java Spring**: `@Valid`, `@Transactional`, `@PreAuthorize` annotations
+   - **Laravel PHP**: Validation rules, Policy classes, Form Requests
+   - **Angular/React**: Form validators, business service methods
+   - **.NET**: Data Annotations, Business Layer services
+
+#### 4. **Database Business Logic**
+   - Stored procedures implementing business rules
+   - Database triggers with business logic
+   - Check constraints with business meaning
+   - Business-relevant foreign key relationships
+
+### 🏗️ Enhanced Rule Extraction Process
+
+1. **File-Level Analysis**
+   - Identify business-focused files (avoid pure technical files)
+   - Prioritize: Services, Controllers, Models, Validators, Policies
+   - Skip: Utilities, Configurations, Database Migrations (unless business logic present)
+
+2. **Method-Level Deep Dive**
+   - Extract complete business method signatures
+   - Identify method parameters that represent business entities
+   - Document return types indicating business outcomes
+   - Capture exception handling for business rule violations
+
+3. **Context-Aware Extraction**
+   - Capture surrounding code context (3-5 lines before/after)
+   - Identify related business rules in the same class/method
+   - Link validation rules to the business entities they protect
+   - Group related rules by business domain (payments, users, orders)
+
+4. **Business Rule Relationships**
+   - Identify rule dependencies (Rule A must pass before Rule B applies)
+   - Document rule hierarchies (company → department → user permissions)
+   - Capture business rule exceptions and special cases
 
 ## Analysis Workflow
 
 ### Step 1: Read Required Data Sources
 ```python
 # Read Repomix summary (PRIMARY source)
-repomix_content = Read("output/reports/repomix-summary.md")
+repomix_content = None
+if Path("output/reports/repomix-summary.md").exists():
+    repomix_content = Read("output/reports/repomix-summary.md")
+    print("✅ Loaded Repomix summary for business logic analysis")
+else:
+    print("⚠️ No Repomix summary found - will analyze raw codebase directly")
 
-# Read previous agent context (SECONDARY source)  
-repomix_context = Read("output/context/repomix-analyzer-summary.json")
-
-# Read other agent context files (SECONDARY source)
-# First, read shared architecture file (contains all architect agents' findings)
-architecture_context = None
-if Path("output/context/architecture-analysis-summary.json").exists():
-    architecture_context = Read("output/context/architecture-analysis-summary.json")
-
-# Then read individual specialist context files
-performance_context = None  
-if Path("output/context/performance-analyst-summary.json").exists():
-    performance_context = Read("output/context/performance-analyst-summary.json")
-
-security_context = None
-if Path("output/context/security-analyst-summary.json").exists():
-    security_context = Read("output/context/security-analyst-summary.json")
-
-# Load any other context files dynamically
-other_contexts = {}
-context_files = Glob("output/context/*-summary.json")
-for context_file in context_files:
-    if context_file not in ["output/context/repomix-analyzer-summary.json", 
-                            "output/context/business-logic-analyst-summary.json"]:
-        agent_name = context_file.split('/')[-1].replace('-summary.json', '')
-        other_contexts[agent_name] = Read(context_file)
-
-# Extract business logic patterns from actual data
-business_info = extract_from_repomix(repomix_content)
+# NO JSON context dependencies - extract business logic directly from source code
+# Extract business logic patterns from repomix data (if available) or raw codebase
+business_info = extract_comprehensive_business_logic(repomix_content)
 ```
 
 ### Step 2: Analyze Business Logic Patterns
@@ -141,18 +201,27 @@ def extract_business_rules_from_raw_codebase():
     
     all_business_rules = []
     
-    # Find ALL source files
+    # Find ALL source files across ALL supported languages
     java_files = Glob("codebase/**/*.java")
-    cs_files = Glob("codebase/**/*.cs") 
-    all_source_files = java_files + cs_files
-    
+    cs_files = Glob("codebase/**/*.cs")
+    php_files = Glob("codebase/**/*.php")
+    ts_files = Glob("codebase/**/*.ts")
+    js_files = Glob("codebase/**/*.js")
+
+    # Combine all source files
+    all_source_files = java_files + cs_files + php_files + ts_files + js_files
+
     if not all_source_files:
         print("❌ No source files found for business logic analysis")
+        print("   Searched for: Java, C#, PHP, TypeScript, JavaScript files")
         return []
-    
+
     print(f"🔍 Found {len(all_source_files)} source files to analyze for business logic")
     print(f"   - Java files: {len(java_files)}")
     print(f"   - C# files: {len(cs_files)}")
+    print(f"   - PHP files: {len(php_files)}")
+    print(f"   - TypeScript files: {len(ts_files)}")
+    print(f"   - JavaScript files: {len(js_files)}")
     
     # Analyze EVERY source file in extreme detail
     file_count = 0
@@ -177,26 +246,103 @@ def extract_business_rules_from_raw_codebase():
     return all_business_rules
 
 def extract_business_rules_from_file_content(content, file_path):
-    """Extract ALL business rules from a single file's content"""
+    """Extract ALL business rules from a single file's content with sophisticated multi-language patterns"""
     rules = []
-    
-    # Business logic indicators to look for
+
+    # Determine file language for language-specific patterns
+    file_extension = Path(file_path).suffix.lower()
+
+    # COMPREHENSIVE business logic patterns for ALL supported languages
     business_patterns = [
-        # Validation patterns
-        (r'if\s*\([^)]*\s*(>|<|>=|<=|==|!=)\s*[^)]*\)', 'Validation Rule'),
-        # Business calculations
-        (r'\*\s*[0-9.]+|/\s*[0-9.]+|\+\s*[0-9.]+|-\s*[0-9.]+', 'Business Calculation'),
-        # State changes
-        (r'set[A-Z][a-zA-Z]*\s*\(|update[A-Z][a-zA-Z]*\s*\(', 'State Change'),
-        # Business method names
-        (r'(calculate|compute|validate|verify|process|approve|reject|authorize)[A-Z][a-zA-Z]*', 'Business Process'),
-        # Exception handling with business meaning
-        (r'throw\s+new\s+[A-Za-z]*Exception\s*\(.*business.*\)', 'Business Rule Violation'),
-        # Database operations with business context
-        (r'(save|update|delete|insert).*[A-Z][a-zA-Z]*', 'Data Business Rule'),
-        # Workflow patterns
-        (r'switch\s*\([^)]*status[^)]*\)|if\s*\([^)]*state[^)]*\)', 'Workflow Rule'),
+        # === VALIDATION & CONSTRAINT RULES ===
+        # Complex validation patterns
+        (r'if\s*\([^)]*(?:length|size|count)\s*[<>=!]+\s*\d+[^)]*\)', 'Length/Size Validation Rule'),
+        (r'if\s*\([^)]*(?:age|amount|price|quantity|balance)\s*[<>=!]+\s*[\d.]+[^)]*\)', 'Business Value Validation'),
+        (r'if\s*\([^)]*(?:email|phone|ssn|credit_?card|account)\s*[^)]*match[^)]*\)', 'Format Validation Rule'),
+        (r'(?:required|mandatory|not_null|NotNull|Required)\s*[:=]?\s*true', 'Required Field Rule'),
+        (r'(?:min|max)(?:Length|Value|Size)\s*[:=]\s*\d+', 'Range Constraint Rule'),
+
+        # === BUSINESS CALCULATIONS ===
+        # Financial calculations
+        (r'(?:total|subtotal|tax|discount|fee|interest|penalty)\s*[*+\-/=]\s*[\d.]+', 'Financial Calculation'),
+        (r'(?:rate|percentage|percent)\s*[*]\s*(?:amount|balance|principal)', 'Rate Calculation'),
+        (r'(?:price|cost|amount)\s*=\s*[^;]+[*+\-/]\s*[^;]+', 'Price Calculation Rule'),
+
+        # === WORKFLOW & STATE MANAGEMENT ===
+        # State transitions
+        (r'(?:status|state)\s*=\s*["\'](?:pending|approved|rejected|completed|cancelled|active|inactive)["\']', 'State Transition Rule'),
+        (r'switch\s*\([^)]*(?:status|state|type|role)[^)]*\)\s*\{', 'Workflow State Rule'),
+        (r'if\s*\([^)]*(?:is|can)(?:Approved|Rejected|Completed|Active|Valid)[^)]*\)', 'Business Status Check'),
+
+        # === BUSINESS PROCESSES ===
+        # Core business operations
+        (r'(?:function|method|def)\s+(?:calculate|compute|validate|verify|process|approve|reject|authorize|authenticate)[A-Z]\w*', 'Business Process Method'),
+        (r'(?:create|update|delete|save|process)(?:Order|Payment|User|Account|Transaction|Invoice)', 'Entity Business Operation'),
+
+        # === AUTHORIZATION & SECURITY ===
+        # Permission checks
+        (r'(?:hasRole|hasPermission|isAuthorized|canAccess|checkAccess)\s*\([^)]*\)', 'Authorization Rule'),
+        (r'if\s*\([^)]*(?:role|permission|access)\s*[=!]+\s*[^)]*\)', 'Role-Based Access Rule'),
+
+        # === DATA INTEGRITY RULES ===
+        # Database constraints
+        (r'(?:unique|primary_key|foreign_key|check|constraint)\s*[:=]', 'Database Integrity Rule'),
+        (r'(?:cascade|restrict|set_null)\s*(?:on_delete|on_update)', 'Referential Integrity Rule'),
+
+        # === BUSINESS EXCEPTIONS ===
+        # Business-specific exceptions
+        (r'throw\s+new\s+\w*(?:Business|Validation|Authorization|Payment|Order)\w*Exception', 'Business Exception Rule'),
+        (r'(?:InvalidOperation|BusinessRule|ValidationError|UnauthorizedAccess)Exception', 'Business Rule Violation'),
     ]
+
+    # === LANGUAGE-SPECIFIC PATTERNS ===
+    if file_extension == '.php':
+        php_patterns = [
+            # Laravel validation rules
+            (r'["\']required["\']|["\']nullable["\']|["\']string["\']|["\']integer["\']|["\']email["\']', 'Laravel Validation Rule'),
+            (r'->validate\s*\(\s*\[', 'PHP Form Validation'),
+            (r'Rule::(?:in|exists|unique|required)', 'Laravel Validation Rule'),
+            # PHP business logic
+            (r'(?:public|private|protected)\s+function\s+(?:calculate|validate|process|check)\w*', 'PHP Business Method'),
+            (r'\$this->(?:validate|authorize|check|calculate)', 'PHP Business Logic Call'),
+        ]
+        business_patterns.extend(php_patterns)
+
+    elif file_extension in ['.ts', '.js']:
+        js_patterns = [
+            # TypeScript/JavaScript validation
+            (r'(?:yup|joi|ajv)\.(?:string|number|boolean|object|array)\(\)', 'JS Schema Validation'),
+            (r'validator\.is(?:Email|URL|Length|Numeric)', 'JS Field Validation'),
+            (r'(?:required|optional|nullable)\s*:\s*(?:true|false)', 'JS Field Requirement'),
+            # Angular/React patterns
+            (r'@(?:Injectable|Component|Service)', 'Business Service Class'),
+            (r'(?:useEffect|useCallback|useMemo)\s*\([^)]*(?:calculate|validate|process)', 'Business Logic Hook'),
+            # Business method patterns
+            (r'(?:async\s+)?(?:calculate|validate|process|check|authorize)\w*\s*\([^)]*\)\s*[:{]', 'JS Business Method'),
+        ]
+        business_patterns.extend(js_patterns)
+
+    elif file_extension == '.java':
+        java_patterns = [
+            # Spring/Java Enterprise patterns
+            (r'@(?:Valid|NotNull|NotEmpty|Size|Min|Max|Email|Pattern)', 'Java Bean Validation'),
+            (r'@(?:Service|Component|Repository|Controller)', 'Spring Business Component'),
+            (r'@(?:Transactional|PreAuthorize|PostAuthorize)', 'Java Business Annotation'),
+            # Java business logic
+            (r'(?:public|private|protected)\s+(?:static\s+)?(?:\w+\s+)*(?:calculate|validate|process|check)\w*\s*\(', 'Java Business Method'),
+        ]
+        business_patterns.extend(java_patterns)
+
+    elif file_extension == '.cs':
+        csharp_patterns = [
+            # .NET validation attributes
+            (r'\[(?:Required|StringLength|Range|RegularExpression|EmailAddress)\]', '.NET Validation Attribute'),
+            (r'\[(?:Authorize|AllowAnonymous)\]', '.NET Authorization Attribute'),
+            # C# business logic
+            (r'(?:public|private|protected|internal)\s+(?:static\s+)?(?:\w+\s+)*(?:Calculate|Validate|Process|Check)\w*\s*\(', 'C# Business Method'),
+            (r'(?:decimal|double|float)\s+\w*(?:Total|Amount|Price|Cost|Tax|Fee)', 'C# Financial Calculation'),
+        ]
+        business_patterns.extend(csharp_patterns)
     
     for pattern, rule_type in business_patterns:
         import re
@@ -225,34 +371,11 @@ def extract_business_rules_from_file_content(content, file_path):
     
     return rules
 
-# Extract domain patterns from actual dependencies and context
-domain_patterns = extract_domain_patterns_from_data(repomix_content, repomix_context)
+# Extract domain patterns DIRECTLY from codebase analysis (NO JSON dependencies)
+domain_patterns = extract_domain_patterns_from_codebase(business_rules)
 
-# Use architecture findings for business-relevant patterns (from all architect agents)
-if architecture_context:
-    arch_data = json.loads(architecture_context)
-    # Extract business-relevant patterns from all architecture agents
-    for agent_name, agent_data in arch_data.get("agents", {}).items():
-        if "architect" in agent_name:  # java-architect, angular-architect, dotnet-architect, etc.
-            business_patterns = extract_business_relevant_patterns(agent_data)
-            business_rules.extend(business_patterns)
-
-# Use performance findings for business-critical workflows
-if performance_context:
-    critical_business_flows = extract_critical_flows(performance_context)
-    performance_business_impacts = identify_business_impacts_from_performance(critical_business_flows)
-
-# Use security findings for business authorization rules
-if security_context:
-    security_business_rules = extract_business_authorization_rules(security_context)
-
-# Integrate findings from other agents
-for agent_name, context_data in other_contexts.items():
-    relevant_business_data = extract_business_data_from_context(context_data, agent_name)
-    if relevant_business_data:
-        business_rules.extend(relevant_business_data)
-
-# Only document what is actually found
+# All business logic extraction is done directly from source code analysis
+# NO external context dependencies - pure business logic focus
 ```
 
 ### Step 4: Generate Documentation with Actual Data
@@ -280,24 +403,25 @@ context_summary = {
     "agent": "business-logic-analyst",
     "timestamp": datetime.now().isoformat(),
     "data_sources": {
-        "repomix_summary": "output/reports/repomix-summary.md",
-        "repomix_context": "output/context/repomix-analyzer-summary.json",
-        "architecture_context": "output/context/architecture-analysis-summary.json" if architecture_context else None,
-        "performance_context": "output/context/performance-analyst-summary.json" if performance_context else None,
-        "security_context": "output/context/security-analyst-summary.json" if security_context else None,
-        "other_contexts": list(other_contexts.keys()) if other_contexts else []
+        "repomix_summary": "output/reports/repomix-summary.md" if repomix_content else None,
+        "raw_codebase": "codebase/" if not repomix_content else "fallback_used",
+        "total_files_analyzed": len(all_source_files),
+        "languages_analyzed": ["Java", "C#", "PHP", "TypeScript", "JavaScript"]
     },
     "summary": {
-        "key_findings": actual_business_findings,  # From extracted data only
-        "business_patterns": extracted_business_patterns,
-        "critical_files": identified_business_files,
-        "integrated_insights": len([c for c in [java_context, performance_context, security_context] if c]) + len(other_contexts)
+        "total_business_rules": len(business_rules),
+        "rules_by_type": group_rules_by_type(business_rules),
+        "critical_business_files": identify_critical_business_files(all_source_files, business_rules),
+        "domain_patterns": domain_patterns,
+        "key_business_processes": identify_key_processes(business_rules)
     },
     "data": {
         "business_rules": business_rules,
-        "domain_patterns": domain_patterns_list,
-        "workflow_patterns": workflow_patterns,
-        "validation_rules": detected_validation_rules
+        "domain_patterns": domain_patterns,
+        "workflow_patterns": extract_workflow_patterns(business_rules),
+        "validation_rules": extract_validation_rules(business_rules),
+        "calculation_rules": extract_calculation_rules(business_rules),
+        "authorization_rules": extract_authorization_rules(business_rules)
     }
 }
 

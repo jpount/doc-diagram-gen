@@ -79,7 +79,7 @@
     "level": "high",
     "removeWhitespace": true,
     "minifyCode": false,
-    "tokenLimit": 100000
+    "tokenLimit": 200000
   },
   "codeProcessing": {
     "enableTreeSitter": true,

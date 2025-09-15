@@ -63,7 +63,7 @@ Always use these indicators to highlight findings:
 - **Enterprise Architecture**: Domain-driven design, microservices, event-driven architecture
 
 ## Technology Stack Coverage
-- **Backend**: Java/J2EE, .NET Framework/Core, Spring Boot, Node.js, Python
+- **Backend**: Java/J2EE, .NET Framework/Core, Spring Boot, Node.js, Python, PHP
 - **Frontend**: Angular, React, Vue.js, traditional web frameworks (JSF, ASP.NET Web Forms)
 - **Cloud**: AWS, Azure, GCP, Kubernetes, Docker, serverless architectures  
 - **Databases**: SQL Server, Oracle, PostgreSQL, MySQL, MongoDB, Redis
@@ -164,6 +164,10 @@ def extract_tech_stack_from_repomix(repomix_content, repomix_context):
         architecture_patterns.append("Angular Frontend Architecture")
     if ".net" in repomix_content.lower():
         architecture_patterns.append(".NET Architecture")
+    if "laravel" in repomix_content.lower() or "symfony" in repomix_content.lower():
+        architecture_patterns.append("PHP Framework Architecture")
+    if "composer.json" in repomix_content.lower():
+        architecture_patterns.append("PHP Composer Architecture")
     
     # Extract deployment patterns from file structure in Repomix
     deployment_patterns = []
@@ -187,6 +191,9 @@ def analyze_architecture_from_repomix(repomix_content, tech_stack):
     elif primary_lang == "C#":
         components = extract_dotnet_components_from_repomix(repomix_content)
         integration_patterns = extract_dotnet_integration_patterns(repomix_content)
+    elif primary_lang == "PHP":
+        components = extract_php_components_from_repomix(repomix_content)
+        integration_patterns = extract_php_integration_patterns(repomix_content)
         
         if Glob(f"{codebase_path}**/package.json"):
             package_json = Read(f"{codebase_path}package.json")
@@ -206,6 +213,8 @@ def analyze_architecture_from_repomix(repomix_content, tech_stack):
         stack["build_tools"].append("Gradle")
     if Glob(f"{codebase_path}**/package.json"):
         stack["build_tools"].append("NPM/Node.js")
+    if Glob(f"{codebase_path}**/composer.json"):
+        stack["build_tools"].append("Composer")
     
     return stack
 
@@ -225,6 +234,80 @@ def analyze_architecture_patterns(codebase_path):
     if Glob(f"{codebase_path}**/model/**") and Glob(f"{codebase_path}**/view/**"):
         patterns.append("Model-View-Controller (MVC)")
     
+    return patterns
+
+def extract_php_components_from_repomix(repomix_content):
+    """Extract PHP components from Repomix summary"""
+    components = []
+
+    # Laravel framework components
+    if "laravel" in repomix_content.lower():
+        components.append("🔧 Laravel Framework")
+        if "artisan" in repomix_content.lower():
+            components.append("⚡ Artisan CLI")
+        if "eloquent" in repomix_content.lower():
+            components.append("🗄️ Eloquent ORM")
+        if "blade" in repomix_content.lower():
+            components.append("🎨 Blade Templating")
+
+    # Symfony framework components
+    if "symfony" in repomix_content.lower():
+        components.append("🔧 Symfony Framework")
+        if "console" in repomix_content.lower():
+            components.append("⚡ Symfony Console")
+        if "doctrine" in repomix_content.lower():
+            components.append("🗄️ Doctrine ORM")
+        if "twig" in repomix_content.lower():
+            components.append("🎨 Twig Templating")
+
+    # General PHP components
+    if "composer" in repomix_content.lower():
+        components.append("📦 Composer Package Manager")
+    if "psr" in repomix_content.lower():
+        components.append("📋 PSR Standards Compliance")
+    if "phpunit" in repomix_content.lower():
+        components.append("🧪 PHPUnit Testing")
+
+    # MVC pattern detection
+    if ("controller" in repomix_content.lower() and
+        "model" in repomix_content.lower() and
+        "view" in repomix_content.lower()):
+        components.append("🏗️ MVC Architecture Pattern")
+
+    return components
+
+def extract_php_integration_patterns(repomix_content):
+    """Extract PHP integration patterns from Repomix summary"""
+    patterns = []
+
+    # API patterns
+    if "api" in repomix_content.lower() or "rest" in repomix_content.lower():
+        patterns.append("🔌 REST API Integration")
+    if "graphql" in repomix_content.lower():
+        patterns.append("📡 GraphQL API")
+    if "soap" in repomix_content.lower():
+        patterns.append("🧼 SOAP Web Services")
+
+    # Database integration
+    if "mysql" in repomix_content.lower():
+        patterns.append("🐬 MySQL Database Integration")
+    if "postgresql" in repomix_content.lower():
+        patterns.append("🐘 PostgreSQL Integration")
+    if "redis" in repomix_content.lower():
+        patterns.append("🔴 Redis Caching")
+
+    # Message queue patterns
+    if "queue" in repomix_content.lower() or "job" in repomix_content.lower():
+        patterns.append("📨 Message Queue Integration")
+    if "rabbitmq" in repomix_content.lower():
+        patterns.append("🐰 RabbitMQ Messaging")
+
+    # External service integration
+    if "guzzle" in repomix_content.lower() or "http" in repomix_content.lower():
+        patterns.append("🌐 HTTP Client Integration")
+    if "oauth" in repomix_content.lower():
+        patterns.append("🔐 OAuth Authentication")
+
     return patterns
 ```
 

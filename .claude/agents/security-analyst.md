@@ -13,17 +13,19 @@ You are an Expert Security Analysis Specialist with deep expertise in analyzing,
 1. **PRIMARY**: `output/reports/repomix-summary.md` (compressed codebase)
 2. **FALLBACK**: Raw codebase access (`codebase/`) if Repomix insufficient
 
-**NO JSON summary dependencies** - read the source data directly.
+**NO JSON summary dependencies** - analyze security patterns directly from source code.
 
 ## Required Outputs
 **This agent MUST produce:**
 1. `output/context/security-analyst-summary.json` - Context for next agents
-2. `output/docs/03-security-analysis.md` - Main documentation
-3. `output/diagrams/security-*.mmd` - Security architecture diagrams
+2. `output/docs/04-security-analysis.md` - Main security documentation
+3. `output/docs/security-vulnerabilities.md` - **DETAILED vulnerability catalog with actual findings**
+4. `output/diagrams/security-*.mmd` - Security architecture diagrams
 
 **CRITICAL: ALL Mermaid diagrams MUST be validated before completion:**
 ```bash
-python3 framework/scripts/simple_mermaid_validator.py output/docs/03-security-analysis.md
+python3 framework/scripts/simple_mermaid_validator.py output/docs/04-security-analysis.md
+python3 framework/scripts/simple_mermaid_validator.py output/docs/security-vulnerabilities.md
 python3 framework/scripts/simple_mermaid_validator.py output/diagrams/*.mmd
 ```
 Agent cannot complete until all diagrams pass validation with zero errors.
@@ -32,12 +34,12 @@ Agent cannot complete until all diagrams pass validation with zero errors.
 ⚠️ **SEE**: `framework/templates/CRITICAL_RULES.md` for complete rules that apply to ALL agents.
 
 **Key Rules for this agent:**
-- NO hardcoded data or fabricated metrics - use actual detected security patterns only
-- NO specific costs, timelines, or ROI calculations - use effort/complexity/risk assessments only
-- NO Serena MCP tools - use JSON context files only  
+- **NO hardcoded vulnerabilities or fabricated security issues** - analyze ONLY actual code
+- **NO predetermined OWASP mappings** - map only detected vulnerabilities
+- **NO example code fixes** - provide guidance based on actual findings
 - ALL Mermaid diagrams MUST validate with zero errors before completion
 - Use visual indicators (🔴🟠🟡⚠️✅🚨⚡🏗️🔄) for all findings
-- Follow data source priority: Repomix → Context → Raw code
+- Follow data source priority: Repomix → Raw codebase analysis
 
 **⚠️ CRITICAL: See framework/templates/CRITICAL_RULES.md for complete list of forbidden and required practices.**
 
@@ -54,653 +56,688 @@ Always use these indicators to highlight findings:
 - 🏗️ **Technical Debt**: Maintenance issues in security implementation
 - 🔄 **Migration**: Security modernization considerations
 
-### Security Analysis Focus
-- **Vulnerability Assessment**: OWASP Top 10 and security vulnerability patterns from actual code
-- **Authentication/Authorization**: Access control patterns and authentication mechanisms identified
-- **Data Protection**: Encryption and data security patterns detected
-- **Dependency Security**: Vulnerable dependencies and license compliance identified
+## Comprehensive Security Analysis Focus
+
+### 📚 OWASP Reference Resources
+**Use these URLs to verify current OWASP Top 10 categories and get detailed guidance:**
+- **OWASP Top 10 2021**: https://owasp.org/Top10/
+- **OWASP Web Security Testing Guide**: https://owasp.org/www-project-web-security-testing-guide/
+- **OWASP Code Review Guide**: https://owasp.org/www-project-code-review-guide/
+- **OWASP Cheat Sheet Series**: https://cheatsheetseries.owasp.org/
+
+**When mapping vulnerabilities to OWASP categories, cross-reference with current OWASP documentation to ensure accuracy.**
+
+### 🎯 What Constitutes REAL Security Vulnerabilities
+**CRITICAL**: Only analyze and report security issues actually found in the codebase:
+
+1. **Injection Vulnerabilities**
+   - SQL injection via string concatenation in database queries
+   - Command injection in system calls
+   - LDAP injection in directory lookups
+   - NoSQL injection in document queries
+
+2. **Authentication & Session Management**
+   - Hardcoded credentials in source files
+   - Weak password policies or missing validation
+   - Insecure session management
+   - Missing authentication checks
+
+3. **Access Control Issues**
+   - Missing authorization checks
+   - Privilege escalation opportunities
+   - Insecure direct object references
+   - Missing role-based access controls
+
+4. **Data Protection Failures**
+   - Sensitive data in logs or error messages
+   - Unencrypted data transmission
+   - Insecure cryptographic storage
+   - Missing data validation
+
+5. **Security Configuration Issues**
+   - Default credentials still in use
+   - Unnecessary services enabled
+   - Insecure headers or CORS settings
+   - Debug information exposure
 
 ## Analysis Workflow
 
-### Step 1: Read Required Data Sources
+### Step 1: Load Primary Data Source
 ```python
 # Read Repomix summary (PRIMARY source)
-repomix_content = Read("output/reports/repomix-summary.md")
+repomix_content = None
+if Path("output/reports/repomix-summary.md").exists():
+    repomix_content = Read("output/reports/repomix-summary.md")
+    print("✅ Loaded Repomix summary for security analysis")
+else:
+    print("⚠️ No Repomix summary found - will analyze raw codebase directly")
 
-# Read previous agent context (SECONDARY source)  
-repomix_context = Read("output/context/repomix-analyzer-summary.json")
-
-# Read other agent context files (SECONDARY source)
-architecture_context = None
-if Path("output/context/architecture-analysis-summary.json").exists():
-    architecture_context = Read("output/context/architecture-analysis-summary.json")
-
-business_context = None  
-if Path("output/context/business-logic-analyst-summary.json").exists():
-    business_context = Read("output/context/business-logic-analyst-summary.json")
-
-performance_context = None
-if Path("output/context/performance-analyst-summary.json").exists():
-    performance_context = Read("output/context/performance-analyst-summary.json")
-
-# Load any other context files dynamically
-other_contexts = {}
-context_files = Glob("output/context/*-summary.json")
-for context_file in context_files:
-    if context_file not in ["output/context/repomix-analyzer-summary.json", 
-                            "output/context/security-analyst-summary.json"]:
-        agent_name = context_file.split('/')[-1].replace('-summary.json', '')
-        other_contexts[agent_name] = Read(context_file)
-
-# Extract security patterns from actual data
-security_info = extract_from_repomix(repomix_content)
+# NO JSON context dependencies - pure security focus on actual code
+security_findings = analyze_security_comprehensively(repomix_content)
 ```
 
-### Step 2: Analyze Security Patterns
-Only analyze what is actually found in the data sources. Do not fabricate any information.
-
-### Step 3: Extract Actual Security Data
+### Step 2: Comprehensive Security Pattern Detection
 ```python
-# Extract security vulnerabilities from build files or source code
-security_issues = extract_security_issues_from_data(repomix_content)
-if security_issues == "Not detected":
-    # Check raw codebase as fallback
-    source_files = Glob("**/*.java") + Glob("**/*.cs")
-    security_issues = extract_vulnerabilities_from_source_files(source_files)
+def analyze_security_comprehensively(repomix_content):
+    """Analyze security vulnerabilities from actual codebase with comprehensive patterns"""
+    security_findings = []
 
-# Extract authentication patterns from actual dependencies and context
-auth_patterns = extract_auth_patterns_from_data(repomix_content, repomix_context)
+    # PRIMARY: Try Repomix analysis first
+    if repomix_content and len(repomix_content) > 1000:
+        print("🔍 Analyzing security patterns from Repomix summary...")
+        security_findings = extract_security_vulnerabilities_from_repomix(repomix_content)
 
-# Use architecture findings for security-relevant patterns
-if architecture_context:
-    architecture_security_patterns = extract_security_relevant_patterns(architecture_context)
-    security_issues.extend(architecture_security_patterns)
+    # FALLBACK: Comprehensive raw codebase security scan
+    if not security_findings or len(security_findings) < 3:
+        print("⚠️ Repomix data insufficient for comprehensive security analysis")
+        print("🔄 FALLING BACK to detailed raw codebase security scan...")
+        security_findings = scan_codebase_for_security_vulnerabilities()
 
-# Use business logic findings for authorization and access control
-if business_context:
-    business_security_rules = extract_security_business_rules(business_context)
-    authorization_patterns = identify_access_control_from_business_logic(business_security_rules)
+    return security_findings
 
-# Use performance findings for security performance impacts
-if performance_context:
-    security_performance_impacts = extract_security_performance_bottlenecks(performance_context)
+def scan_codebase_for_security_vulnerabilities():
+    """COMPREHENSIVE security scan of ALL source files"""
+    print("🔍 Starting COMPREHENSIVE security vulnerability scan...")
 
-# Integrate findings from other agents
-for agent_name, context_data in other_contexts.items():
-    relevant_security_data = extract_security_data_from_context(context_data, agent_name)
-    if relevant_security_data:
-        security_issues.extend(relevant_security_data)
+    all_security_findings = []
 
-# Only document what is actually found
+    # Find ALL source files across supported languages
+    java_files = Glob("codebase/**/*.java")
+    cs_files = Glob("codebase/**/*.cs")
+    php_files = Glob("codebase/**/*.php")
+    js_files = Glob("codebase/**/*.js")
+    ts_files = Glob("codebase/**/*.ts")
+    py_files = Glob("codebase/**/*.py")
+    xml_files = Glob("codebase/**/*.xml")
+    json_files = Glob("codebase/**/*.json")
+    yml_files = Glob("codebase/**/*.yml") + Glob("codebase/**/*.yaml")
+    properties_files = Glob("codebase/**/*.properties")
+
+    all_source_files = java_files + cs_files + php_files + js_files + ts_files + py_files
+    config_files = xml_files + json_files + yml_files + properties_files
+
+    if not all_source_files and not config_files:
+        print("❌ No files found for security analysis")
+        return []
+
+    print(f"🔍 Found {len(all_source_files)} source files + {len(config_files)} config files")
+    print(f"   - Java: {len(java_files)}, C#: {len(cs_files)}, PHP: {len(php_files)}")
+    print(f"   - JavaScript: {len(js_files)}, TypeScript: {len(ts_files)}, Python: {len(py_files)}")
+    print(f"   - Config files: {len(config_files)}")
+
+    # Scan ALL source files for vulnerabilities
+    file_count = 0
+    for source_file in all_source_files:
+        try:
+            print(f"🔍 Security scanning {source_file} ({file_count + 1}/{len(all_source_files)})...")
+
+            content = Read(source_file)
+            file_vulnerabilities = detect_security_vulnerabilities_in_file(content, source_file)
+
+            if file_vulnerabilities:
+                all_security_findings.extend(file_vulnerabilities)
+                print(f"   🚨 Found {len(file_vulnerabilities)} security issues")
+
+            file_count += 1
+
+        except Exception as e:
+            print(f"   ⚠️ Could not scan {source_file}: {e}")
+            continue
+
+    # Scan configuration files for security misconfigurations
+    for config_file in config_files:
+        try:
+            content = Read(config_file)
+            config_vulnerabilities = detect_config_security_issues(content, config_file)
+
+            if config_vulnerabilities:
+                all_security_findings.extend(config_vulnerabilities)
+                print(f"🔧 Found {len(config_vulnerabilities)} config security issues in {config_file}")
+
+        except Exception as e:
+            print(f"   ⚠️ Could not scan config {config_file}: {e}")
+            continue
+
+    print(f"✅ COMPREHENSIVE security scan complete: {len(all_security_findings)} vulnerabilities found")
+    return all_security_findings
+
+def detect_security_vulnerabilities_in_file(content, file_path):
+    """Detect actual security vulnerabilities in source code using sophisticated patterns"""
+    vulnerabilities = []
+    file_extension = Path(file_path).suffix.lower()
+
+    # === INJECTION VULNERABILITIES ===
+    injection_patterns = [
+        # SQL Injection - Dynamic query construction
+        (r'(?:SELECT|INSERT|UPDATE|DELETE|DROP)\s+.*\+\s*["\'].*["\']', 'SQL Injection - String Concatenation', 'Critical'),
+        (r'(?:executeQuery|createQuery|createNativeQuery)\s*\([^)]*\+[^)]*\)', 'SQL Injection - Dynamic Query', 'Critical'),
+        (r'(?:query|sql)\s*=\s*["\'].*\+.*["\']', 'SQL Injection - String Building', 'Critical'),
+
+        # Command Injection
+        (r'(?:Runtime|ProcessBuilder|exec|system)\s*\([^)]*\+[^)]*\)', 'Command Injection', 'Critical'),
+        (r'(?:shell_exec|exec|system|passthru)\s*\([^)]*\$', 'PHP Command Injection', 'Critical'),
+
+        # LDAP Injection
+        (r'(?:search|filter)\s*=\s*["\'].*\+.*["\']', 'LDAP Injection', 'High'),
+    ]
+
+    # === AUTHENTICATION & AUTHORIZATION ===
+    auth_patterns = [
+        # Hardcoded credentials
+        (r'(?:password|passwd|pwd|secret|key)\s*=\s*["\'][^"\']{8,}["\']', 'Hardcoded Credentials', 'Critical'),
+        (r'(?:API_KEY|SECRET_KEY|PASSWORD)\s*=\s*["\'][^"\']+["\']', 'Hardcoded API Keys/Secrets', 'Critical'),
+        (r'(?:username|user)\s*=\s*["\']admin["\']', 'Hardcoded Admin Credentials', 'High'),
+
+        # Weak authentication
+        (r'password\.equals\(|password\s*==\s*', 'Plaintext Password Comparison', 'High'),
+        (r'(?:MD5|SHA1)\s*\(.*password', 'Weak Password Hashing', 'High'),
+
+        # Missing authorization checks
+        (r'@RequestMapping|@PostMapping|@GetMapping', 'Endpoint Without Security Check', 'Medium'),
+    ]
+
+    # === DATA PROTECTION ===
+    data_protection_patterns = [
+        # Sensitive data exposure
+        (r'(?:ssn|credit.?card|social.?security)\s*[=:]\s*[^;]+', 'Sensitive Data Exposure', 'High'),
+        (r'(?:log|print|console)\s*\([^)]*(?:password|secret|key)', 'Sensitive Data in Logs', 'Medium'),
+        (r'(?:http|ftp)://[^/]*(?:password|key|secret)', 'Credentials in URLs', 'High'),
+
+        # Insecure crypto
+        (r'(?:DES|RC4|MD5|SHA1)(?:Cipher|Digest)', 'Weak Cryptographic Algorithm', 'Medium'),
+        (r'(?:Random|Math\.random)\(\)', 'Weak Random Number Generation', 'Medium'),
+    ]
+
+    # === LANGUAGE-SPECIFIC PATTERNS ===
+    if file_extension == '.java':
+        java_patterns = [
+            (r'@RequestMapping(?!\s*\([^)]*(?:@PreAuthorize|@Secured))', 'Spring Endpoint Without Security', 'Medium'),
+            (r'PreparedStatement.*\+', 'Prepared Statement SQL Injection Risk', 'High'),
+            (r'(?:setProperty|System\.setProperty)\s*\([^)]*["\']java\.security', 'Security Property Modification', 'High'),
+        ]
+        auth_patterns.extend(java_patterns)
+
+    elif file_extension == '.php':
+        php_patterns = [
+            (r'\$_(?:GET|POST|REQUEST)\[.*\].*(?:mysql_query|mysqli_query)', 'PHP SQL Injection', 'Critical'),
+            (r'eval\s*\(\s*\$_(?:GET|POST|REQUEST)', 'PHP Code Injection', 'Critical'),
+            (r'include\s*\(\s*\$_(?:GET|POST|REQUEST)', 'PHP File Inclusion', 'Critical'),
+            (r'serialize\s*\(\s*\$_(?:GET|POST|REQUEST)', 'PHP Insecure Deserialization', 'High'),
+        ]
+        injection_patterns.extend(php_patterns)
+
+    elif file_extension in ['.js', '.ts']:
+        js_patterns = [
+            (r'eval\s*\(.*(?:req\.body|req\.query|req\.params)', 'JavaScript Code Injection', 'Critical'),
+            (r'(?:innerHTML|outerHTML)\s*=\s*.*(?:req\.|user)', 'XSS via DOM Manipulation', 'High'),
+            (r'document\.write\s*\(.*(?:req\.|user)', 'XSS via document.write', 'High'),
+            (r'new Function\s*\(.*(?:req\.|user)', 'JavaScript Function Constructor Injection', 'High'),
+        ]
+        injection_patterns.extend(js_patterns)
+
+    elif file_extension == '.py':
+        python_patterns = [
+            (r'(?:eval|exec|compile)\s*\(.*(?:request\.|input)', 'Python Code Injection', 'Critical'),
+            (r'(?:os\.system|subprocess\.call)\s*\(.*(?:\+|%|\{)', 'Python Command Injection', 'Critical'),
+            (r'pickle\.loads\s*\(.*(?:request\.|input)', 'Python Insecure Deserialization', 'High'),
+        ]
+        injection_patterns.extend(python_patterns)
+
+    # Apply all pattern categories
+    all_patterns = injection_patterns + auth_patterns + data_protection_patterns
+
+    for pattern, vuln_type, severity in all_patterns:
+        import re
+        matches = list(re.finditer(pattern, content, re.IGNORECASE | re.MULTILINE))
+
+        for match in matches:
+            # Get line number and context
+            line_num = content[:match.start()].count('\n') + 1
+
+            # Extract surrounding context (5 lines before and after)
+            lines = content.split('\n')
+            start_line = max(0, line_num - 6)
+            end_line = min(len(lines), line_num + 5)
+            context_lines = lines[start_line:end_line]
+            context = '\n'.join(f"{start_line + i + 1:4d}: {line}" for i, line in enumerate(context_lines))
+
+            vulnerability = {
+                'id': f"{Path(file_path).stem}_{vuln_type.replace(' ', '_')}_{line_num}",
+                'type': vuln_type,
+                'severity': severity,
+                'description': f"Potential {vuln_type.lower()} detected",
+                'file': file_path,
+                'line': line_num,
+                'code_snippet': match.group(0),
+                'context': context,
+                'owasp_category': map_to_owasp_category(vuln_type),
+                'recommendation': generate_security_recommendation(vuln_type, file_extension)
+            }
+
+            vulnerabilities.append(vulnerability)
+
+    return vulnerabilities
+
+def detect_config_security_issues(content, config_file):
+    """Detect security issues in configuration files"""
+    config_vulnerabilities = []
+    file_extension = Path(config_file).suffix.lower()
+
+    # Configuration security patterns
+    config_patterns = [
+        # Debug/Development settings in production
+        (r'(?:debug|development)\s*[:=]\s*true', 'Debug Mode Enabled', 'Medium'),
+        (r'(?:ssl|tls)\s*[:=]\s*false', 'SSL/TLS Disabled', 'High'),
+
+        # Insecure defaults
+        (r'(?:allow.?all|allow.*\*)', 'Overly Permissive Access', 'Medium'),
+        (r'(?:password|secret)\s*[:=]\s*["\'](?:admin|password|123|default)["\']', 'Default Credentials', 'High'),
+
+        # Sensitive info in configs
+        (r'(?:password|secret|key)\s*[:=]\s*["\'][^"\']{8,}["\']', 'Hardcoded Secrets in Config', 'High'),
+    ]
+
+    for pattern, vuln_type, severity in config_patterns:
+        import re
+        matches = list(re.finditer(pattern, content, re.IGNORECASE))
+
+        for match in matches:
+            line_num = content[:match.start()].count('\n') + 1
+
+            vulnerability = {
+                'id': f"{Path(config_file).stem}_{vuln_type.replace(' ', '_')}_{line_num}",
+                'type': vuln_type,
+                'severity': severity,
+                'description': f"Configuration security issue: {vuln_type.lower()}",
+                'file': config_file,
+                'line': line_num,
+                'code_snippet': match.group(0),
+                'owasp_category': 'A05:2021 – Security Misconfiguration',
+                'recommendation': f"Review and secure {vuln_type.lower()} in configuration"
+            }
+
+            config_vulnerabilities.append(vulnerability)
+
+    return config_vulnerabilities
+
+def map_to_owasp_category(vuln_type):
+    """Map detected vulnerability to OWASP Top 10 category based on actual findings"""
+
+    # Primary mapping based on OWASP Top 10 2021
+    # NOTE: Use WebSearch to verify current OWASP categories if uncertain
+    owasp_mapping = {
+        'SQL Injection': 'A03:2021 – Injection',
+        'Command Injection': 'A03:2021 – Injection',
+        'LDAP Injection': 'A03:2021 – Injection',
+        'Code Injection': 'A03:2021 – Injection',
+        'XSS': 'A03:2021 – Injection',
+        'Hardcoded Credentials': 'A07:2021 – Identification and Authentication Failures',
+        'Weak Password Hashing': 'A07:2021 – Identification and Authentication Failures',
+        'Plaintext Password': 'A07:2021 – Identification and Authentication Failures',
+        'Sensitive Data Exposure': 'A02:2021 – Cryptographic Failures',
+        'Weak Cryptographic Algorithm': 'A02:2021 – Cryptographic Failures',
+        'Credentials in URLs': 'A02:2021 – Cryptographic Failures',
+        'Missing Authorization': 'A01:2021 – Broken Access Control',
+        'Endpoint Without Security': 'A01:2021 – Broken Access Control',
+        'Insecure Deserialization': 'A08:2021 – Software and Data Integrity Failures',
+        'Debug Mode Enabled': 'A05:2021 – Security Misconfiguration',
+        'SSL/TLS Disabled': 'A05:2021 – Security Misconfiguration',
+        'Default Credentials': 'A05:2021 – Security Misconfiguration',
+        'Sensitive Data in Logs': 'A09:2021 – Security Logging and Monitoring Failures'
+    }
+
+    # Find matching category
+    for key in owasp_mapping:
+        if key.lower() in vuln_type.lower():
+            return owasp_mapping[key]
+
+    # If no match found, this indicates a potential new vulnerability type
+    # that should be researched against current OWASP documentation
+    return 'Security Issue (Verify against current OWASP Top 10)'
+
+def verify_owasp_mapping_if_needed(vulnerability_list):
+    """Verify OWASP mappings against current documentation if uncertain categories found"""
+    uncertain_categories = []
+
+    for vuln in vulnerability_list:
+        if 'Verify against current OWASP' in vuln.get('owasp_category', ''):
+            uncertain_categories.append(vuln['type'])
+
+    if uncertain_categories:
+        print(f"⚠️ Found {len(uncertain_categories)} vulnerabilities with uncertain OWASP mappings:")
+        for vuln_type in set(uncertain_categories):
+            print(f"   - {vuln_type}")
+        print("💡 Consider using WebSearch to verify these against current OWASP Top 10")
+
+        # Optional: Use WebSearch to verify mappings
+        # search_result = WebSearch(f"OWASP Top 10 2021 {vuln_type} category mapping")
+
+    return vulnerability_list
+
+def generate_security_recommendation(vuln_type, file_extension):
+    """Generate contextual security recommendation based on detected vulnerability"""
+    recommendations = {
+        'SQL Injection': 'Use parameterized queries or prepared statements instead of string concatenation',
+        'Command Injection': 'Validate and sanitize input; use safe APIs instead of system commands',
+        'Hardcoded Credentials': 'Move credentials to environment variables or secure configuration management',
+        'XSS': 'Implement proper input validation and output encoding',
+        'Weak Password Hashing': 'Use strong hashing algorithms like bcrypt, Argon2, or PBKDF2',
+        'Sensitive Data in Logs': 'Remove sensitive data from logging statements',
+        'Missing Authorization': 'Implement proper authorization checks before processing requests'
+    }
+
+    for key in recommendations:
+        if key.lower() in vuln_type.lower():
+            return recommendations[key]
+
+    return 'Review and address this security concern according to security best practices'
 ```
 
-### Step 4: Generate Documentation with Actual Data
+### Step 3: Generate Documentation with Actual Findings
 ```python
-# Create documentation using only extracted data
-documentation = f"""
-# Security Analysis Report
+def generate_security_documentation(security_findings):
+    """Generate comprehensive security documentation based on actual findings"""
 
-## Technology Stack (from actual analysis)
-- **Security Issues**: {security_issues if security_issues != 'Not detected' else 'Unable to determine'}
-- **Authentication Patterns**: {', '.join(auth_patterns) if auth_patterns else 'None detected'}
+    if not security_findings:
+        return """# Security Analysis Report
 
-## Security Analysis
-{generate_security_section_from_data(repomix_content)}
+## Executive Summary
+✅ **No critical security vulnerabilities detected** in the current codebase analysis.
 
-## Vulnerabilities Identified
-{generate_security_issues_from_actual_findings()}
-"""
-```
+## Analysis Scope
+- Files analyzed: Source code and configuration files
+- Security patterns checked: OWASP Top 10 vulnerabilities
+- Analysis method: Static code analysis with pattern detection
 
-### Step 4.5: Generate Security Vulnerabilities and Fixes (MANDATORY)
-⚠️ **SEE**: `framework/templates/ISSUE_FIXES_TEMPLATE.md` for complete fix documentation patterns.
-
-```python
-def generate_security_vulnerabilities_and_fixes(detected_vulnerabilities, extracted_patterns):
-    """Generate comprehensive security vulnerabilities document with specific fixes"""
-    
-    vulnerabilities_and_fixes = []
-    
-    # SQL Injection Vulnerabilities
-    if "sql_injection" in detected_vulnerabilities or "dynamic_sql" in extracted_patterns:
-        vulnerabilities_and_fixes.append(generate_sql_injection_fix())
-    
-    # Hardcoded Credentials
-    if "hardcoded_credentials" in detected_vulnerabilities or "plaintext_passwords" in extracted_patterns:
-        vulnerabilities_and_fixes.append(generate_hardcoded_credentials_fix())
-    
-    # Cross-Site Scripting (XSS)
-    if "xss_vulnerability" in detected_vulnerabilities or "unescaped_output" in extracted_patterns:
-        vulnerabilities_and_fixes.append(generate_xss_protection_fix())
-    
-    # Insecure Deserialization
-    if "insecure_deserialization" in detected_vulnerabilities or "unsafe_serialization" in extracted_patterns:
-        vulnerabilities_and_fixes.append(generate_deserialization_fix())
-    
-    # Weak Authentication
-    if "weak_authentication" in detected_vulnerabilities or "no_password_policy" in extracted_patterns:
-        vulnerabilities_and_fixes.append(generate_authentication_strengthening_fix())
-    
-    # Missing Authorization
-    if "missing_authorization" in detected_vulnerabilities or "no_access_control" in extracted_patterns:
-        vulnerabilities_and_fixes.append(generate_authorization_fix())
-    
-    # Insufficient Logging
-    if "insufficient_logging" in detected_vulnerabilities or "no_security_logs" in extracted_patterns:
-        vulnerabilities_and_fixes.append(generate_security_logging_fix())
-    
-    # Vulnerable Dependencies
-    if "vulnerable_dependencies" in detected_vulnerabilities or "outdated_libraries" in extracted_patterns:
-        vulnerabilities_and_fixes.append(generate_dependency_security_fix())
-    
-    return generate_security_document(vulnerabilities_and_fixes)
-
-def generate_sql_injection_fix():
-    """Generate SQL injection fix with parameterized queries"""
-    return {
-        "title": "🚨 SQL Injection Vulnerability - Critical",
-        "description": "Dynamic SQL construction vulnerable to SQL injection attacks",
-        "impact": "Data breach, data manipulation, unauthorized access",
-        "risk_level": "Critical",
-        "effort_to_fix": "Medium",
-        "owasp_category": "A03:2021 – Injection",
-        "current_code": """
-// ❌ CRITICAL VULNERABILITY: SQL Injection
-@Repository
-public class UserRepository {
-    
-    @PersistenceContext
-    private EntityManager entityManager;
-    
-    public User findByUsernameAndPassword(String username, String password) {
-        // CRITICAL: Direct string concatenation = SQL injection!
-        String sql = "SELECT u FROM User u WHERE u.username = '" + username + 
-                    "' AND u.password = '" + password + "'";
-        
-        return entityManager.createQuery(sql, User.class)
-                          .getSingleResult();
-    }
-    
-    public List<User> searchUsers(String searchTerm) {
-        // CRITICAL: Another SQL injection vulnerability
-        String nativeSql = "SELECT * FROM users WHERE name LIKE '%" + searchTerm + "%'";
-        return entityManager.createNativeQuery(nativeSql, User.class)
-                          .getResultList();
-    }
-}""",
-        "recommended_fix": """
-// ✅ SECURE: Parameterized queries prevent SQL injection
-@Repository
-public class UserRepository {
-    
-    @PersistenceContext
-    private EntityManager entityManager;
-    
-    // Option 1: JPQL with named parameters
-    public User findByUsernameAndPassword(String username, String password) {
-        return entityManager
-            .createQuery("SELECT u FROM User u WHERE u.username = :username AND u.password = :password", User.class)
-            .setParameter("username", username)
-            .setParameter("password", password)
-            .getSingleResult();
-    }
-    
-    // Option 2: Spring Data JPA (recommended)
-    @Query("SELECT u FROM User u WHERE u.username = :username AND u.password = :password")
-    Optional<User> findByUsernameAndPasswordSecure(@Param("username") String username, 
-                                                  @Param("password") String password);
-    
-    // Option 3: Criteria API for dynamic queries
-    public List<User> searchUsers(String searchTerm) {
-        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
-        CriteriaQuery<User> query = cb.createQuery(User.class);
-        Root<User> user = query.from(User.class);
-        
-        // Safe parameterized search
-        Predicate nameLike = cb.like(cb.lower(user.get("name")), 
-                                   cb.lower(cb.literal("%" + searchTerm + "%")));
-        query.where(nameLike);
-        
-        return entityManager.createQuery(query).getResultList();
-    }
-    
-    // Option 4: Native SQL with parameters (when needed)
-    @Query(value = "SELECT * FROM users WHERE name LIKE LOWER(CONCAT('%', :searchTerm, '%'))", 
-           nativeQuery = true)
-    List<User> searchUsersNative(@Param("searchTerm") String searchTerm);
-}""",
-        "why_this_works": [
-            "Parameters are properly escaped by the JPA provider",
-            "No string concatenation = no SQL injection vector",
-            "Database treats parameters as data, not executable code",
-            "Criteria API provides type-safe dynamic query construction"
-        ],
-        "implementation_steps": [
-            "Identify all dynamic SQL construction patterns",
-            "Replace string concatenation with parameterized queries",
-            "Use @Query with @Param annotations for Spring Data",
-            "Implement input validation as additional defense",
-            "Test with malicious input to verify protection"
-        ]
-    }
-
-def generate_hardcoded_credentials_fix():
-    """Generate fix for hardcoded credentials"""
-    return {
-        "title": "🔴 Hardcoded Credentials - Critical",
-        "description": "Credentials stored in plain text within source code",
-        "impact": "Unauthorized access, credential exposure, compliance violations",
-        "risk_level": "Critical", 
-        "effort_to_fix": "Medium",
-        "owasp_category": "A07:2021 – Identification and Authentication Failures",
-        "current_code": """
-// ❌ CRITICAL VULNERABILITY: Hardcoded credentials
-@Configuration
-public class DatabaseConfig {
-    
-    @Bean
-    public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl("jdbc:mysql://localhost:3306/trading");
-        dataSource.setUsername("admin");           // CRITICAL: Hardcoded!
-        dataSource.setPassword("SuperSecret123!"); // CRITICAL: Hardcoded!
-        return dataSource;
-    }
-    
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        // CRITICAL: API key hardcoded
-        restTemplate.getInterceptors().add((request, body, execution) -> {
-            request.getHeaders().add("X-API-Key", "abc123-secret-key-xyz789");
-            return execution.execute(request, body);
-        });
-        return restTemplate;
-    }
-}""",
-        "recommended_fix": """
-// ✅ SECURE: Environment-based configuration with Spring Security
-@Configuration
-public class DatabaseConfig {
-    
-    @Value("${app.datasource.url}")
-    private String databaseUrl;
-    
-    @Value("${app.datasource.username}")
-    private String databaseUsername;
-    
-    @Value("${app.datasource.password}")
-    private String databasePassword;
-    
-    @Value("${app.api.key}")
-    private String apiKey;
-    
-    @Bean
-    public DataSource dataSource() {
-        DriverManagerDataSource dataSource = new DriverManagerDataSource();
-        dataSource.setDriverClassName("com.mysql.cj.jdbc.Driver");
-        dataSource.setUrl(databaseUrl);
-        dataSource.setUsername(databaseUsername);
-        dataSource.setPassword(databasePassword);
-        return dataSource;
-    }
-    
-    @Bean
-    public RestTemplate restTemplate() {
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.getInterceptors().add((request, body, execution) -> {
-            request.getHeaders().add("X-API-Key", apiKey);
-            return execution.execute(request, body);
-        });
-        return restTemplate;
-    }
-}
-
-// application-prod.yml (encrypted with Spring Cloud Config or Vault)
-app:
-  datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME} 
-    password: ${DATABASE_PASSWORD}
-  api:
-    key: ${API_SECRET_KEY}
-
-// Alternative: Use Spring Vault for secrets management
-@Configuration
-@EnableVault
-public class VaultConfig extends AbstractVaultConfiguration {
-    
-    @Override
-    public ClientAuthentication clientAuthentication() {
-        return new TokenAuthentication("${VAULT_TOKEN}");
-    }
-    
-    @Override
-    public VaultEndpoint vaultEndpoint() {
-        return VaultEndpoint.create("${VAULT_HOST}", ${VAULT_PORT});
-    }
-    
-    @VaultPropertySource("secret/myapp")
-    public class Application {
-        // Properties automatically injected from Vault
-    }
-}""",
-        "why_this_works": [
-            "Credentials stored in environment variables or vault systems",
-            "Secrets never committed to source control",
-            "Different credentials per environment (dev/staging/prod)",
-            "Rotation possible without code changes"
-        ],
-        "implementation_steps": [
-            "Move all hardcoded secrets to environment variables",
-            "Use Spring @Value or @ConfigurationProperties",
-            "Implement secrets management (Vault, AWS Secrets Manager)",
-            "Add .env files to .gitignore",
-            "Audit codebase for remaining hardcoded secrets"
-        ]
-    }
-
-def generate_authentication_strengthening_fix():
-    """Generate authentication strengthening fix"""
-    return {
-        "title": "🟠 Weak Authentication Implementation - High",
-        "description": "Authentication lacks security best practices",
-        "impact": "Account takeover, brute force attacks, session hijacking",
-        "risk_level": "High",
-        "effort_to_fix": "High",
-        "owasp_category": "A07:2021 – Identification and Authentication Failures",
-        "current_code": """
-// ❌ WEAK: Basic authentication with security issues
-@RestController
-public class AuthController {
-    
-    @Autowired
-    private UserService userService;
-    
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        // WEAK: No rate limiting, plaintext password comparison
-        User user = userService.findByUsername(request.getUsername());
-        if (user != null && user.getPassword().equals(request.getPassword())) {
-            // WEAK: Simple token, no expiration, no signing
-            String token = "TOKEN_" + user.getId() + "_" + System.currentTimeMillis();
-            return ResponseEntity.ok(new LoginResponse(token));
-        }
-        return ResponseEntity.status(401).body("Invalid credentials");
-    }
-    
-    @PostMapping("/register") 
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-        // WEAK: No password policy, plaintext storage
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword()); // CRITICAL: Plaintext!
-        userService.save(user);
-        return ResponseEntity.ok("User registered");
-    }
-}""",
-        "recommended_fix": """
-// ✅ SECURE: Strong authentication with Spring Security
-@RestController
-public class AuthController {
-    
-    @Autowired
-    private AuthenticationManager authenticationManager;
-    
-    @Autowired 
-    private JwtTokenProvider jwtTokenProvider;
-    
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-    
-    @Autowired
-    private UserService userService;
-    
-    @PostMapping("/login")
-    @RateLimited(requests = 5, timeWindow = "1m") // Rate limiting
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request, 
-                                  HttpServletRequest httpRequest) {
-        try {
-            // Strong authentication with Spring Security
-            Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                    request.getUsername(), 
-                    request.getPassword()
-                )
-            );
-            
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            String jwt = jwtTokenProvider.generateToken(userDetails);
-            
-            // Log successful login
-            auditService.logLogin(request.getUsername(), httpRequest.getRemoteAddr());
-            
-            return ResponseEntity.ok(new JwtResponse(jwt));
-            
-        } catch (BadCredentialsException e) {
-            // Log failed attempt
-            auditService.logFailedLogin(request.getUsername(), httpRequest.getRemoteAddr());
-            return ResponseEntity.status(401).body("Invalid credentials");
-        }
-    }
-    
-    @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request) {
-        // Strong password policy validation
-        if (!passwordPolicyService.isValid(request.getPassword())) {
-            return ResponseEntity.badRequest()
-                .body("Password must be at least 12 characters with mixed case, numbers, and symbols");
-        }
-        
-        if (userService.existsByUsername(request.getUsername())) {
-            return ResponseEntity.badRequest().body("Username already exists");
-        }
-        
-        User user = new User();
-        user.setUsername(request.getUsername());
-        // SECURE: Password properly hashed with BCrypt
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setEnabled(false); // Require email verification
-        
-        userService.save(user);
-        emailService.sendVerificationEmail(user);
-        
-        return ResponseEntity.ok("Registration successful. Please verify your email.");
-    }
-}
-
-// Security Configuration
-@Configuration
-@EnableWebSecurity
-@EnableMethodSecurity
-public class SecurityConfig {
-    
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        // Strong password hashing
-        return new BCryptPasswordEncoder(12);
-    }
-    
-    @Bean
-    public JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint() {
-        return new JwtAuthenticationEntryPoint();
-    }
-    
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
-        
-        return http.build();
-    }
-}""",
-        "why_this_works": [
-            "BCrypt provides secure password hashing with salt",
-            "JWT tokens are signed and have expiration",
-            "Rate limiting prevents brute force attacks", 
-            "Spring Security handles authentication flows securely"
-        ],
-        "implementation_steps": [
-            "Implement Spring Security with JWT",
-            "Add password policy enforcement",
-            "Enable rate limiting with Redis or in-memory store",
-            "Add comprehensive audit logging",
-            "Implement account lockout after failed attempts"
-        ]
-    }
-
-def generate_security_document(vulnerabilities_list):
-    """Generate the complete security vulnerabilities and fixes document"""
-    if not vulnerabilities_list:
-        return """
-# Security Vulnerabilities and Fixes
-
-## Overview
-No critical security vulnerabilities requiring immediate fixes were detected in the current analysis.
-
-## Security Recommendations
+## Recommendations
 - Continue regular security assessments and penetration testing
 - Implement automated security scanning in CI/CD pipeline
 - Keep dependencies updated and monitor for vulnerabilities
 - Follow OWASP secure coding practices
+
+## Next Steps
+- Consider dynamic application security testing (DAST)
+- Implement security monitoring and logging
+- Regular security training for development team
 """
-    
-    document = """# Security Vulnerabilities and Fixes
 
-## Overview
-This document provides specific fixes and secure code examples for security vulnerabilities identified in the codebase analysis.
+    # Group findings by severity
+    critical_findings = [f for f in security_findings if f['severity'] == 'Critical']
+    high_findings = [f for f in security_findings if f['severity'] == 'High']
+    medium_findings = [f for f in security_findings if f['severity'] == 'Medium']
 
-🚨 **CRITICAL**: All security fixes should be implemented immediately and thoroughly tested before production deployment.
+    # Group by OWASP category
+    owasp_categories = {}
+    for finding in security_findings:
+        category = finding['owasp_category']
+        if category not in owasp_categories:
+            owasp_categories[category] = []
+        owasp_categories[category].append(finding)
+
+    documentation = f"""# Security Analysis Report
+
+## Executive Summary
+🚨 **{len(security_findings)} security vulnerabilities detected** requiring attention:
+- 🔴 Critical: {len(critical_findings)} issues
+- 🟠 High: {len(high_findings)} issues
+- 🟡 Medium: {len(medium_findings)} issues
 
 ## OWASP Top 10 Mapping
-The vulnerabilities identified map to the following OWASP Top 10 categories:
-- A03:2021 – Injection
-- A07:2021 – Identification and Authentication Failures
-- A09:2021 – Security Logging and Monitoring Failures
+The following OWASP categories were identified in the analysis:
+"""
 
-## Vulnerabilities and Solutions
+    for category, findings in owasp_categories.items():
+        documentation += f"- **{category}**: {len(findings)} issues\n"
+
+    documentation += f"""
+
+## Critical Security Findings ({len(critical_findings)} issues)
+"""
+
+    for finding in critical_findings:
+        documentation += f"""
+### 🔴 {finding['type']} - {finding['severity']}
+
+**File**: `{finding['file']}:{finding['line']}`
+**OWASP Category**: {finding['owasp_category']}
+**Description**: {finding['description']}
+
+**Vulnerable Code**:
+```
+{finding['code_snippet']}
+```
+
+**Context**:
+```
+{finding['context']}
+```
+
+**Recommendation**: {finding['recommendation']}
+
+---
+"""
+
+    if high_findings:
+        documentation += f"""
+## High Priority Security Findings ({len(high_findings)} issues)
+"""
+        for finding in high_findings[:10]:  # Limit to top 10 for readability
+            documentation += f"""
+### 🟠 {finding['type']} - {finding['severity']}
+
+**File**: `{finding['file']}:{finding['line']}`
+**Code**: `{finding['code_snippet']}`
+**Recommendation**: {finding['recommendation']}
+
+---
+"""
+
+    return documentation
+
+def generate_vulnerability_catalog(security_findings):
+    """Generate detailed vulnerability catalog"""
+    if not security_findings:
+        return """# Security Vulnerabilities Catalog
+
+## Overview
+No security vulnerabilities were detected in the current analysis.
+
+## Analysis Coverage
+- Static code analysis performed
+- Configuration files reviewed
+- Security patterns checked against OWASP Top 10
+
+## Recommendations
+Continue implementing security best practices and regular assessments.
+"""
+
+    catalog = f"""# Security Vulnerabilities Catalog
+
+**Generated**: {datetime.now().isoformat()}
+**Total Vulnerabilities**: {len(security_findings)}
+
+## Vulnerability Summary
+
+| Severity | Count |
+|----------|-------|
+| Critical | {len([f for f in security_findings if f['severity'] == 'Critical'])} |
+| High     | {len([f for f in security_findings if f['severity'] == 'High'])} |
+| Medium   | {len([f for f in security_findings if f['severity'] == 'Medium'])} |
+
+## Detailed Vulnerability Listings
 
 """
-    
-    for vuln in vulnerabilities_list:
-        document += f"""
-### {vuln['title']}
 
-**Vulnerability Description**: {vuln['description']}
-**Impact**: {vuln['impact']}
-**Risk Level**: {vuln['risk_level']}
-**Effort to Fix**: {vuln['effort_to_fix']}
-**OWASP Category**: {vuln.get('owasp_category', 'Not categorized')}
+    # Group by severity for detailed listing
+    for severity in ['Critical', 'High', 'Medium']:
+        severity_findings = [f for f in security_findings if f['severity'] == severity]
+        if not severity_findings:
+            continue
 
-#### Vulnerable Code
-```java
-{vuln['current_code']}
-```
+        catalog += f"""
+### {severity} Severity Vulnerabilities ({len(severity_findings)} issues)
 
-#### Secure Implementation
-```java
-{vuln['recommended_fix']}
-```
-
-#### Why This Fix Works
 """
-        for reason in vuln['why_this_works']:
-            document += f"- {reason}\n"
-        
-        document += "\n#### Implementation Steps\n"
-        for i, step in enumerate(vuln['implementation_steps'], 1):
-            document += f"{i}. {step}\n"
-        
-        document += "\n---\n"
-    
-    return document
+
+        for finding in severity_findings:
+            catalog += f"""
+#### {finding['id']}
+
+- **Type**: {finding['type']}
+- **Location**: `{finding['file']}:{finding['line']}`
+- **OWASP Category**: {finding['owasp_category']}
+- **Description**: {finding['description']}
+- **Code Snippet**: `{finding['code_snippet']}`
+- **Recommendation**: {finding['recommendation']}
+
+---
+
+"""
+
+    return catalog
 ```
 
-### Step 5: Create Required Outputs
+### Step 4: Create Required Outputs
 ```python
-# 1. Context summary for next agents
+# Verify OWASP mappings if needed
+security_findings = verify_owasp_mapping_if_needed(security_findings)
+
+# Generate all documentation based on actual findings
+security_documentation = generate_security_documentation(security_findings)
+vulnerability_catalog = generate_vulnerability_catalog(security_findings)
+
+# Create context summary for next agents
 context_summary = {
     "agent": "security-analyst",
     "timestamp": datetime.now().isoformat(),
     "data_sources": {
-        "repomix_summary": "output/reports/repomix-summary.md",
-        "repomix_context": "output/context/repomix-analyzer-summary.json",
-        "architecture_context": "output/context/architecture-analysis-summary.json" if architecture_context else None,
-        "business_context": "output/context/business-logic-analyst-summary.json" if business_context else None,
-        "performance_context": "output/context/performance-analyst-summary.json" if performance_context else None,
-        "other_contexts": list(other_contexts.keys()) if other_contexts else []
+        "repomix_summary": "output/reports/repomix-summary.md" if repomix_content else None,
+        "raw_codebase": "codebase/" if not repomix_content else "fallback_used",
+        "files_analyzed": len(all_source_files) + len(config_files) if 'all_source_files' in locals() else 0
     },
     "summary": {
-        "key_findings": actual_security_findings,  # From extracted data only
-        "security_patterns": extracted_security_patterns,
-        "critical_files": identified_security_files,
-        "integrated_insights": len([c for c in [architecture_context, business_context, performance_context] if c]) + len(other_contexts)
+        "total_vulnerabilities": len(security_findings),
+        "critical_count": len([f for f in security_findings if f['severity'] == 'Critical']),
+        "high_count": len([f for f in security_findings if f['severity'] == 'High']),
+        "medium_count": len([f for f in security_findings if f['severity'] == 'Medium']),
+        "owasp_categories": list(set(f['owasp_category'] for f in security_findings)),
+        "top_vulnerability_types": get_top_vulnerability_types(security_findings)
     },
     "data": {
-        "security_issues": security_issues,
-        "auth_patterns": auth_patterns_list,
-        "vulnerability_patterns": vulnerability_patterns,
-        "compliance_gaps": detected_compliance_gaps
+        "security_vulnerabilities": security_findings,
+        "vulnerability_by_severity": group_by_severity(security_findings),
+        "vulnerability_by_file": group_by_file(security_findings),
+        "owasp_mapping": group_by_owasp_category(security_findings)
     }
 }
 
+# Write all outputs
 Write("output/context/security-analyst-summary.json", json.dumps(context_summary, indent=2))
+Write("output/docs/04-security-analysis.md", security_documentation)
+Write("output/docs/security-vulnerabilities.md", vulnerability_catalog)
 
-# 2. Main documentation
-Write("output/docs/03-security-analysis.md", documentation)
+# Generate security diagrams if vulnerabilities found
+if security_findings:
+    generate_security_risk_diagrams(security_findings)
 
+def get_top_vulnerability_types(findings):
+    """Get most common vulnerability types"""
+    type_counts = {}
+    for finding in findings:
+        vuln_type = finding['type']
+        type_counts[vuln_type] = type_counts.get(vuln_type, 0) + 1
 
-# 3. Security diagrams (if security data available)
-if security_data_available:
-    create_security_diagrams()
+    return sorted(type_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+
+def group_by_severity(findings):
+    """Group findings by severity"""
+    groups = {'Critical': [], 'High': [], 'Medium': []}
+    for finding in findings:
+        if finding['severity'] in groups:
+            groups[finding['severity']].append(finding)
+    return groups
+
+def group_by_file(findings):
+    """Group findings by file"""
+    file_groups = {}
+    for finding in findings:
+        file_path = finding['file']
+        if file_path not in file_groups:
+            file_groups[file_path] = []
+        file_groups[file_path].append(finding)
+    return file_groups
+
+def group_by_owasp_category(findings):
+    """Group findings by OWASP category"""
+    owasp_groups = {}
+    for finding in findings:
+        category = finding['owasp_category']
+        if category not in owasp_groups:
+            owasp_groups[category] = []
+        owasp_groups[category].append(finding)
+    return owasp_groups
+
+def generate_security_risk_diagrams(security_findings):
+    """Generate security risk heat map and architecture diagrams"""
+
+    # Security risk heat map
+    risk_heatmap = f"""graph TD
+    subgraph "Security Risk Heat Map"
+        A[Critical: {len([f for f in security_findings if f['severity'] == 'Critical'])} issues] --> A1[SQL Injection]
+        A[Critical] --> A2[Command Injection]
+        A[Critical] --> A3[Hardcoded Credentials]
+
+        B[High: {len([f for f in security_findings if f['severity'] == 'High'])} issues] --> B1[Weak Authentication]
+        B[High] --> B2[Data Exposure]
+        B[High] --> B3[Missing Authorization]
+
+        C[Medium: {len([f for f in security_findings if f['severity'] == 'Medium'])} issues] --> C1[Config Issues]
+        C[Medium] --> C2[Weak Crypto]
+        C[Medium] --> C3[Input Validation]
+    end
+
+    style A fill:#ff6b6b
+    style B fill:#ffa500
+    style C fill:#ffeb3b
+"""
+
+    Write("output/diagrams/security-risk-heatmap.mmd", risk_heatmap)
+
+    print("✅ Security analysis complete!")
+    print(f"📊 Found {len(security_findings)} security vulnerabilities")
+    print(f"🔴 Critical: {len([f for f in security_findings if f['severity'] == 'Critical'])}")
+    print(f"🟠 High: {len([f for f in security_findings if f['severity'] == 'High'])}")
+    print(f"🟡 Medium: {len([f for f in security_findings if f['severity'] == 'Medium'])}")
 ```
-
-## Enhanced Fallback Strategy
-
-⚠️ **SEE**: `framework/templates/FALLBACK_PATTERNS.md` for complete fallback implementation patterns.
-
-This agent implements comprehensive fallback mechanisms to ensure analysis can continue even when primary data sources (Repomix summaries) are insufficient or unavailable. The agent will automatically:
-
-1. **Data Quality Assessment**: Evaluate available data sources for completeness
-2. **Intelligent Fallback**: Switch to raw codebase analysis when needed  
-3. **Technology Detection**: Identify relevant files and patterns from filesystem
-4. **Graceful Degradation**: Provide structured responses even with limited data
-5. **Error Handling**: Continue analysis despite individual file access failures
-
-The fallback mechanisms ensure robust operation across diverse codebase environments and configurations.
-
 
 ## Quality Checklist
 
 Before completing analysis:
-- [ ] Repomix summary successfully loaded
-- [ ] Repomix analyzer context loaded
-- [ ] Other agent contexts loaded (architecture-analysis, business-logic-analyst, performance-analyst, etc.)
-- [ ] Security patterns analyzed from all available data sources
-- [ ] OWASP Top 10 vulnerabilities identified
-- [ ] Authentication and authorization issues documented
-- [ ] Data protection gaps flagged with visual indicators
-- [ ] Dependency security issues identified
-- [ ] Context JSON file created
-- [ ] Main documentation written
-- [ ] Security diagrams created
+- [ ] Repomix summary loaded (if available)
+- [ ] Raw codebase security scan performed (if needed)
+- [ ] **NO hardcoded vulnerabilities** - only actual findings documented
+- [ ] **NO fabricated OWASP mappings** - only detected issues mapped
+- [ ] Multi-language security patterns analyzed (Java, C#, PHP, JS, TS, Python)
+- [ ] Configuration files scanned for security misconfigurations
+- [ ] **OWASP mappings verified** - use WebSearch if uncertain about categorization
+- [ ] **Current OWASP Top 10 consulted** for accurate vulnerability classification
+- [ ] Context JSON file created with actual findings
+- [ ] Main security documentation written based on real data
+- [ ] Detailed vulnerability catalog generated
+- [ ] Security diagrams created (if vulnerabilities found)
 - [ ] **CRITICAL: ALL Mermaid diagrams validated with zero errors**
 - [ ] Agent completion message displayed
 
 ## Summary
 
 This agent MUST:
-1. Read `output/reports/repomix-summary.md` FIRST
-2. Read `output/context/repomix-analyzer-summary.json` SECOND  
-3. Extract actual security data only - no fabrication
-4. Generate context summary, documentation, and diagrams
-5. Validate ALL Mermaid diagrams before completion
-6. State "Not detected" if data unavailable
+1. Read `output/reports/repomix-summary.md` FIRST (PRIMARY data source)
+2. Fallback to raw codebase (`codebase/`) if Repomix insufficient
+3. **Analyze ONLY actual security vulnerabilities found in code**
+4. **Generate findings based purely on detected patterns**
+5. Create comprehensive vulnerability documentation
+6. Map findings to OWASP categories based on actual detections
+7. Validate ALL Mermaid diagrams before completion
+8. State "No vulnerabilities detected" if none found
 
-All analysis must be based on actual extracted data from the specified sources.
+**NO hardcoded content allowed** - all analysis must be based on actual security patterns detected in the codebase.
