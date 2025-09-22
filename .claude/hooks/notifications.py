@@ -21,25 +21,12 @@ class NotificationSystem:
     def __init__(self):
         self.system = platform.system()
         self.project_dir = Path(os.getenv('CLAUDE_PROJECT_DIR', Path.cwd()))
-        self.log_dir = self.project_dir / 'logs'
-        self.log_dir.mkdir(exist_ok=True)
-        self.notification_log = self.log_dir / 'notifications.log'
-    
-    def log_notification(self, message: str, method: str):
-        """Log notification to file"""
-        try:
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            with open(self.notification_log, 'a', encoding='utf-8') as f:
-                f.write(f"[{timestamp}] [{method}] {message}\n")
-        except Exception:
-            pass  # Silent fail for logging
-    
+        
     def send_voice(self, message: str) -> bool:
         """Send voice notification (text-to-speech)"""
         try:
             if self.system == "Darwin":  # macOS
                 subprocess.run(["say", message], check=False, capture_output=True)
-                self.log_notification(message, "VOICE")
                 return True
             
             elif self.system == "Windows":
@@ -52,14 +39,12 @@ class NotificationSystem:
                     check=False,
                     capture_output=True
                 )
-                self.log_notification(message, "VOICE")
                 return True
             
             elif self.system == "Linux":
                 # Try espeak first, then festival
                 if subprocess.run(["which", "espeak"], capture_output=True).returncode == 0:
                     subprocess.run(["espeak", message], check=False, capture_output=True)
-                    self.log_notification(message, "VOICE")
                     return True
                 elif subprocess.run(["which", "festival"], capture_output=True).returncode == 0:
                     subprocess.run(
@@ -68,13 +53,11 @@ class NotificationSystem:
                         check=False,
                         capture_output=True
                     )
-                    self.log_notification(message, "VOICE")
                     return True
             
             return False
             
         except Exception as e:
-            self.log_notification(f"Voice error: {e}", "ERROR")
             return False
     
     def send_popup(self, message: str, title: str = "Claude Code") -> bool:
@@ -88,7 +71,6 @@ class NotificationSystem:
                     check=False,
                     capture_output=True
                 )
-                self.log_notification(f"{title}: {message}", "POPUP")
                 return True
             
             elif self.system == "Windows":
@@ -121,7 +103,6 @@ class NotificationSystem:
                     check=False,
                     capture_output=True
                 )
-                self.log_notification(f"{title}: {message}", "POPUP")
                 return True
             
             elif self.system == "Linux":
@@ -132,13 +113,11 @@ class NotificationSystem:
                         check=False,
                         capture_output=True
                     )
-                    self.log_notification(f"{title}: {message}", "POPUP")
                     return True
             
             return False
             
         except Exception as e:
-            self.log_notification(f"Popup error: {e}", "ERROR")
             return False
     
     def send_terminal(self, message: str):
@@ -146,7 +125,6 @@ class NotificationSystem:
         print(f"\n{'='*60}", file=sys.stderr)
         print(f"🔔 NOTIFICATION: {message}", file=sys.stderr)
         print(f"{'='*60}\n", file=sys.stderr)
-        self.log_notification(message, "TERMINAL")
 
 
 def get_message_from_args() -> tuple[str, str]:

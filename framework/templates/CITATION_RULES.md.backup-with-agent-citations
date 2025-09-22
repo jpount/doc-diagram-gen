@@ -1,0 +1,233 @@
+# Citation Rules
+
+## Reference ID System (Recommended)
+
+Use reference IDs to keep documentation clean while maintaining complete traceability.
+
+### Reference ID Format
+
+**In Documentation**: `ComponentName` [REF-XXX]
+- Example: "The `UserService` class [REF-001] handles authentication"
+
+**In Diagrams**: Add citation comments after diagram declaration
+```mermaid
+classDiagram
+    %% Component Citations
+    %% UserService: REF-001 (src/main/java/UserService.java:45)
+    %% OrderRepository: REF-002 (src/main/java/OrderRepository.java:23)
+```
+
+### Using Citation Manager
+
+```python
+# Import citation tools
+from framework.scripts.citation_manager import CitationManager
+from framework.scripts.repomix_parser import RepomixParser
+
+# Initialize at agent start
+citation_manager = CitationManager()
+repomix_parser = RepomixParser()
+
+# Find component and add citation
+location = repomix_parser.find_component_in_repomix("UserService", "class")
+if location:
+    ref_id = citation_manager.add_citation(
+        component="UserService",
+        file_path=location['file'],
+        original_line=location.get('original_line'),
+        repomix_line=location['repomix_line'],
+        code_snippet=repomix_parser.extract_code_snippet(location['repomix_line'])
+    )
+
+# Use in documentation
+doc_text = f"The `UserService` [{ref_id}] handles authentication..."
+
+# Generate citations file at end
+citation_manager.generate_citations_file()
+```
+
+## Legacy Inline Format (Still Supported)
+
+**Standard Format**: `ComponentName` (filename:line_number)
+- Example: "The `UserService` class (UserService.java:245) handles authentication"
+
+**Note**: Inline citations can be automatically converted to reference IDs using:
+```python
+updated_content, count = citation_manager.update_document_with_references(content)
+```
+
+## MANDATORY Implementation for ALL Agents
+
+### Simple Bash Approach (REQUIRED)
+```bash
+# Create agent-specific citations file from template
+AGENT_NAME="your-agent-name"  # e.g., "business-logic-analyst", "security-analyst"
+mkdir -p output/citations
+cp framework/templates/citations_template.md output/citations/${AGENT_NAME}-citations.md
+
+# Update the template with agent name and timestamp
+sed -i '' "s/{AGENT_NAME}/${AGENT_NAME}/g" output/citations/${AGENT_NAME}-citations.md
+sed -i '' "s/\[TIMESTAMP\]/$(date '+%Y-%m-%d %H:%M:%S')/g" output/citations/${AGENT_NAME}-citations.md
+```
+
+### MINIMUM REQUIREMENT - Agent MUST:
+1. Create `output/citations/{agent-name}-citations.md` in the citations folder
+2. Add at least 3 REF-XXX entries for main components found
+3. Use [REF-XXX] format in all documentation
+4. Add `%% Component Citations` to all diagrams
+5. Track which files use each citation (e.g., "Used in: business-rules-catalog.md, business-logic-domain.mmd")
+
+### Required for ALL Diagrams
+**Every diagram MUST have minimal citation comments:**
+```mermaid
+sequenceDiagram
+    %% Component Citations (MANDATORY)
+    %% UserService: REF-001
+    %% OrderController: REF-002
+
+    participant UserService
+    participant OrderController
+```
+**Note**: Keep diagram citations clean (just REF-XXX). Full details go in citations.md
+
+### Required Outputs Checklist
+- [ ] `output/citations/{agent-name}-citations.md` - MUST be generated in citations folder
+- [ ] ALL citations include "Used in:" section listing files that reference them
+- [ ] ALL diagrams have `%% Component Citations` section
+- [ ] Standalone sequence diagrams in `output/diagrams/sequence-*.mmd` (for business-logic-analyst)
+
+### Verification Commands
+```bash
+# Verify agent-specific citations exist
+# Replace {agent-name} with actual agent name
+test -f output/citations/{agent-name}-citations.md || echo "❌ MISSING: {agent-name}-citations.md"
+
+# Verify diagrams have citations
+grep -l "Component Citations" output/diagrams/*.mmd || echo "❌ MISSING: Diagram citations"
+```
+
+## ENFORCEMENT: Agent Cannot Complete Without Citations
+
+### Pre-Completion Checklist
+```bash
+# REQUIRED before agent can mark completion
+AGENT_NAME="your-agent-name"  # e.g., "business-logic-analyst"
+
+# 1. Check agent-specific citations.md exists
+if [ ! -f "output/citations/${AGENT_NAME}-citations.md" ]; then
+    echo "❌ CRITICAL: ${AGENT_NAME}-citations.md missing"
+    exit 1
+fi
+
+# 2. Check diagrams have citation comments
+for diagram in output/diagrams/*.mmd; do
+    if [ -f "$diagram" ]; then
+        if ! grep -q "%% Component Citations" "$diagram"; then
+            echo "❌ WARNING: $diagram missing citation comments"
+        fi
+    fi
+done
+
+# 3. Check documentation uses [REF-XXX] format
+if ! grep -q "\[REF-" output/docs/*.md 2>/dev/null; then
+    echo "❌ WARNING: No [REF-XXX] citations found in documentation"
+fi
+
+echo "✅ Citation compliance check complete"
+```
+
+### Pre-Diagram Entity Verification
+
+Before creating any diagram, MUST verify ALL entities exist:
+
+1. **Search Repomix**: Check compressed summary first
+   ```bash
+   Grep "class UserService" output/reports/repomix-summary.md
+   ```
+
+2. **Document Verification**:
+   - ✅ Verified: `UserService` found at UserService.java:245
+   - ❌ Not found: `PaymentGateway` not detected in codebase
+
+3. **Fallback Search**: If not in Repomix, search raw codebase
+   ```bash
+   Grep "class UserService" codebase/
+   ```
+
+### Citation Requirements by Context
+
+**Architecture Documentation**:
+- Every component must cite source file
+- Every relationship must reference actual imports/dependencies
+- Every API endpoint must cite controller method
+
+**Business Logic**:
+- Every business rule must cite implementation
+- Every validation must reference actual code
+- Every workflow must cite orchestration logic
+
+**Performance Analysis**:
+- Every bottleneck must cite specific method/query
+- Every optimization must reference current implementation
+- Every metric must cite measurement source
+
+**Security Findings**:
+- Every vulnerability must cite exact location
+- Every authentication flow must reference implementation
+- Every encryption usage must cite specific code
+
+### What Requires Citation
+
+**MUST Cite**:
+- Class/interface names
+- Method/function names
+- Database tables/entities
+- API endpoints
+- Configuration values
+- Business rules
+- Security implementations
+- Performance bottlenecks
+
+**No Citation Needed**:
+- General observations
+- Standard patterns (e.g., "uses MVC")
+- Framework features (e.g., "Spring Boot application")
+- Generic recommendations
+
+### Handling Missing Information
+
+When data cannot be found:
+- State explicitly: "Not detected in codebase"
+- Never fabricate or guess locations
+- Document search performed: "Searched for X, not found"
+- Suggest manual verification if critical
+
+### Examples
+
+**Good Citations**:
+```markdown
+The authentication flow begins in `LoginController` (LoginController.java:45) which
+calls `AuthService.authenticate()` (AuthService.java:123). User credentials are
+validated against the `users` table (User.java:15) using BCrypt hashing
+(SecurityConfig.java:89).
+```
+
+**Bad Citations** (no source):
+```markdown
+The authentication flow uses a standard login controller that validates
+credentials against the database using encrypted passwords.
+```
+
+## Verification Commands
+
+Always verify before documenting:
+```bash
+# Verify class exists
+Grep "class ClassName" output/reports/repomix-summary.md
+
+# Verify method exists
+Grep "methodName" output/reports/repomix-summary.md
+
+# Verify import/dependency
+Grep "import.*ClassName" output/reports/repomix-summary.md
+```

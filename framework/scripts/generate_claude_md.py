@@ -73,9 +73,9 @@ def generate_claude_md(project_name="daytrader"):
 
 ## Project Overview
 - **Project Name:** {project_name}  
-- **Framework Mode:** Simplified Documentation & Diagram Generation
+- **Framework Mode:** Enhanced Documentation & Diagram Generation
 - **Codebase Location:** codebase/{project_name}
-- **Framework Version:** 2.1 (Simplified)
+- **Framework Version:** 2.1 (Enhanced)
 
 ## Core Workflow
 
@@ -103,33 +103,30 @@ ls -la output/reports/repomix-summary.md
 
 ### 🔴 CRITICAL: All Agents Must Follow This Priority
 1. **PRIMARY**: Read `output/reports/repomix-summary.md` (compressed codebase)
-2. **SECONDARY**: Read `output/context/*.json` (previous agent outputs) 
-3. **FALLBACK**: Access raw codebase only if needed
+2. **FALLBACK**: Access raw codebase only if needed
 
 ### Critical Rules for ALL Agents
-⚠️ **SEE**: `framework/templates/CRITICAL_RULES.md` for complete rules
+⚠️ **ALL agents MUST read and follow these rule files:**
 
-**Key requirements:**
-- NO hardcoded data or fabricated metrics
-- NO Serena MCP tools - use JSON context files only
-- ALL Mermaid diagrams MUST validate with zero errors before completion
-- State "Not detected" for missing information
+- **`framework/templates/CRITICAL_RULES.md`** - Core validation and data integrity rules
+- **`framework/templates/CITATION_RULES.md`** - Mandatory source citation requirements
+- **`framework/templates/DIAGRAM_VALIDATION_RULES.md`** - Component existence verification for diagrams
+- **`framework/templates/DATA_SOURCE_PRIORITY.md`** - Data reading priority order
+- **`framework/templates/VISUAL_INDICATORS.md`** - Standard visual indicators for findings
+- **`framework/templates/MERMAID_RULES.md`** - Mermaid diagram validation requirements
 
 ### Required Agent Outputs
 Each agent MUST produce:
-- `output/context/{{agent-name}}-summary.json` - Context for next agents
-- `output/docs/{{number}}-{{agent-name}}.md` - Documentation 
+- `output/docs/{{number}}-{{agent-name}}.md` - Documentation
 - `output/diagrams/{{agent-name}}-*.mmd` - Diagrams (if applicable)
 
 ## Output Locations
 - **Documentation:** `output/docs/`
 - **Diagrams:** `output/diagrams/`
-- **Context Summaries:** `output/context/` 
 - **Reports:** `output/reports/`
 
 ## Token Optimization Strategy
 - **Repomix Summary:** ~50,000 tokens (80% reduction from raw codebase)
-- **Context Chain:** Agents read previous summaries for efficiency
 - **Raw Access:** Only when compressed data insufficient
 
 ## Troubleshooting
@@ -143,12 +140,10 @@ repomix --config .repomix.config.json codebase/{project_name}/
 ls -la output/reports/repomix-summary.md
 ```
 
-### Agent Context Issues
+### Agent Independence
 ```bash
-# Check context files exist
-ls -la output/context/
-
-# Agents should read previous contexts before accessing raw code
+# Agents work independently - no context dependencies
+# Each agent reads directly from Repomix summary or raw codebase
 ```
 
 ## Quick Start

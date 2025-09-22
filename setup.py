@@ -678,6 +678,33 @@ Each agent MUST produce:
             print()
         else:
             print(f"{Colors.GREEN}✅ Found Repomix summary{Colors.RESET}")
+
+            # Check if citations have been extracted
+            citations_file = self.output_dir / "context" / "codebase-citations.json"
+            if not citations_file.exists():
+                print(f"{Colors.YELLOW}⚠️  Citations not extracted yet{Colors.RESET}")
+                print(f"   Extracting citations from repomix summary...")
+
+                # Run citation extraction
+                try:
+                    result = subprocess.run(
+                        ["python3", "framework/scripts/extract_citations.py"],
+                        capture_output=True,
+                        text=True,
+                        cwd=self.script_dir
+                    )
+                    if result.returncode == 0:
+                        print(f"{Colors.GREEN}✅ Citations extracted successfully{Colors.RESET}")
+                    else:
+                        print(f"{Colors.YELLOW}⚠️  Citation extraction had issues{Colors.RESET}")
+                        if result.stderr:
+                            print(f"   {result.stderr}")
+                except Exception as e:
+                    print(f"{Colors.YELLOW}⚠️  Could not extract citations: {e}{Colors.RESET}")
+                    print(f"   You can manually run: python3 framework/scripts/extract_citations.py")
+            else:
+                print(f"{Colors.GREEN}✅ Found extracted citations{Colors.RESET}")
+
             print()
         
         # Show execution plan

@@ -499,122 +499,44 @@ The following performance areas were identified in the analysis:
 ## Critical Performance Issues ({len(critical_findings)} issues)
 """
 
-    # Generate PERF-XXX IDs for tracking
-    perf_id = 1
-    ref_id = 1
-
     for finding in critical_findings:
-        finding['perf_id'] = f"PERF-{perf_id:03d}"
-        finding['ref_id'] = f"REF-{ref_id:03d}"
         documentation += f"""
-### {finding['perf_id']}: {finding['type']}
+### 🔴 {finding['type']} - {finding['severity']}
 
-- **Severity**: 🔴 CRITICAL
-- **File**: `{finding['file']}:{finding['line']}` [{finding['ref_id']}]
-- **Category**: {finding['category']}
+**File**: `{finding['file']}:{finding['line']}`
+**Category**: {finding['category']}
+**Impact**: {finding['impact']}
+**Description**: {finding['description']}
 
-#### Problematic Code:
-```{get_language_from_file(finding['file'])}
-{finding.get('context', finding['code_snippet'])}
+**Problematic Code**:
+```
+{finding['code_snippet']}
 ```
 
-#### 🔍 Why This Is a Performance Issue:
-{finding.get('description', f"Performance bottleneck detected: {finding['type']}")}
+**Context**:
+```
+{finding['context']}
+```
 
-The code pattern shown above ({finding['code_snippet'][:50]}...) causes performance degradation.
-
-#### 📊 Performance Impact Analysis:
-{finding['impact']}
-
-#### ✅ Recommended Optimization:
-{finding['recommendation']}
-
-#### 🛠️ Implementation Priority:
-Based on the severity ({finding['severity']}) and impact analysis, this issue should be addressed immediately to prevent system degradation.
+**Recommendation**: {finding['recommendation']}
 
 ---
 """
-        perf_id += 1
-        ref_id += 1
 
     if high_findings:
         documentation += f"""
 ## High Priority Performance Issues ({len(high_findings)} issues)
 """
-        for finding in high_findings:  # Document ALL high priority findings
-            finding['perf_id'] = f"PERF-{perf_id:03d}"
-            finding['ref_id'] = f"REF-{ref_id:03d}"
+        for finding in high_findings[:10]:  # Limit to top 10 for readability
             documentation += f"""
-### {finding['perf_id']}: {finding['type']}
+### 🟠 {finding['type']} - {finding['severity']}
 
-- **Severity**: 🟠 HIGH
-- **File**: `{finding['file']}:{finding['line']}` [{finding['ref_id']}]
-- **Category**: {finding['category']}
-
-#### Problematic Code:
-```{get_language_from_file(finding['file'])}
-{finding.get('context', finding['code_snippet'])}
-```
-
-#### 🔍 Performance Issue Explanation:
-{finding.get('description', f"Performance issue detected: {finding['type']}")}
-
-#### 📊 Impact:
-{finding['impact']}
-
-#### ✅ Recommended Optimization:
-{finding['recommendation']}
+**File**: `{finding['file']}:{finding['line']}`
+**Code**: `{finding['code_snippet']}`
+**Impact**: {finding['impact']}
+**Recommendation**: {finding['recommendation']}
 
 ---
-"""
-            perf_id += 1
-            ref_id += 1
-
-    if medium_findings:
-        documentation += f"""
-## Medium Priority Performance Issues ({len(medium_findings)} issues)
-
-| ID | Type | Location | Category | Quick Fix |
-|----|------|----------|----------|-----------|
-"""
-        for finding in medium_findings[:20]:  # Summarize medium issues in table format
-            finding['perf_id'] = f"PERF-{perf_id:03d}"
-            finding['ref_id'] = f"REF-{ref_id:03d}"
-            documentation += f"| {finding['perf_id']} | {finding['type'][:30]} | `{finding['file'].split('/')[-1]}:{finding['line']}` [{finding['ref_id']}] | {finding['category']} | {finding['recommendation'][:50]}... |\n"
-            perf_id += 1
-            ref_id += 1
-
-    documentation += f"""
-
-## Performance Optimization Roadmap
-
-Based on the findings, here's a prioritized optimization roadmap:
-
-### Phase 1: Critical Issues (Immediate)
-"""
-    for finding in critical_findings[:3]:
-        documentation += f"- Fix {finding['perf_id']}: {finding['type']} in {finding['file'].split('/')[-1]}\n"
-
-    documentation += """
-### Phase 2: High Priority (This Sprint)
-"""
-    for finding in high_findings[:5]:
-        documentation += f"- Optimize {finding['perf_id']}: {finding['type']} in {finding['file'].split('/')[-1]}\n"
-
-    documentation += """
-### Phase 3: Medium Priority (Next Sprint)
-- Address remaining database optimization opportunities
-- Implement comprehensive caching strategy
-- Refactor algorithmic inefficiencies
-
-## Monitoring Recommendations
-
-To track improvements:
-1. Implement APM (Application Performance Monitoring)
-2. Set up database query monitoring
-3. Add performance metrics to dashboards
-4. Create performance regression tests
-
 """
 
     return documentation
@@ -698,30 +620,6 @@ Continue implementing performance best practices and regular monitoring.
 """
 
     return catalog
-
-def get_language_from_file(file_path):
-    """Determine programming language from file extension for code block syntax highlighting"""
-    extension_map = {
-        '.java': 'java',
-        '.js': 'javascript',
-        '.ts': 'typescript',
-        '.py': 'python',
-        '.php': 'php',
-        '.cs': 'csharp',
-        '.rb': 'ruby',
-        '.go': 'go',
-        '.rs': 'rust',
-        '.cpp': 'cpp',
-        '.c': 'c',
-        '.sql': 'sql',
-        '.xml': 'xml',
-        '.json': 'json',
-        '.yml': 'yaml',
-        '.yaml': 'yaml'
-    }
-    from pathlib import Path
-    ext = Path(file_path).suffix.lower()
-    return extension_map.get(ext, 'text')
 ```
 
 ### Step 4: Create Required Outputs
@@ -802,19 +700,12 @@ def group_by_category(findings):
     return category_groups
 
 def generate_performance_heat_maps(performance_findings):
-    """Generate performance heat maps and architecture diagrams with proper citations"""
+    """Generate performance heat maps and architecture diagrams"""
 
     # Performance heat map by category and severity
     categories = group_by_category(performance_findings)
 
-    # Build citation comments based on actual findings
-    citation_comments = generate_performance_citations(performance_findings)
-
-    heat_map = f"""graph TD
-    %% Component Citations
-    %% Performance Issues Heat Map based on actual findings
-{citation_comments}
-
+    heat_map = """graph TD
     subgraph "Performance Issues Heat Map"
 """
 
@@ -852,212 +743,11 @@ def generate_performance_heat_maps(performance_findings):
 
     Write("output/diagrams/performance-heatmap.mmd", heat_map)
 
-    # Generate additional performance diagrams with citations
-    generate_performance_bottleneck_diagram(performance_findings)
-    generate_performance_impact_flow(performance_findings)
-
-def generate_performance_citations(findings):
-    """Generate citation comments for performance findings"""
-    citations = []
-    ref_counter = 1
-    perf_counter = 1
-
-    # Group by category for organized citations
-    categories = {}
-    for finding in findings[:20]:  # Limit to top 20 for clarity
-        category = finding['category']
-        if category not in categories:
-            categories[category] = []
-        categories[category].append(finding)
-
-    for category, category_findings in categories.items():
-        citations.append(f"    %% {category} issues:")
-        for finding in category_findings[:5]:  # Top 5 per category
-            file_ref = f"REF-{ref_counter:03d}"
-            perf_ref = f"PERF-{perf_counter:03d}"
-            citations.append(f"    %% {perf_ref}: {finding['type']} - {finding['file']}:{finding['line']} ({file_ref})")
-            ref_counter += 1
-            perf_counter += 1
-
-    return '\n'.join(citations) if citations else "    %% No specific performance issues to cite"
-
-def generate_performance_bottleneck_diagram(performance_findings):
-    """Generate performance bottleneck flow diagram with citations"""
-
-    # Group findings by severity
-    critical_findings = [f for f in performance_findings if f['severity'] == 'Critical'][:5]
-    high_findings = [f for f in performance_findings if f['severity'] == 'High'][:5]
-
-    # Build citation references
-    citations = []
-    perf_counter = 1
-    ref_counter = 1
-
-    bottleneck_flow = """graph TB
-    %% Component Citations
-    %% Performance Bottleneck Analysis based on actual code findings
-"""
-
-    # Add citations for critical issues
-    if critical_findings:
-        citations.append("    %% Critical Bottlenecks:")
-        for finding in critical_findings:
-            citations.append(f"    %% PERF-{perf_counter:03d}: {finding['type']} at {finding['file']}:{finding['line']} (REF-{ref_counter:03d})")
-            perf_counter += 1
-            ref_counter += 1
-
-    # Add citations for high priority issues
-    if high_findings:
-        citations.append("    %% High Priority Bottlenecks:")
-        for finding in high_findings:
-            citations.append(f"    %% PERF-{perf_counter:03d}: {finding['type']} at {finding['file']}:{finding['line']} (REF-{ref_counter:03d})")
-            perf_counter += 1
-            ref_counter += 1
-
-    bottleneck_flow += '\n'.join(citations) if citations else "    %% No bottlenecks detected"
-
-    bottleneck_flow += """
-
-    subgraph "Critical Performance Bottlenecks"
-"""
-
-    # Add critical issues to diagram
-    for i, finding in enumerate(critical_findings, 1):
-        perf_id = f"PERF-{i:03d}"
-        bottleneck_flow += f'        C{i}["{perf_id}: {finding["type"][:30]}<br/>Severity: Critical<br/>Impact: {finding["severity"]}"]\n'
-
-    bottleneck_flow += """    end
-
-    subgraph "High Priority Issues"
-"""
-
-    # Add high priority issues
-    for i, finding in enumerate(high_findings, 1):
-        perf_id = f"PERF-{len(critical_findings) + i:03d}"
-        bottleneck_flow += f'        H{i}["{perf_id}: {finding["type"][:30]}<br/>Severity: High<br/>Category: {finding["category"]}"]\n'
-
-    bottleneck_flow += """    end
-
-    subgraph "Performance Impact"
-        I1[Response Time Degradation]
-        I2[Resource Consumption]
-        I3[Scalability Limitations]
-        I4[User Experience Impact]
-    end
-"""
-
-    # Add connections based on actual findings
-    for i in range(1, min(len(critical_findings) + 1, 6)):
-        bottleneck_flow += f'    C{i} --> I1\n'
-        bottleneck_flow += f'    C{i} --> I2\n'
-
-    for i in range(1, min(len(high_findings) + 1, 6)):
-        bottleneck_flow += f'    H{i} --> I3\n'
-        bottleneck_flow += f'    H{i} --> I4\n'
-
-    # Add styling
-    for i in range(1, min(len(critical_findings) + 1, 6)):
-        bottleneck_flow += f'    style C{i} fill:#ff5252\n'
-
-    for i in range(1, min(len(high_findings) + 1, 6)):
-        bottleneck_flow += f'    style H{i} fill:#ff9800\n'
-
-    bottleneck_flow += """    style I1 fill:#ffcdd2
-    style I2 fill:#ffcdd2
-    style I3 fill:#ffe0b2
-    style I4 fill:#ffe0b2
-"""
-
-    Write("output/diagrams/performance-bottlenecks.mmd", bottleneck_flow)
-
-def generate_performance_impact_flow(performance_findings):
-    """Generate performance impact flow diagram with citations"""
-
-    # Categorize findings
-    db_issues = [f for f in performance_findings if 'Database' in f.get('category', '')][:3]
-    memory_issues = [f for f in performance_findings if 'Memory' in f.get('category', '')][:3]
-    algo_issues = [f for f in performance_findings if 'Algorithm' in f.get('category', '')][:3]
-
-    impact_flow = """flowchart LR
-    %% Component Citations
-    %% Performance Impact Analysis
-"""
-
-    # Build citations
-    perf_counter = 1
-    ref_counter = 1
-
-    if db_issues:
-        impact_flow += "    %% Database Performance Issues:\n"
-        for issue in db_issues:
-            impact_flow += f"    %% PERF-{perf_counter:03d}: {issue['type']} - {issue['file']}:{issue['line']} (REF-{ref_counter:03d})\n"
-            perf_counter += 1
-            ref_counter += 1
-
-    if memory_issues:
-        impact_flow += "    %% Memory Management Issues:\n"
-        for issue in memory_issues:
-            impact_flow += f"    %% PERF-{perf_counter:03d}: {issue['type']} - {issue['file']}:{issue['line']} (REF-{ref_counter:03d})\n"
-            perf_counter += 1
-            ref_counter += 1
-
-    if algo_issues:
-        impact_flow += "    %% Algorithm Efficiency Issues:\n"
-        for issue in algo_issues:
-            impact_flow += f"    %% PERF-{perf_counter:03d}: {issue['type']} - {issue['file']}:{issue['line']} (REF-{ref_counter:03d})\n"
-            perf_counter += 1
-            ref_counter += 1
-
-    impact_flow += """
-
-    subgraph "Performance Issues"
-        DB[Database Bottlenecks]
-        MEM[Memory Issues]
-        ALG[Algorithm Inefficiencies]
-        CACHE[Caching Problems]
-    end
-
-    subgraph "System Impact"
-        RESP[Slow Response Times]
-        THRU[Reduced Throughput]
-        SCALE[Scalability Issues]
-        RES[High Resource Usage]
-    end
-
-    subgraph "User Impact"
-        UX[Poor User Experience]
-        TIME[Timeouts]
-        FAIL[Service Failures]
-    end
-
-    DB --> RESP
-    DB --> THRU
-    MEM --> RES
-    MEM --> FAIL
-    ALG --> RESP
-    ALG --> SCALE
-    CACHE --> RESP
-    CACHE --> THRU
-
-    RESP --> UX
-    THRU --> TIME
-    SCALE --> FAIL
-    RES --> FAIL
-
-    style DB fill:#ffebee
-    style MEM fill:#fce4ec
-    style ALG fill:#f3e5f5
-    style CACHE fill:#ede7f6
-    style RESP fill:#ffcdd2
-    style THRU fill:#ffccbc
-    style SCALE fill:#ffab91
-    style RES fill:#ff8a65
-    style UX fill:#ef5350
-    style TIME fill:#f44336
-    style FAIL fill:#e53935
-"""
-
-    Write("output/diagrams/performance-impact-flow.mmd", impact_flow)
+    print("✅ Performance analysis complete!")
+    print(f"📊 Found {len(performance_findings)} performance issues")
+    print(f"🔴 Critical: {len([f for f in performance_findings if f['severity'] == 'Critical'])}")
+    print(f"🟠 High: {len([f for f in performance_findings if f['severity'] == 'High'])}")
+    print(f"🟡 Medium: {len([f for f in performance_findings if f['severity'] == 'Medium'])}")
 ```
 
 ## Quality Checklist

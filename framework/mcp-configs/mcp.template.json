@@ -16,18 +16,6 @@
         "@modelcontextprotocol/server-memory"
       ],
       "env": {}
-    },
-    "git": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-git",
-        "--repository",
-        "${PWD}"
-      ],
-      "env": {},
-      "disabled": true,
-      "_comment": "Enable if working with git repositories"
     }
   }
 }

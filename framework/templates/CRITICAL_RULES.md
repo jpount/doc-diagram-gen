@@ -6,29 +6,60 @@
 
 ## Data Integrity Rules
 
-1. **NO HARDCODED DATA**: Never use placeholder or example data
+1. **MANDATORY CITATION SYSTEM**: ALL agents MUST use the reference ID system
+   - **REQUIRED OUTPUT**: `output/citations/{agent-name}-citations.md` MUST be generated
+   - **REQUIRED IN DOCS**: Use `[REF-XXX]` format, not inline citations
+   - **REQUIRED IN DIAGRAMS**: Add `%% Component Citations` with REF-XXX
+   - **AGENT CANNOT COMPLETE** without generating citations file
+   - See `framework/templates/CITATION_RULES.md` for implementation
+
+2. **MANDATORY DIAGRAM COMPONENT VERIFICATION**: Every component in diagrams MUST exist in code
+   - **See**: `framework/templates/DIAGRAM_VALIDATION_RULES.md` for complete verification workflow
+   - Pre-diagram verification required for ALL components
+   - Verification log must be created before diagram
+   - Only verified components can appear in diagrams
+   - Use Grep tool to confirm existence: `Grep "class UserService" output/reports/repomix-summary.md`
+   - Document verification: "✅ Verified: UserService found at UserService.java:245"
+   - If entity not found, explicitly state: "❌ Not found in codebase"
+
+3. **MANDATORY SEQUENCE DIAGRAM ACCURACY**: Sequence diagrams MUST show ACTUAL method calls
+   - **NO CONCEPTUAL FLOWS**: Every method call must exist in the actual code
+   - **READ IMPLEMENTATION FIRST**: Must read actual method body before creating diagram
+   - **TRACE REAL CALLS**: Document every method call with exact line number
+   - **USE EXACT NAMES**: Method names must match code exactly (not simplified)
+   - **INCLUDE SQL**: Show actual SQL statements, not conceptual database operations
+   - **See**: `framework/templates/DIAGRAM_VALIDATION_RULES.md` Section 2 for requirements
+   - If you cannot point to the EXACT line of code, it does NOT belong in the diagram
+
+4. **NO HARDCODED DATA**: Never use placeholder or example data
    - Use only actual data extracted from files
    - If data is not found, explicitly state "Not detected" or "Unable to determine"
    - Never fabricate metrics, counts, names, or examples
 
-2. **NO FABRICATED METRICS**: Only use actual data from files
+5. **NO FABRICATED METRICS**: Only use actual data from files
    - No made-up percentages, scores, or measurements
    - No estimated timelines, costs, or resource counts
    - Use actual file counts, sizes, and detected patterns only
 
-3. **NO SERENA REFERENCES**: Do not use any MCP Serena tools
+6. **NO UNNECESSARY TOOLS**: Only use appropriate tools
    - Use only standard tools: Read, Write, Bash, Glob, Grep, LS
-   - No mcp__serena__* function calls
    - Use JSON context files for agent communication instead
 
-4. **STATE UNKNOWN**: If data cannot be found, explicitly state "Not detected" or "Unable to determine"
+7. **STATE UNKNOWN**: If data cannot be found, explicitly state "Not detected" or "Unable to determine"
    - Better to be honest about missing data than to guess
    - Helps users understand analysis limitations
    - Maintains framework credibility
 
+8. **COMPLETE OUTPUT REQUIRED**: ALL findings must be documented, not summarized
+   - If you count 67 rules, you MUST display ALL 67 rules
+   - NO truncation or "showing top 10" - show EVERYTHING
+   - Total counts MUST match actual items displayed
+   - Use consistent REF-XXX numbering across ALL documents
+   - No gaps in REF sequences (if you have REF-017, REF-018 MUST exist)
+
 ## Cost, Timeline, and Metrics Policy
 
-5. **NO FABRICATED MEASUREMENTS**: NEVER generate specific measurements, dates, timelines, costs, or metrics that cannot be backed up by actual data from the codebase.
+9. **NO FABRICATED MEASUREMENTS**: NEVER generate specific measurements, dates, timelines, costs, or metrics that cannot be backed up by actual data from the codebase.
 
 **ABSOLUTELY FORBIDDEN:**
 - Specific dollar amounts ($50K, $1M, etc.)
@@ -56,30 +87,35 @@
 ## Quality Assurance Rules
 
 6. **MERMAID VALIDATION**: ALL Mermaid diagrams MUST compile without errors
-   - Use `python3 framework/scripts/simple_mermaid_validator.py [file]`
-   - Agent cannot complete until all diagrams pass validation with zero errors
-   - Applies to both embedded diagrams in .md files and standalone .mmd files
-   - No exceptions - broken diagrams break the entire output
+   - Validate AFTER writing diagram files: `python3 framework/scripts/simple_mermaid_validator.py output/diagrams/`
+   - Check exit code: 0 = success (may show "✅ Valid" messages), non-zero = errors need fixing
+   - If validation fails (exit code != 0):
+     * Read the specific error message
+     * Fix the identified syntax issue
+     * Re-validate the corrected diagram
+     * Continue with agent tasks (do NOT restart agent)
+   - Agent completes when all diagrams pass validation (exit code 0)
+   - Note: Success messages like "✅ Valid" are NOT errors
 
 ## Data Source Priority
 
 ALL agents MUST read data in this strict order:
 
 1. **PRIMARY**: `output/reports/repomix-summary.md` (compressed codebase)
-2. **SECONDARY**: `output/context/*.json` (previous agent outputs)
-3. **FALLBACK**: Raw codebase access (only if compressed data insufficient)
+2. **FALLBACK**: Raw codebase access (only if compressed data insufficient)
 
 This hierarchy ensures:
 - 80% token reduction through Repomix compression
-- Efficient agent chaining through context files
 - Raw access only when necessary
 
 ## Required Outputs
 
 ALL agents MUST produce:
-- `output/context/{agent-name}-summary.json` - Context for next agents
-- `output/docs/{number}-{agent-name}.md` - Documentation
-- `output/diagrams/{agent-name}-*.mmd` - Diagrams (if applicable)
+- `output/docs/{number}-{agent-name}.md` - Documentation with [REF-XXX] citations
+- `output/docs/citations.md` - **MANDATORY** - Reference details for all REF-XXX
+- `output/diagrams/{agent-name}-*.mmd` - Diagrams with `%% Component Citations` (if applicable)
+
+**AGENT CANNOT COMPLETE** without `output/docs/citations.md` existing.
 
 ## Compliance
 

@@ -56,9 +56,11 @@ Each specialist agent should be **completely independent** and able to run in an
 1. **Repomix summary** (if available)
 2. **Raw codebase** (always available)
 
-## Context Files
+## Agent Independence
 
-Agents still CREATE context files (`output/context/{agent-name}-summary.json`) but they don't READ other agents' context files as primary data sources.
+Each agent operates independently without creating or reading context files. Agents only read from:
+1. The Repomix summary (if available)
+2. The raw codebase (as fallback)
 
 ---
-**Applied to**: solution-architect, technical-architect, java-architect, dotnet-architect, angular-architect, business-logic-analyst, performance-analyst, security-analyst, integration-specialist, ui-analyst, php-architect, delphi-architect
+**Applied to**: solution-architect, technical-architect, business-logic-analyst, performance-analyst, security-analyst, integration-specialist, ui-analyst
